@@ -24,34 +24,17 @@ Installation of the plugin is straightforward:
 
 == Frequently Asked Questions ==
 
-= Will this work with subdomains? =
-Yes, but please test it first.
 
-= Will the plugin work on shared hosting? =
+= Will the plugin work on shared hosting/sub domains/webhost xxx? =
 Yes
 
-= Are there any hosts this plugin won’t work with? =
-None that I am aware of.
-
-= Will WP BackItUp work on Windows hosting? =
-WP BackItUp was developed in a Windows environment so it should work with your Windows hosting.
-
-= Can I install this on several of my computers? =
+= Will WP Backitup work on Windows hosting? =
 Yes
-
-= Does WP BackItUp need to be removed when selling a cloned blog if I have a personal version license? =
-Yes, the personal license entitles you to use on any sites that you own.
-
-= Why do I need a developer’s license instead of the personal license? =
-You can sell a site with personal license but you must remove WP BackItUp first. The developer’s license allows you to keep WP BackItUp installed for your clients/buyers, adding value to your sale.
 
 = Are you going to be making progress bars both for backing up and restoring with this plugin? =
-This may feature in the next version.
-
-= Can this plugin back to Amazon S3? =
 Not at this time.
 
-= Can this plugin backup to the web host? =
+= Can this plugin back to Amazon S3? =
 Not at this time.
 
 = Is there an auto back up schedule feature? =
@@ -63,43 +46,31 @@ The plugin works on the latest release of WordPress and is updated to function w
 = Can this backup one version of WordPress to a different version? =
 No. It is absolutely critical that your WordPress versions are exactly the same.
 
-= Will WP BackItUp work on WordPress Multisite? =
-It should work with individual sites but is untested.
-
-= Does this plugin clone sites? =
-Yes, it can be used very easily to clone sites.
+= Will WP Backitup work on WordPress Multisite? =
+It is untested with Wordpress multisite and probably won't work
 
 = Does the plugin copy the database details as well? =
-A wordpress installation to restore to, must already have a database to function. Once you copy the information to the receiving DB, WP BackItUp will overwrite anything with the backed-up settings.
-
-= I want to backup site A with WordPress version 2.8 and restore the backup to site B with WordPress 3.0 but the latest version is 3.2. How can I do this? =
-If you are worried about the function of plugins you are using, disable them, run WP BackItUp, import your new site to the latest version of WordPress and renable each plugin to check their function. For security reasons you should always keep your site and plugins up-to-date.
+Yes, a database dump is created with each backup
 
 = Can I make a basic WordPress site, with all my desired plugins and settings, make a few pages, setup permalinks, remove all the default junk and load in a basic themplate? =
-Yes. WP BackItUp can be used to create a good ‘starting point’ for any and all sites you work on.
+Yes. WP Backitup can be used to create a good ‘starting point’ for any and all sites you work on.
 
-= Does WP BackItUp need to be installed? =
-Yes. You must install the WP BackItUp plugin on the site you wish to backup and the site you wish to restore to. Its just a simple plugin.
+= Does WP Backitup need to be installed? =
+Yes. You must install the WP Backitup plugin on the site you wish to backup and the site you wish to restore to. Its just a simple plugin.
 
-= Does WP BackItUp backup plugins settings or just the plugins themselves? =
-WP BackItUp will (optionally) backup posts, pages, users, plugins and settings, themes and settings and site settings.
+= Does WP Backitup backup plugins settings or just the plugins themselves? =
+WP Backitup creates a database dump and a backup of all your themes, plugins and uploads.
 
-= Do you have any ideas about how large a blog is “too big” for WP BackItUp to handle? =
-I’ve tested up to 1.2 gigs without any issues.
+= Do you have any ideas about how large a blog is “too big” for WP Backitup to handle? =
+I've tested up to 5 themes, 20 plugins and 100 posts/pages without any issues.
 
-= Do I need to deactivate my plugins before I use the tool? =
-The plugin might not work if you are running any security plugins designed to lock down your files or keep things out. Try disabling them before backing up if you are running into problems.
-
-= Do I need to have WordPress installed at the receiving site before running WP BackItUp? =
-WP BackItUp does not install WordPress. You need to have a WordPress installation set up and the plugin installed in order to restore your backup. However, you can create backups with just a single installation of WordPress.
-
-= Aren’t there similar products like this already? =
-Yes, plenty but they aren’t as easy to use. The plugin requires no additional setup after activation and no access to FTP or cPanel.
-
-= Do you do regular updates to this product to match with WP version updates? =
+= Do you do regularly update this product to match with WP version updates? =
 Yes.
 
 == Changelog ==
+
+= 1.0.6 =
+* Initial free version of the plugin distributed on Wordpress. This version can only backup.
 
 = 1.0.5 =
 * Modified backup to use AJAX and restore to use AJAX-like functionality. Added read-write for options so they are saved to DB on exit.
@@ -120,6 +91,9 @@ Yes.
 * Plugin released.
 
 == Upgrade Notice ==
+
+= 1.0.6 =
+* Non-critical upgrade.
 
 = 1.0.5 =
 * Critical upgrade: More stable, increased flexibility and power.
