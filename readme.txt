@@ -19,7 +19,7 @@ backup of any site and, using WP BackItUp, quickly import your files, settings a
 Installation of the plugin is straightforward:
 
 1. Upload the directory `wp-backitup` to the `/wp-content/plugins/` directory.
-1. Activate the plugin through the 'Plugins' menu in WordPress.
+1. Activate the plugin through the `Plugins` menu in WordPress.
 1. Through the Wordpress dashboard, browse to Tools > WP BackItUp.
 
 == Frequently Asked Questions ==
@@ -47,7 +47,7 @@ The plugin works on the latest release of WordPress and is updated to function w
 No. It is absolutely critical that your WordPress versions are exactly the same.
 
 = Will WP Backitup work on WordPress Multisite? =
-It is untested with Wordpress multisite and probably won't work
+It is untested with Wordpress multisite and probably won`t work
 
 = Does the plugin copy the database details as well? =
 Yes, a database dump is created with each backup
@@ -62,7 +62,7 @@ Yes. You must install the WP Backitup plugin on the site you wish to backup and 
 WP Backitup creates a database dump and a backup of all your themes, plugins and uploads.
 
 = Do you have any ideas about how large a blog is “too big” for WP Backitup to handle? =
-I've tested up to 5 themes, 20 plugins and 100 posts/pages without any issues.
+I`ve tested up to 5 themes, 20 plugins and 100 posts/pages without any issues.
 
 = Do you do regularly update this product to match with WP version updates? =
 Yes.
