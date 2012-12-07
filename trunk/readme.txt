@@ -3,9 +3,10 @@ Contributors: jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup, restore, clone, database, wp-content, files
 Requires at least: 3.4
-Tested up to: 3.4
+Tested up to: 3.4.2
 Stable tag: 3.4
-License: Personal/Premium (Check your WPBackItUp membership)
+License: GPLv2 or later
+License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
 WP BackItUp allows you to backup your database and wp-content folder. This allows you to quickly clone, backup and restore any of your Wordpress sites.
 
@@ -66,6 +67,11 @@ I`ve tested up to 5 themes, 20 plugins and 100 posts/pages without any issues.
 
 = Do you do regularly update this product to match with WP version updates? =
 Yes.
+
+== Screenshots ==
+1. Once activated, the plugin loads a new menu into Tools > WP Backitup.
+2. Simply click 'Export' to generate a backup of your site. The plugin will update you on its progress.
+3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
 
