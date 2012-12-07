@@ -47,10 +47,10 @@ The plugin works on the latest release of WordPress and is updated to function w
 No. It is absolutely critical that your WordPress versions are exactly the same.
 
 = Will WP Backitup work on WordPress Multisite? =
-It is untested with Wordpress multisite and probably will not work
+It is untested with Wordpress multisite and probably will not work.
 
 = Does the plugin copy the database details as well? =
-Yes, a database dump is created with each backup
+Yes, a database dump is created with each backup.
 
 = Can I make a basic WordPress site, with all my desired plugins and settings, make a few pages, setup permalinks, remove all the default junk and load in a basic themplate? =
 Yes. WP Backitup can be used to create a good starting point for any and all sites you work on.
