@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== WP Backitup ===
 Contributors: jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup, restore, clone, database, wp-content, files
