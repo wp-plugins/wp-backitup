@@ -1,6 +1,6 @@
 === Plugin Name ===
 Contributors: jcpeden
-Donate link: http://www.wpbackitup.com
+Donate link: http://www.wpBackitup.com
 Tags: backup, restore, clone, database, wp-content, files
 Requires at least: 3.4
 Tested up to: 3.5
@@ -8,20 +8,20 @@ Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WP BackItUp allows you to backup your database and wp-content folder. This allows you to quickly clone, backup and restore any of your Wordpress sites.
+WP Backitup allows you to backup your database and wp-content folder. This allows you to quickly clone, backup and restore any of your Wordpress sites.
 
 == Description ==
 
-WP BackItUp uses nothing but PHP to allow you to backup and restore your Wordpress database, plugins, themes and uploads directories. You can create a 
-backup of any site and, using WP BackItUp, quickly import your files, settings and content into a new site. 
+WP Backitup uses nothing but PHP to allow you to backup and restore your Wordpress database, plugins, themes and uploads directories. You can create a 
+backup of any site and, using WP Backitup, quickly import your files, settings and content into a new site. 
 
 == Installation ==
 
 Installation of the plugin is straightforward:
 
-1. Upload the directory `wp-backitup` to the `/wp-content/plugins/` directory.
+1. Upload the directory `wp-Backitup` to the `/wp-content/plugins/` directory.
 1. Activate the plugin through the `Plugins` menu in WordPress.
-1. Through the Wordpress dashboard, browse to Tools > WP BackItUp.
+1. Through the Wordpress dashboard, browse to Tools > WP Backitup.
 
 == Frequently Asked Questions ==
 
