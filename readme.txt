@@ -8,7 +8,7 @@ Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WP Backitup creates a backup of your entire Wordpress site with just a few simple clicks. Once enabled, the plugin will create a backup of your themes, plugins and uploads as well as your database. The plugin can be expanded to restore/clone your sites with a number of paid addons.
+WP Backitup creates a backup of your entire Wordpress site with just a few simple clicks.
 
 == Description ==
 
