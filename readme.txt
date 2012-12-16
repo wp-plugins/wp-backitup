@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup, restore, clone, database, wp-content, files
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
