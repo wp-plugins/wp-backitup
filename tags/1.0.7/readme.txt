@@ -8,7 +8,7 @@ Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WP Backitup creates a backup of your entire Wordpress site with just a few simple clicks. Once enabled, the plugin will create a backup of your site's themes, plugins and uploads as well as your database. The plugin can be expanded to restore/clone your sites with a number of paid addons.
+WP Backitup creates a backup of your entire Wordpress site with just a few simple clicks. Once enabled, the plugin will create a backup of your themes, plugins and uploads as well as your database. The plugin can be expanded to restore/clone your sites with a number of paid addons.
 
 == Description ==
 
@@ -28,7 +28,6 @@ Installation of the plugin is straightforward:
 
 == Frequently Asked Questions ==
 
-
 = Will the plugin work on shared hosting/sub domains/webhost xxx? =
 Yes
 
@@ -36,7 +35,7 @@ Yes
 Yes
 
 = Are you going to be making progress bars both for backing up and restoring with this plugin? =
-Not at this time.
+Not at this time. 
 
 = Can this plugin back to Amazon S3? =
 Not at this time.
