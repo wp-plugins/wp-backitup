@@ -1,14 +1,14 @@
 === WP Backitup ===
 Contributors: jcpeden
-Donate link: http://www.wpBackitup.com
-Tags: backup, restore, clone, database, wp-content, files
+Donate link: http://www.wpbackitup.com
+Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4
 Tested up to: 3.5
 Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-WP Backitup creates a backup of your entire Wordpress site with just a few simple clicks.
+Create a backup zip of your content and settings with a single click that can be used to restore your site quickly and easily.
 
 == Description ==
 
