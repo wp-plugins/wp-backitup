@@ -12,15 +12,13 @@ Create a backup zip of your content and settings with a single click that can be
 
 == Description ==
 
-= What can WP Backitup do? =
-
-The Simple Way to Backup Your Site
+= The Simple Way to Backup Your Site =
 WP Backitup creates a backup zip of your site&apos;s content and configuration in just a single click, right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. 
 
 You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
 
 = Automatically Restore Your Backup Zips =
-The optional <a href="http://www.wpbackitup.com/addons/" title="WP Backitup Restoration Addon">WP Backitup Restoration Addon</a> can be purchased from the plugin site and allows you to import your backup zips in seconds, right from the Wordpress Dashboard. Take a look at the <a href="http://wordpress.org/extend/plugins/wp-backitup/screenshots/" title="WP Backitup Screenshots">screenshots</a>!
+The optional <a href="http://www.wpbackitup.com/addons/" title="WP Backitup Restoration Addon">WP Backitup Restoration Addon</a> can be purchased from the plugin site and allows you to import your backup zips in seconds, right from the Wordpress Dashboard (<a href="http://wordpress.org/extend/plugins/wp-backitup/screenshots/" title="WP Backitup Screenshots">screenshots</a>).
 
 = Manually Restore Your Backup Zips =
 WP Backitup generates a zip file containing a copy of your wp-content directory and a database dump. You can unzip it and <a href="http://codex.wordpress.org/Restoring_Your_Database_From_Backup">import your database</a> and files manually but this requires knowledge of FTP and MySQL. 
@@ -28,6 +26,8 @@ WP Backitup generates a zip file containing a copy of your wp-content directory 
 = Easy To Install and Use =
 Simply install the plugin directly to Wordpress and browse to your Tools menu. From there, just follow the on-screen instructions and watch as WP Backitup creates a backup of you site's plugins, themes and uploads as well as you content and settings (including all custom widgets and settings for any additional plugins). 
 
+= More questions? =
+Why not head over to the <a href="http://www.wpbackitup.com/" title="WP Backitup">WP Backitup site</a> or take a look at the <a href="http://wordpress.org/extend/plugins/wp-backitup/faq/" title="WP Backitup FAQ">FAQ page</a>?
 
 == Installation ==
 
