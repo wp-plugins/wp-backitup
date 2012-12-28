@@ -25,7 +25,6 @@ Installation of the plugin is straightforward:
 
 == Frequently Asked Questions ==
 
-
 = Will the plugin work on shared hosting/sub domains/webhost xxx? =
 Yes
 
