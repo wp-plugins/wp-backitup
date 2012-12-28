@@ -14,10 +14,10 @@ Create a backup zip of your content and settings with a single click that can be
 
 = What can WP Backitup do? =
 
-= The Simple Way to Backup Your Site
-WP Backitup creates a backup zip of your site’s content and configuration in just a single click, right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. 
+The Simple Way to Backup Your Site
+WP Backitup creates a backup zip of your site&apos;s content and configuration in just a single click, right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. 
 
-You can use your backup zip to restore your site or to clone a site’s content and settings when setting up a new one.
+You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
 
 = Automatically Restore Your Backup Zips =
 The optional <a href="http://www.wpbackitup.com/addons/" title="WP Backitup Restoration Addon">WP Backitup Restoration Addon</a> can be purchased from the plugin site and allows you to import your backup zips in seconds, right from the Wordpress Dashboard. Take a look at the <a href="http://wordpress.org/extend/plugins/wp-backitup/screenshots/" title="WP Backitup Screenshots">screenshots</a>!
