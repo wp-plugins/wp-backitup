@@ -1,11 +1,11 @@
 <?php 
 /**
  * Plugin Name: WP Backitup
- * Plugin URI: http://www.wpbackitup.com
+ * Plugin URI: http://wordpress.org/extend/plugins/wp-backitup/
  * Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
  * Version: 1.0.8
  * Author: John Peden
- * Author URI: http://www.johncpeden.com
+ * Author URI: http://www.wpbackitup.com
  * License: GPLv2 or later
  * Text Domain: wp-backitup
  */
