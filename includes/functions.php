@@ -15,13 +15,13 @@ if(!function_exists('recursive_copy')) {
 			if ($dh = opendir($dir) ) {
 				while(($file = readdir($dh)) !== false) { //While there are files in the directory
 					if ( !in_array($file, $ignore) && substr($file, 0, 1) != '.') { //Check the file is not in the ignore array
-						if (!is_dir( $dir.$file ) ) { //If $file is a file
-							//Copy files to destination directory
-							$fsrc = fopen($dir .$file,'r');
-							$fdest = fopen($target_path .$file,'w+');
-							$len = stream_copy_to_stream($fsrc,$fdest);
-							fclose($fsrc);
-							fclose($fdest); 
+						if (!is_dir( $dir.$file ) ) {
+								//Copy files to destination directory
+								$fsrc = fopen($dir .$file,'r');
+								$fdest = fopen($target_path .$file,'w+');
+								$len = stream_copy_to_stream($fsrc,$fdest);
+								fclose($fsrc);
+								fclose($fdest);
 						} else { //If $file is a directory
 							$destdir = $target_path .$file; //Modify the destination dir
 							if(!is_dir($destdir)) { //Create the destdir if it doesn't exist
@@ -107,37 +107,6 @@ if(!function_exists('recursive_delete')){
 			}
 			@rmdir($dir);	
 			closedir($dh);
-		}
-	return true;
-	}
-}
-
-//defube db_import function
-if(!function_exists('db_import')) {
-	function db_import($restoration_dir_path, $import_siteurl, $current_siteurl, $table_prefix, $import_table_prefix, $dbc) {
-		global $wpdb;
-		$sql_files = glob($restoration_dir_path . "/*.sql");
-		foreach($sql_files as $sql_file) {
-			$templine = ''; // Temporary variable, used to store current query
-			$lines = file($sql_file); // Read in entire file
-			foreach ($lines as $line) { // Loop through each line
-				if (substr($line, 0, 2) == '--' || $line == '') continue; // Skip it if it's a comment
-				$templine .= $line; // Add this line to the current segment
-				if (substr(trim($line), -1, 1) == ';') { // If it has a semicolon at the end, it's the end of the query
-					//replace imported site url with current site url
-					if( strstr( trim($templine), trim($import_siteurl) ) == TRUE ) //If import site url is found
-					$templine = str_replace( trim($import_siteurl), trim($current_siteurl), $templine ); // Replace import site url with current site url
-					//if the table prefixes are different, replace the imported site prefixes with the current prefixes
-					if ($table_prefix != $import_table_prefix) {
-						if( strstr( trim($templine), trim($import_table_prefix) ) == TRUE ) //If import table prefix is found
-						$templine = str_replace( trim($import_table_prefix), trim($table_prefix), $templine ); // Replace import site table prefix with current site table prefix
-					}
-					// Perform the query
-					if( mysqli_query($dbc, $templine) === FALSE) 
-						print('Error performing query \'<strong>' . $templine . '\': ' . mysql_error() . '<br /><br />');
-					$templine = ''; // Reset temp variable to empty
-				}
-			}
 		}
 	return true;
 	}
