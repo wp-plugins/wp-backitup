@@ -1,4 +1,5 @@
 jQuery(document).ready(function($) {
+	
 	//define backup variables
 	var wpBackitupBackup = {
 		action: 'wpbackitup_backup',
@@ -45,4 +46,24 @@ jQuery(document).ready(function($) {
 			$("#wp-backitup-php").html(response); //Return PHP messages, used for development
         });   
     })
+	
+	//execture restore on button click
+	$("#restore-form").submit(function() {
+		$('#wp-backitup-restore .status-icon').css('visibility','visible'); //display process icon
+		$("#wp-backitup-status").empty(); //clear status messages
+		setInterval(logreader, 1000); //check for status updates every second
+		$("#restore-form").attr("target","upload_target"); //specify target for form submission
+		$("#upload_target").load(function (){
+			importRestore(); //on iframe load, run restore function
+		});
+	});
+	
+	//define importRestore function
+	function importRestore() {
+		var ret = frames['upload_target'].document.getElementsByTagName("body")[0].innerHTML; //process upload
+		$("#wp-backitup-php").html(ret); //Return PHP messages, used for development
+		download(); //Create download link
+		clearInterval(logreader); //Stop checking for status messages
+		$('#wp-backitup-restore .status-icon').fadeOut(1000); //hide process icon
+	}
 });
