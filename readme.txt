@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 1.0.8
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
