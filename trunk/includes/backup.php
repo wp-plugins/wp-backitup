@@ -1,5 +1,5 @@
 <?php
-// 5 minutes per image should be PLENTY
+//limite process to 5 minutes
 @set_time_limit(900);
 
 //Define variables
@@ -31,7 +31,7 @@ if(!is_writeable(BACKUP_PATH)) {
 //Backup content to project dir
 fwrite($fh, '<li>Backing up your files...');
 //Backup with copy
-if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname ) ) ) {
+if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip' ) ) ) {
 	fwrite($fh, 'Done!</li>');
 } else {
 	fwrite($fh, '</li><li class="error">Unable to backup your files. Please try again.</li></ul>');
@@ -70,7 +70,7 @@ if(!recursive_delete($backup_project_path)) {
 }
 
 //close log file
-fwrite($fh, '<li>Export file created successfully. You can download your export file using the link above.</li>');
+fwrite($fh, '<li>Backup file created successfully. You can download your backup file using the link above.</li>');
 fwrite($fh, '</ul>');
 fclose($fh);
 
