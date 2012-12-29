@@ -2,24 +2,6 @@
 
 .error {	color: #ff0000;}
 
-p {
-	line-height: 1.4em;
-}
-
-#content {
-	float: left;
-	width: 65%;
-}
-
-#sidebar {
-	float: right;
-	width: 30%;
-}
-
-.widget {
-	padding: 1em;
-}
-
 input {padding: 0;}
 
 h3 {
@@ -39,14 +21,19 @@ iframe {
 	width: 0;
 }
 
-.wp-backitup-section {
-	border-bottom: 1px solid #ddd;
-	clear:both;
-}
+.wp-backitup-section {clear:both;}
 
 #backup-button, #restore-form {
 	float: left;
 	margin: 0 5px 5px 0;
+}
+
+#backup-button a {
+	display: block;
+	padding: 3px 8px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
 }
 
 .status-icon {
@@ -57,6 +44,8 @@ iframe {
 }
 
 .status-icon img {margin-top: 3px;}
+
+#wp-backitup-restore .status-icon img {margin-top: 7px;}
 
 #restore_form {margin-right: 5px;}
 
