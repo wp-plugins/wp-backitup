@@ -95,6 +95,9 @@ Yes.
 
 == Changelog ==
 
+= 1.0.9 =
+* Added Presstrends tracking code.
+
 = 1.0.8 =
 * Modified plugin administration and loaded menu tab in main toolbar.
 
@@ -123,6 +126,9 @@ Yes.
 * Plugin released.
 
 == Upgrade Notice ==
+
+= 1.0.9 =
+* Non-essential upgrade. Added Presstrends code.
 
 = 1.0.8 =
 * Recommended upgrade. Added links to admin menu.
