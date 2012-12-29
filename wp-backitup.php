@@ -3,7 +3,7 @@
  * Plugin Name: WP Backitup
  * Plugin URI: http://www.wpbackitup.com
  * Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
- * Version: 1.0.7
+ * Version: 1.0.8
  * Author: John Peden
  * Author URI: http://www.johncpeden.com
  * License: GPLv2 or later
