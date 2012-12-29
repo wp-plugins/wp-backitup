@@ -1,9 +1,9 @@
 <?php 
 /**
- * Plugin Name: WP Backitup
+ * Plugin Name: WP BackItUp
  * Plugin URI: http://www.wpbackitup.com
  * Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
- * Version: 1.0.7
+ * Version: 1.0.6
  * Author: John Peden
  * Author URI: http://www.johncpeden.com
  * License: GPLv2 or later
@@ -11,7 +11,7 @@
  */
 
 /*
-	Copyright 2012-current  John Peden Ltd ( email : support@wpbackitup.com )
+	Copyright 2012-current  John C. Peden  ( email : mail@johncpeden.com )
 */
 
 //define constants
@@ -20,10 +20,15 @@ define("WPBACKITUP_PLUGIN_PATH", WP_PLUGIN_DIR."/wp-backitup/");
 define("WPBACKITUP_DIRNAME", "wp-backitup");
 define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'backups/');
 
+//add plugin options
+function wpbackitup_options_init() {
+	register_setting ('wpbackitup_options', 'wpbackitup', 'wpbackitup_options_validate');
+}
+add_action('admin_init', 'wpbackitup_options_init' );
+
 //load admin menu
 function wpbackitup_admin_menus() {
 	$wpbackituppage = add_submenu_page( 'tools.php', 'WP BackItUp', 'WP BackItUp', 'manage_options', 'wp-backitup', 'wpbackitup_admin' );
-	//this might be out-of-date
 	add_action('admin_print_scripts-'.$wpbackituppage, 'wpbackitup_javascript');
 	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_stylesheet' );
 }
@@ -32,7 +37,6 @@ add_action('admin_menu', 'wpbackitup_admin_menus');
 //enqueue javascript
 function wpbackitup_javascript() {
 	wp_enqueue_script('wpbackitup-javascript', WPBACKITUP_PLUGIN_URL.'/js/wp-backitup.js');
-	//this needs moved to addon dir (as above)
 	wp_enqueue_script('ajaxfileupload', WPBACKITUP_PLUGIN_URL.'/js/ajaxfileupload.js');
 }
 
@@ -69,10 +73,3 @@ function wpbackitup_logreader() {
 	die();
 }
 add_action('wp_ajax_wpbackitup_logreader', 'wpbackitup_logreader');
-
-//load addons
-if(is_dir(WPBACKITUP_PLUGIN_PATH . "addons")){
-	foreach(glob(WPBACKITUP_PLUGIN_PATH . "addons/*/") as $addon) {
-		include_once $addon .'index.php';
-	}
-}
