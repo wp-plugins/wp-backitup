@@ -15,13 +15,13 @@ if(!function_exists('recursive_copy')) {
 			if ($dh = opendir($dir) ) {
 				while(($file = readdir($dh)) !== false) { //While there are files in the directory
 					if ( !in_array($file, $ignore) && substr($file, 0, 1) != '.') { //Check the file is not in the ignore array
-						if (!is_dir( $dir.$file ) ) { //If $file is a file
-							//Copy files to destination directory
-							$fsrc = fopen($dir .$file,'r');
-							$fdest = fopen($target_path .$file,'w+');
-							$len = stream_copy_to_stream($fsrc,$fdest);
-							fclose($fsrc);
-							fclose($fdest); 
+						if (!is_dir( $dir.$file ) ) {
+								//Copy files to destination directory
+								$fsrc = fopen($dir .$file,'r');
+								$fdest = fopen($target_path .$file,'w+');
+								$len = stream_copy_to_stream($fsrc,$fdest);
+								fclose($fsrc);
+								fclose($fdest);
 						} else { //If $file is a directory
 							$destdir = $target_path .$file; //Modify the destination dir
 							if(!is_dir($destdir)) { //Create the destdir if it doesn't exist
@@ -110,4 +110,36 @@ if(!function_exists('recursive_delete')){
 		}
 	return true;
 	}
+}
+
+//Define zip function
+function zip($source, $destination, $ignore) {
+    if (is_string($source)) $source_arr = array($source); // convert it to array
+    if (!extension_loaded('zip')) {
+        return false;
+    }
+    $zip = new ZipArchive();
+    if (!$zip->open($destination, ZIPARCHIVE::CREATE)) {
+        return false;
+    }
+    foreach ($source_arr as $source) {
+        if (!file_exists($source)) continue;
+		$source = str_replace('\\', '/', realpath($source));
+		if (is_dir($source) === true) {
+			$files = new RecursiveIteratorIterator(new RecursiveDirectoryIterator($source), RecursiveIteratorIterator::SELF_FIRST);
+			foreach ($files as $file) {
+					if (!preg_match($ignore, $file)) {
+					$file = str_replace('\\', '/', realpath($file));
+					if (is_dir($file) === true) {
+						$zip->addEmptyDir(str_replace($source . '/', '', $file . '/'));
+					} else if (is_file($file) === true) {
+						$zip->addFromString(str_replace($source . '/', '', $file), file_get_contents($file));
+					}
+				}
+			}
+		} else if (is_file($source) === true) {
+			$zip->addFromString(basename($source), file_get_contents($source));
+		}
+    }
+    return $zip->close();
 }

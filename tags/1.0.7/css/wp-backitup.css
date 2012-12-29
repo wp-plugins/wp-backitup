@@ -28,6 +28,14 @@ iframe {
 	margin: 0 5px 5px 0;
 }
 
+#backup-button a {
+	display: block;
+	padding: 3px 8px;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
 .status-icon {
 	display: inline;
 	height: 16px;
@@ -36,6 +44,8 @@ iframe {
 }
 
 .status-icon img {margin-top: 3px;}
+
+#wp-backitup-restore .status-icon img {margin-top: 7px;}
 
 #restore_form {margin-right: 5px;}
 
