@@ -1,6 +1,6 @@
 <?php 
 /**
- * Plugin Name: WP BackItUp
+ * Plugin Name: WP Backitup
  * Plugin URI: http://www.wpbackitup.com
  * Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
  * Version: 1.0.6
