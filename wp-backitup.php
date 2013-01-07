@@ -23,7 +23,7 @@ define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'backups/');
 
 //load admin menu
 function wpbackitup_admin_menus() {
-	$wpbackituppage = add_menu_page( __( 'WP Backitup', 'wpBackitup' ), __( 'Backup/Restore', 'wpBackitup' ), 'manage_options', 'wp-backitup', 'wpbackitup_admin', plugin_dir_url(__FILE__ ) .'images/icon.png', 77);
+	$wpbackituppage = add_menu_page( __( 'WP Backitup', 'wpBackitup' ), __( 'Backup', 'wpBackitup' ), 'manage_options', 'wp-backitup', 'wpbackitup_admin', plugin_dir_url(__FILE__ ) .'images/icon.png', 77);
 	add_action('admin_print_scripts-'.$wpbackituppage, 'wpbackitup_javascript');
 	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_stylesheet' );
 }
