@@ -3,7 +3,7 @@
  * Plugin Name: WP Backitup
  * Plugin URI: http://www.wpbackitup.com
  * Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
- * Version: 1.0.9
+ * Version: 1.1.0
  * Author: John Peden
  * Author URI: http://www.johncpeden.com
  * License: GPLv2 or later
@@ -18,6 +18,7 @@
 define("WPBACKITUP_PLUGIN_URL", WP_PLUGIN_URL ."/wp-backitup/");
 define("WPBACKITUP_PLUGIN_PATH", WP_PLUGIN_DIR."/wp-backitup/");
 define("WPBACKITUP_DIRNAME", "wp-backitup");
+define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'backups/');
 define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'backups/');
 
 //load admin menu
@@ -68,13 +69,6 @@ function wpbackitup_logreader() {
 	die();
 }
 add_action('wp_ajax_wpbackitup_logreader', 'wpbackitup_logreader');
-
-//load addons
-if(is_dir(WPBACKITUP_PLUGIN_PATH . "addons")){
-	foreach(glob(WPBACKITUP_PLUGIN_PATH . "addons/*/") as $addon) {
-		include_once $addon .'index.php';
-	}
-}
 
 /**
 * PressTrends Plugin API

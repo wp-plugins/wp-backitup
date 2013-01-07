@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4
 Tested up to: 3.5
-Stable tag: 1.0.9
+Stable tag: 1.1.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -95,6 +95,12 @@ Yes.
 
 == Changelog ==
 
+= 1.1.0 =
+* Fixed bugs with addons system.
+
+= 1.0.9 =
+* Added Presstrends tracking code.
+
 = 1.0.8 =
 * Modified plugin administration and loaded menu tab in main toolbar.
 
@@ -123,6 +129,12 @@ Yes.
 * Plugin released.
 
 == Upgrade Notice ==
+
+= 1.1.0 =
+* Non-critical upgrade. Fixed bugs with addons system that caused problems for some users.
+
+= 1.0.9 =
+* Non-essential upgrade. Added Presstrends code.
 
 = 1.0.8 =
 * Recommended upgrade. Added links to admin menu.
