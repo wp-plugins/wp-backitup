@@ -14,9 +14,6 @@
 	Copyright 2012-current  John Peden Ltd ( email : support@wpbackitup.com )
 */
 
-add_action( 'admin_init', 'wpbackitup_admin_init' );
-add_action( 'admin_menu', 'wpbackitup_admin_menu' );
-
 //define constants
 define("WPBACKITUP_PLUGIN_URL", plugins_url('/', (__FILE__)) );
 define("WPBACKITUP_PLUGIN_PATH", plugin_dir_path(__FILE__) );
@@ -29,7 +26,7 @@ function wpbackitup_admin_menu() {
 	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_admin_stylesheet' );
 	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_admin_javascript' );
 }
-add_action('admin_menu', 'wpbackitup_admin_menus');
+add_action('admin_menu', 'wpbackitup_admin_menu');
 
 //enqueue stylesheet   
 function wpbackitup_admin_stylesheet() {
