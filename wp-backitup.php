@@ -1,9 +1,9 @@
 <?php 
 /**
- * Plugin Name: WP Backitup
+ * Plugin Name: WP Backitup Lite
  * Plugin URI: http://www.wpbackitup.com
  * Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
- * Version: 1.1.0
+ * Version: 1.1.1
  * Author: John Peden
  * Author URI: http://www.johncpeden.com
  * License: GPLv2 or later
@@ -14,31 +14,31 @@
 	Copyright 2012-current  John Peden Ltd ( email : support@wpbackitup.com )
 */
 
+add_action( 'admin_init', 'wpbackitup_admin_init' );
+add_action( 'admin_menu', 'wpbackitup_admin_menu' );
+
 //define constants
-define("WPBACKITUP_PLUGIN_URL", WP_PLUGIN_URL ."/wp-backitup/");
-define("WPBACKITUP_PLUGIN_PATH", WP_PLUGIN_DIR."/wp-backitup/");
-define("WPBACKITUP_DIRNAME", "wp-backitup");
-define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'backups/');
-define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'backups/');
+define("WPBACKITUP_PLUGIN_URL", plugins_url('/', (__FILE__)) );
+define("WPBACKITUP_PLUGIN_PATH", plugin_dir_path(__FILE__) );
+define("WPBACKITUP_DIRNAME", basename(dirname(__FILE__)) );
+define("BACKUP_PATH", WPBACKITUP_PLUGIN_PATH .'/backups/' );
 
 //load admin menu
-function wpbackitup_admin_menus() {
-	$wpbackituppage = add_menu_page( __( 'WP Backitup', 'wpBackitup' ), __( 'Backup', 'wpBackitup' ), 'manage_options', 'wp-backitup', 'wpbackitup_admin', plugin_dir_url(__FILE__ ) .'images/icon.png', 77);
-	add_action('admin_print_scripts-'.$wpbackituppage, 'wpbackitup_javascript');
-	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_stylesheet' );
+function wpbackitup_admin_menu() {
+	$wpbackituppage = add_menu_page( __( 'WP Backitup', 'wpBackitup' ), __( 'Backup/Restore', 'wpBackitup' ), 'manage_options', 'wp-backitup', 'wpbackitup_admin', plugin_dir_url(__FILE__ ) .'images/icon.png', 77);
+	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_admin_stylesheet' );
+	add_action('admin_print_styles-' .$wpbackituppage, 'wpbackitup_admin_javascript' );
 }
 add_action('admin_menu', 'wpbackitup_admin_menus');
 
-//enqueue javascript
-function wpbackitup_javascript() {
-	wp_enqueue_script('wpbackitup-javascript', WPBACKITUP_PLUGIN_URL.'/js/wp-backitup.js');
-	//this needs moved to addon dir (as above)
-	wp_enqueue_script('ajaxfileupload', WPBACKITUP_PLUGIN_URL.'/js/ajaxfileupload.js');
+//enqueue stylesheet   
+function wpbackitup_admin_stylesheet() {
+	wp_enqueue_style( 'wpBackitupStylesheet', plugins_url('css/admin-style.css',(__FILE__)) );
 }
 
-//enqueue stylesheet
-function wpbackitup_stylesheet(){
-	wp_enqueue_style('wpbackitup-stylesheet', WPBACKITUP_PLUGIN_URL.'/css/wp-backitup.css');
+//enqueue javascript   
+function wpbackitup_admin_javascript() {
+	wp_enqueue_script( 'wpBackitupJavascript', plugins_url('js/wp-backitup.js', (__FILE__)) );
 }
 
 //load plugin functions
@@ -69,6 +69,13 @@ function wpbackitup_logreader() {
 	die();
 }
 add_action('wp_ajax_wpbackitup_logreader', 'wpbackitup_logreader');
+
+//load addons
+if(is_dir(WPBACKITUP_PLUGIN_PATH . "addons")){
+	foreach(glob(WPBACKITUP_PLUGIN_PATH . "addons/*/") as $addon) {
+		include_once $addon .'index.php';
+	}
+}
 
 /**
 * PressTrends Plugin API
