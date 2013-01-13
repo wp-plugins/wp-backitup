@@ -68,10 +68,9 @@ function wpbackitup_logreader() {
 add_action('wp_ajax_wpbackitup_logreader', 'wpbackitup_logreader');
 
 //load addons
-if(is_dir(WPBACKITUP_PLUGIN_PATH . "addons")){
-	foreach(glob(WPBACKITUP_PLUGIN_PATH . "addons/*/") as $addon) {
-		include_once $addon .'index.php';
-	}
+$dir = WPBACKITUP_PLUGIN_PATH . "addons/restore/";
+if(is_dir($dir)){
+	include_once $dir .'index.php';
 }
 
 /**
