@@ -5,7 +5,7 @@
  * @package WPBackitup
  * 
  * @author jcpeden
- * @version 1.1.3
+ * @version 1.1.4
  * @since 1.1.3
  */
 
