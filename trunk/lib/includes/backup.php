@@ -1,11 +1,16 @@
 <?php
-//limit process to 5 minutes
+//limit process to 15 minutes
 @set_time_limit(900);
 
 //Define variables
 $backup_project_dirname = get_bloginfo('name') .'-Export-' .date('Y-m-d-Hi'); 
 $backup_project_path = WPBACKITUP_DIRNAME ."/backups/". $backup_project_dirname .'/';
 $wp_content_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) .'/';
+
+//create the backup dir
+if( !is_dir(WPBACKITUP_DIRNAME ."/backups") ) {
+	@mkdir(WPBACKITUP_DIRNAME ."/backups", 0775);
+}
 
 //create log file
 $log = WPBACKITUP_DIRNAME ."/backups/status.log";
@@ -20,7 +25,7 @@ if(!is_writeable(WPBACKITUP_DIRNAME ."/backups/")) {
 } else {
 	//If the directory is writeable, create the backup folder if it doesn't exist
 	if( !is_dir($backup_project_path) ) {
-		@mkdir($backup_project_path, 0755);
+		@mkdir($backup_project_path, 0775);
 		fwrite($fh, 'Done!</li>');
 	}
 	foreach(glob(WPBACKITUP_DIRNAME ."/backups/*.zip") as $zip) {
