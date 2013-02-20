@@ -1,11 +1,10 @@
-<script type="text/javascript">var __namespace = '<?php echo $namespace; ?>';</script>
 <div class="wrap">
     <div id="wp-backitup-icon" class="icon32"><img src="<?php echo plugin_dir_url(dirname(__FILE__) ); ?>images/icon32.png" alt="WP Backitup Icon" height="32" width="32" /></div>
     <h2><?php echo $page_title; ?></h2>
     <div id="content">
-        <h3>Backup</h3>
-        <p>Create a backup file of this site's content and settings.</p>
-        <p><a href="#" class="backup-button button-primary"><?php _e( "Backup", $namespace ) ?></a><img class="backup-icon status-icon" src="<?php echo WPBACKITUP_URLPATH. "/images/loader.gif"; ?>" height="16" width="16" /></p>
+        <h3><?php _e('Backup', $this->namespace ); ?></h3>
+        <p><?php _e('Create a backup file of this site\'s content and settings.', $this->namespace ); ?></p>
+        <p><a href="#" class="backup-button button-primary"><?php _e( "Backup", $this->namespace ); ?> ) ?></a><img class="backup-icon status-icon" src="<?php echo WPBACKITUP_URLPATH. "/images/loader.gif"; ?>" height="16" width="16" /></p>
         <h3>Download</h3>
         <p><div id="download-link"></div></p>
         <h3>Status</h3>
