@@ -1,8 +1,8 @@
 /**
  * WP Backitup Admin Control Panel JavaScripts
  * 
- * @version 1.1.4
- * @since 1.1.4
+ * @version 1.1.5
+ * @since 1.1.3
  */
 
 (function($){
@@ -48,22 +48,4 @@
 			$("#php").html(response); //Return PHP messages, used for development
         });   
     })
-    //execute restore on button click
-	$("#restore-form").submit(function() {
-		$('.restore-icon').css('visibility','visible'); 
-		$("#status").empty(); 
-		setInterval(display_log, 1000); 
-		$("#restore-form").attr("target","upload_target"); 
-		$("#upload_target").load(function (){
-			importRestore(); 
-		});
-	});
-	
-	//define importRestore function
-	function importRestore() {
-		var ret = frames['upload_target'].document.getElementsByTagName("body")[0].innerHTML; //process upload
-		$("#php").html(ret); //Return PHP messages, used for development
-		clearInterval(display_log); 
-		$('.restore-icon').fadeOut(1000); 
-	}
 })(jQuery);
