@@ -1,4 +1,15 @@
 <?php
+
+/**
+ * Constants used by this plugin
+ * 
+ * @package WP Backitup Pro
+ * 
+ * @author jcpeden
+ * @version 1.1.5
+ * @since 1.1.3
+ */
+
 //limit process to 15 minutes
 @set_time_limit(900);
 
