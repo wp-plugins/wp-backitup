@@ -5,12 +5,12 @@
  * @package WPBackitup
  * 
  * @author jcpeden
- * @version 1.1.3
+ * @version 1.1.4
  * @since 1.1.3
  */
 
 // The current version of this plugin
-if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.1.3' );
+if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.1.5' );
 
 // The directory the plugin resides in
 if( !defined( 'WPBACKITUP_DIRNAME' ) ) define( 'WPBACKITUP_DIRNAME', dirname( dirname( __FILE__ ) ) );

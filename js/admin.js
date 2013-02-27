@@ -1,7 +1,7 @@
 /**
  * WP Backitup Admin Control Panel JavaScripts
  * 
- * @version 1.1.3
+ * @version 1.1.5
  * @since 1.1.3
  */
 
@@ -42,10 +42,10 @@
 	//execute backup on button click
     $(".backup-button").click( function() {
         $.post(ajaxurl, backup, function(response) {
-			download_link(); //Build download link
-			clearInterval(display_log); //Stop checking for status updates
-			$('.backup-icon').fadeOut(1000); //Fade process indicator
+			download_link(); 
+			clearInterval(display_log); 
+			$('.backup-icon').fadeOut(1000); 
+			$("#php").html(response); //Return PHP messages, used for development
         });   
     })
-	
 })(jQuery);

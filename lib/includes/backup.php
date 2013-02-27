@@ -1,11 +1,27 @@
 <?php
-//limit process to 5 minutes
+
+/**
+ * Constants used by this plugin
+ * 
+ * @package WP Backitup Pro
+ * 
+ * @author jcpeden
+ * @version 1.1.5
+ * @since 1.1.3
+ */
+
+//limit process to 15 minutes
 @set_time_limit(900);
 
 //Define variables
 $backup_project_dirname = get_bloginfo('name') .'-Export-' .date('Y-m-d-Hi'); 
 $backup_project_path = WPBACKITUP_DIRNAME ."/backups/". $backup_project_dirname .'/';
 $wp_content_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) .'/';
+
+//create the backup dir
+if( !is_dir(WPBACKITUP_DIRNAME ."/backups") ) {
+	@mkdir(WPBACKITUP_DIRNAME ."/backups", 0775);
+}
 
 //create log file
 $log = WPBACKITUP_DIRNAME ."/backups/status.log";
@@ -20,7 +36,7 @@ if(!is_writeable(WPBACKITUP_DIRNAME ."/backups/")) {
 } else {
 	//If the directory is writeable, create the backup folder if it doesn't exist
 	if( !is_dir($backup_project_path) ) {
-		@mkdir($backup_project_path, 0755);
+		@mkdir($backup_project_path, 0775);
 		fwrite($fh, 'Done!</li>');
 	}
 	foreach(glob(WPBACKITUP_DIRNAME ."/backups/*.zip") as $zip) {
@@ -31,7 +47,7 @@ if(!is_writeable(WPBACKITUP_DIRNAME ."/backups/")) {
 //Backup content to project dir
 fwrite($fh, '<li>Backing up your files...');
 //Backup with copy
-if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip' ) ) ) {
+if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip','cache' ) ) ) {
 	fwrite($fh, 'Done!</li>');
 } else {
 	fwrite($fh, '</li><li class="error">Unable to backup your files. Please try again.</li></ul>');
