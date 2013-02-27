@@ -6,7 +6,7 @@
  * @package WP Backitup Pro
  * 
  * @author jcpeden
- * @version 1.1.5
+ * @version 1.1.6
  * @since 1.1.3
  */
 

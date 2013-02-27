@@ -96,6 +96,9 @@ Yes.
 
 == Changelog ==
 
+= 1.1.6 =
+* Forced backup process to ignore cache files
+
 = 1.1.5 =
 * Fixed minor bugs in the code.
 
@@ -145,6 +148,9 @@ Yes.
 * Plugin released.
 
 == Upgrade Notice ==
+
+= 1.1.6 =
+* Recommended upgrade. Backup process faster and more stable.
 
 = 1.1.5 =
 * Non-critical upgrade. Fixed minor bugs in code.
