@@ -47,7 +47,7 @@ if(!is_writeable(WPBACKITUP_DIRNAME ."/backups/")) {
 //Backup content to project dir
 fwrite($fh, '<li>Backing up your files...');
 //Backup with copy
-if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip' ) ) ) {
+if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip','cache' ) ) ) {
 	fwrite($fh, 'Done!</li>');
 } else {
 	fwrite($fh, '</li><li class="error">Unable to backup your files. Please try again.</li></ul>');
