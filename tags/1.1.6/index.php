@@ -40,7 +40,7 @@ require_once( dirname( __FILE__ ) . '/lib/constants.php' );
 class WPBackitup {
     var $namespace = "wp-backitup-lite";
     var $friendly_name = "WP Backitup Lite";
-    var $version = "1.1.5";
+    var $version = "1.1.6";
     
     // Default plugin options
     var $defaults = array(
