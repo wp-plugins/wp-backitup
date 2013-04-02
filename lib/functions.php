@@ -2,12 +2,20 @@
 /**
  * WP Backitup Functions
  * 
- * @package WP Backitup Lite
+ * @package WP Backitup Pro
  * 
  * @author jcpeden
- * @version 1.1.6
- * @since 1.1.3
+ * @version 1.1.7
+ * @since 1.0.1
  */
+
+// include recurseZip class
+if( !class_exists( 'recurseZip' ) ) {
+	include_once 'includes/recurse_zip.php';
+}
+
+// retrieve our license key from the DB
+$license_key = trim( $this->get_option( 'license_key' ) );
 
 //load backup function
 function backup() {
@@ -18,14 +26,12 @@ add_action('wp_ajax_backup', 'backup');
 //load download function
 function download() {
 	if(glob(WPBACKITUP_DIRNAME . "/backups/*.zip")) {
-		echo '<ul>';
 		foreach (glob(WPBACKITUP_DIRNAME . "/backups/*.zip") as $file) {
 			$filename = basename($file);
-			echo '<li>Download most recent export file: <a href="' .WPBACKITUP_URLPATH. '/backups/' .$filename .'">' .$filename .'</a></li>'; 
+			echo 'Download most recent export file: <a href="' .WPBACKITUP_URLPATH. '/backups/' .$filename .'">' .$filename .'</a>'; 
 		}
-		echo '</ul>';
 	} else {
-		echo '<p>No export file available for download. Please create one.</p>';
+		echo 'No export file available for download. Please create one.';
 	}
 	die();
 }
@@ -33,7 +39,7 @@ add_action('wp_ajax_download', 'download');
 
 //load logreader function
 function logreader() {
-	$log = WPBACKITUP_DIRNAME .'/backups/status.log';
+	$log = WPBACKITUP_DIRNAME .'/logs/status.log';
 	if(file_exists($log) ) {
 		readfile($log);
 	}
@@ -84,40 +90,19 @@ if(!function_exists('recursive_copy')) {
 //Define DB backup function
 if(!function_exists('db_backup')) {
 	function db_backup($path) { 
-		global $wpdb;
-		$row = $wpdb->get_results('SHOW TABLES', ARRAY_N);
-		$tables = array();
-		foreach($row as $value) {
-			$tables[] = $value[0];
-		}
 		$handle = fopen($path .'db-backup.sql', 'w+');
-		foreach($tables as $table) {
-			$result = $wpdb->get_results('SELECT * FROM '.$table,ARRAY_N);
-			$testing = $wpdb->get_row('SELECT * FROM '.$table,ARRAY_N);
-			$num_fields=count($testing);
-			$return = '';
-			$return.= 'DROP TABLE IF EXISTS '.$table.';';
-			$row2 = $wpdb->get_row('SHOW CREATE TABLE '.$table,ARRAY_N);
-			$return.= "\n\n".$row2[1].";\n\n";
-			foreach($result as $row) {
-				$return.= 'INSERT INTO '.$table.' VALUES(';
-				for($j=0; $j<$num_fields; $j++) {
-					$row[$j] = addslashes($row[$j]);
-					$row[$j] = ereg_replace("\n", "\\n",$row[$j]);
-					if (isset($row[$j])) { 
-						$return .= '"' .$row[$j] .'"'; 
-					} else { 
-						$return .= '"'; 
-					}
-					if ($j<($num_fields-1)) { $return.= ', '; }
-				}
-				$return.= ");\n";
-			}
-			$return.="\n\n\n";
-			fwrite($handle, $return);
-		}
-		fclose($handle);	
-		return true; 
+            
+            
+            $path_sql = $path .'/db-backup.sql';
+            $db_name = DB_NAME; 
+            $db_user  = DB_USER;
+            $db_pass = DB_PASSWORD; 
+            $db_host = DB_HOST;
+
+            $output = shell_exec("mysqldump --user $db_user --password=$db_pass $db_name");
+            fwrite($handle,$output);
+            fclose($handle);
+            return true;
 	}
 }
 
