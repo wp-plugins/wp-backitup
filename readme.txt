@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4
 Tested up to: 3.5.1
-Stable tag: 1.1.6
+Stable tag: 1.1.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,8 +96,11 @@ Yes.
 
 == Changelog ==
 
+= 1.1.7 =
+* Setup backup to use mysqldump and shellexec.
+
 = 1.1.6 =
-* Forced backup process to ignore cache files
+* Forced backup process to ignore cache files.
 
 = 1.1.5 =
 * Fixed minor bugs in the code.
@@ -148,6 +151,9 @@ Yes.
 * Plugin released.
 
 == Upgrade Notice ==
+
+= 1.1.7 =
+* Recommended upgrade. Backup process faster and more stable.
 
 = 1.1.6 =
 * Recommended upgrade. Backup process faster and more stable.
