@@ -1,29 +1,21 @@
 /**
  * WP Backitup Admin Control Panel JavaScripts
  * 
- * @version 1.0.9
+ * @version 1.2.0
  * @since 1.0.1
  */
 
 (function($){
-	/*//Validate file upload
-	document.forms[0].addEventListener('restore', function( evt ) {
-	    var upload = document.getElementById('wpbackitup-zip').files[0];
-	    if(upload && upload.size < 1) { // 10 MB (this size is in bytes)
-	        return true;        
-	    } else {
-	        $("#status").html('<ul><li class="error">Your upload is too large. Please contact your server administrator to increase your upload limit.</li></ul>'); 
-	        return false;
-	    }
-	}, false);*/
-
+	
+        
 	//define backup variables
 	var backup = {
 		action: 'backup',
 		beforeSend: function() {
 			$('.backup-icon').css('visibility','visible');
-			$("#status").html();
-			setInterval(display_log, 1000);
+                        var htmlText = "<div class='prerequisites'>Checking Prerequisites: <span class='currentStatus'>Pending</span></div><div class='backupfiles'>Backing up files: <span class='currentStatus'>Pending</span></div><div class='backupdb'>Backing up database: <span class='currentStatus'>Pending</span></div><div class='infofile'>Creating Info File: <span class='currentStatus'>Pending</span></div><div class='zipfile'>Creating Zip File: <span class='currentStatus'>Pending</span></div><div class='cleanup'>Cleaning Up: <span class='currentStatus'>Pending</span></div><div class='errorMessage'><span class='currentStatus'></span></div>";
+			$("#status").html(htmlText);
+                        window.intervalDefine = setInterval(display_log, 1000);
 		}
 	};
 	//define download variables
@@ -37,7 +29,15 @@
 	//define logreader function
 	function display_log() {		
 		$.post(ajaxurl, logreader, function(response) {
-			$("#status").html(response);
+			var xmlObj = $(response);
+                        xmlObj.each(function(){
+                            var attributename = "." + $(this).attr('code');
+                            $(attributename).find(".currentStatus").html($(this).text());
+                            if($(this).attr('code') == "finalinfo" || $(this).attr('code') == "errorMessage")
+                            {
+                                clearInterval(window.intervalDefine);
+                            }
+                        });
 		});
 	}
 	//define download function
@@ -71,10 +71,12 @@
                     $("#status").html("<span style='color: red'>File size exceeds maxium upload size.</span>");
                     return false; 
                 }
+                var htmlvals = '<div class="upload">Uploading file: <span class="currentStatus">Pending</span></div><div class="unzipping">Unzipping Files: <span class="currentStatus">Pending</span></div><div class="validation">Validating Zip File: <span class="currentStatus">Pending</span></div><div class="wpcontent">Replacing WP-CONTENT Directory: <span class="currentStatus">Pending</span></div><div class="database">Restoring Database: <span class="currentStatus">Pending</span></div><div class="infomessage"><span class="currentStatus"></span></div><div class="errorMessage"><span class="currentStatus"></span></div>';
                 
-		$("#status").html();
+		$("#status").html(htmlvals);
+                $(".upload").find('.currentStatus').html('In Progress');
 		$('.restore-icon').css('visibility','visible');  
-		setInterval(display_log, 1000);
+		window.intervalDefine = setInterval(display_log, 1000);
 		$("#restore-form").attr("target","upload_target"); 
 		$("#upload_target").load(function (){
 			importRestore(); 

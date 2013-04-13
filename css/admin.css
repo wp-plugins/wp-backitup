@@ -1,7 +1,7 @@
 /**
  * WP Backitup Admin Control Panel Stylesheets
  * 
- * @version 1.0.9
+ * @version 1.2.0
  * @since 1.0.1
  */
 
@@ -9,6 +9,8 @@
  .error {	color: #ff0000;}
 
 p {line-height: 1.4em;}
+
+td {padding: 0;}
 
 ul {padding: 1em 0 0 0;}
 
@@ -57,3 +59,6 @@ iframe {
 }
 
 .widget {padding: 1em;}
+.errorMessage{
+    color: red;
+}
