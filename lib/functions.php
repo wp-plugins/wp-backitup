@@ -5,7 +5,7 @@
  * @package WP Backitup Pro
  * 
  * @author jcpeden
- * @version 1.1.7
+ * @version 1.2.0
  * @since 1.0.1
  */
 
@@ -13,9 +13,6 @@
 if( !class_exists( 'recurseZip' ) ) {
 	include_once 'includes/recurse_zip.php';
 }
-
-// retrieve our license key from the DB
-$license_key = trim( $this->get_option( 'license_key' ) );
 
 //load backup function
 function backup() {
