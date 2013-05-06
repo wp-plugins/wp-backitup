@@ -7,13 +7,13 @@
  * @global    object    $wpdb
  * 
  * @author jcpeden
- * @version 1.1.7
+ * @version 1.2.0
  */
 /*
 Plugin Name: WP Backitup Lite
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.1.7
+Version: 1.2.0
 Author: John Peden
 Author URI: http://www.johncpeden.com
 License: GPL3
@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Include constants file
 require_once( dirname( __FILE__ ) . '/lib/constants.php' );
 
-class WPBackitup {
+class WPBackitupLite {
     var $namespace = "wp-backitup-lite";
     var $friendly_name = WPBACKITUP_ITEM_NAME;
     var $version = WPBACKITUP_VERSION;

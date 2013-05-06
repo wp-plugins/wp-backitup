@@ -12,25 +12,17 @@
     </div>
     <div id="sidebar">
         <div class="widget" id="restore-widget">
-            <h3 class="promo">Restore Your Backups</h3>
-            <p>You can restore your backup zips by importing them manually or by getting WP Backitup Pro.</p>
+            <h3 class="promo">Go Pro!</h3>
+            <p>Upgrade to <a href="http://www.wpbackitup.com/wp-backitup-pro/">WP Backitup Pro</a> and restore your backups with a few simple clicks!</p>
             <p><a class="button-primary" href="http://www.wpbackitup.com/wp-backitup-pro/">Read more</a></p>
         </div>
         <div class="widget">
             <h3 class="promo">Need support?</h3>
             <p>If you are having problems with this plugin please talk about them in the <a href="http://wordpress.org/support/plugin/wp-backitup">support forum</a>.</p>
-            <p>You can also refer to the <a href="http://www.wpbackitup.com/documentation/">WP Backitup documentation</a>.</p>
         </div>
         <div class="widget">
             <h3 class="promo">Spread the Word!</h3>
-            <p>Want to help make WP Backitup even better? All donations are used to improve this plugin, so donate $10, $20 or $50 now!</p>
-            <p><form action="https://www.paypal.com/cgi-bin/webscr" method="post">
-                <input type="hidden" name="cmd" value="_s-xclick">
-                <input type="hidden" name="hosted_button_id" value="QSHPK8EDMAW9N">
-                <input type="image" src="https://www.paypalobjects.com/en_US/GB/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal — The safer, easier way to pay online.">
-                <img alt="" border="0" src="https://www.paypalobjects.com/en_GB/i/scr/pixel.gif" width="1" height="1">
-                </form></p>
-            <p>Or you could <a href="http://wordpress.org/extend/plugins/wp-backitup/">rate the plugin 5&#9733; on Wordpress.org</a>.</p>
+            <p>Why not <a href="http://wordpress.org/extend/plugins/wp-backitup/">rate the plugin 5&#9733; on Wordpress.org</a>?</p>
         </div>
         <div class="widget">
             <h3 class="promo">Presstrends</h3>
