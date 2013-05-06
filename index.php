@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Include constants file
 require_once( dirname( __FILE__ ) . '/lib/constants.php' );
 
-class WPBackitup {
+class WPBackitupLite {
     var $namespace = "wp-backitup-lite";
     var $friendly_name = WPBACKITUP_ITEM_NAME;
     var $version = WPBACKITUP_VERSION;
