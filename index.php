@@ -335,7 +335,7 @@ class WPBackitupLite {
     }
 }
 if( !isset( $WPBackitup ) ) {
-	WPBackitup::instance();
+	WPBackitupLite::instance();
 }
 
 register_activation_hook( __FILE__, array( 'WPBackitup', 'activate' ) );
