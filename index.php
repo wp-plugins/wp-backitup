@@ -2,18 +2,18 @@
 /**
  * WP Backitup Lite
  * 
- * @package WPBackitup Lite
+ * @package WPBackitupLite Lite
  * 
  * @global    object    $wpdb
  * 
  * @author jcpeden
- * @version 1.2.1
+ * @version 1.2.2
  */
 /*
 Plugin Name: WP Backitup Lite
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.2.1
+Version: 1.2.2
 Author: John Peden
 Author URI: http://www.johncpeden.com
 License: GPL3
@@ -51,8 +51,8 @@ class WPBackitupLite {
      * Instantiation construction
      * 
      * @uses add_action()
-     * @uses WPBackitup::wp_register_scripts()
-     * @uses WPBackitup::wp_register_styles()
+     * @uses WPBackitupLite::wp_register_scripts()
+     * @uses WPBackitupLite::wp_register_styles()
      */
     function __construct() {
         // Name of the option_value to store plugin options in
@@ -97,7 +97,7 @@ class WPBackitupLite {
     /**
      * Process update page form submissions
      * 
-     * @uses WPBackitup::sanitize()
+     * @uses WPBackitupLite::sanitize()
      * @uses wp_redirect()
      * @uses wp_verify_nonce()
      */
@@ -255,10 +255,10 @@ class WPBackitupLite {
      * etc. up for use.
      */
     static function instance() {
-        global $WPBackitup;
+        global $WPBackitupLite;
         
         // Only instantiate the Class if it hasn't been already
-        if( !isset( $WPBackitup ) ) $WPBackitup = new WPBackitup();
+        if( !isset( $WPBackitupLite ) ) $WPBackitupLite = new WPBackitupLite();
     }
 	
 	/**
@@ -288,7 +288,7 @@ class WPBackitupLite {
      * This function will handling routing of form submissions to the appropriate
      * form processor.
      * 
-     * @uses WPBackitup::_admin_options_update()
+     * @uses WPBackitupLite::_admin_options_update()
      */
     function route() {
         $uri = $_SERVER['REQUEST_URI'];
@@ -334,9 +334,9 @@ class WPBackitupLite {
         wp_register_style( "{$this->namespace}-admin", WPBACKITUP_URLPATH . "/css/admin.css", array(), $this->version, 'screen' );
     }
 }
-if( !isset( $WPBackitup ) ) {
+if( !isset( $WPBackitupLite ) ) {
 	WPBackitupLite::instance();
 }
 
-register_activation_hook( __FILE__, array( 'WPBackitup', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'WPBackitup', 'deactivate' ) );
+register_activation_hook( __FILE__, array( 'WPBackitupLite', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'WPBackitupLite', 'deactivate' ) );
