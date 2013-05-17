@@ -1,12 +1,21 @@
 /**
  * WP Backitup Admin Control Panel JavaScripts
  * 
- * @version 1.2.1
+ * @version 1.2.0
  * @since 1.0.1
  */
 
 (function($){
-	
+	//define backup variables
+	var backup = {
+		action: 'backup',
+		beforeSend: function() {
+			$('.backup-icon').css('visibility','visible');
+            var htmlText = "<div class='prerequisites'>Checking prerequisites: <span class='currentStatus'>Pending</span></div><div class='backupfiles'>Backing-up /wp-content/: <span class='currentStatus'>Pending</span></div><div class='backupdb'>Backing-up database: <span class='currentStatus'>Pending</span></div><div class='infofile'>Creating backup directory: <span class='currentStatus'>Pending</span></div><div class='zipfile'>Zipping backup directory: <span class='currentStatus'>Pending</span></div><div class='cleanup'>Cleaning up: <span class='currentStatus'>Pending</span></div><div class='errorMessage'><span class='currentStatus'></span></div>";
+			$("#status").html(htmlText);
+            window.intervalDefine = setInterval(display_log, 1000);
+		}
+	};
 	//define download variables
 	var download = {
 		action: 'download'
@@ -19,14 +28,14 @@
 	function display_log() {		
 		$.post(ajaxurl, logreader, function(response) {
 			var xmlObj = $(response);
-                        xmlObj.each(function(){
-                            var attributename = "." + $(this).attr('code');
-                            $(attributename).find(".currentStatus").html($(this).text());
-                            if($(this).attr('code') == "finalinfo" || $(this).attr('code') == "errorMessage")
-                            {
-                                clearInterval(window.intervalDefine);
-                            }
-                        });
+            xmlObj.each(function(){
+                var attributename = "." + $(this).attr('code');
+                $(attributename).find(".currentStatus").html($(this).text());
+                if($(this).attr('code') == "finalinfo" || $(this).attr('code') == "errorMessage")
+                {
+                    clearInterval(window.intervalDefine);
+                }
+            });
 		});
 	}
 	//define download function
@@ -46,21 +55,21 @@
 			clearInterval(display_log); 
 			$('.backup-icon').fadeOut(1000); 
 			$("#php").html(response); //Return PHP messages, used for development
-        });   
+        });
+        return false;   
     })
     
     //execute restore on button click
 	$("#restore-form").submit(function() {
-                var maximum = $("#maximum").val();
-                var fil = document.getElementById("wpbackitup-zip"); 
-                var sizes  = fil.files[0].size; 
-                var sizesd = sizes/(1024*1024);
-                if(sizesd > maximum)
-                {
-                    $("#status").html("<span style='color: red'>File size exceeds maxium upload size.</span>");
-                    return false; 
-                }
-                var htmlvals = '<div class="upload">Uploading file: <span class="currentStatus">Pending</span></div><div class="unzipping">Unzipping Files: <span class="currentStatus">Pending</span></div><div class="validation">Validating Zip File: <span class="currentStatus">Pending</span></div><div class="wpcontent">Replacing WP-CONTENT Directory: <span class="currentStatus">Pending</span></div><div class="database">Restoring Database: <span class="currentStatus">Pending</span></div><div class="infomessage"><span class="currentStatus"></span></div><div class="errorMessage"><span class="currentStatus"></span></div>';
+        var maximum = $("#maximum").val();
+        var fil = document.getElementById("wpbackitup-zip"); 
+        var sizes  = fil.files[0].size; 
+        var sizesd = sizes/(1024*1024);
+        if(sizesd > maximum) {
+            $("#status").html("<span style='color: red'>File size exceeds maxium upload size.</span>");
+            return false; 
+        }
+        var htmlvals = '<div class="upload">Uploading: <span class="currentStatus">Pending</span></div><div class="unzipping">Unzipping: <span class="currentStatus">Pending</span></div><div class="validation">Validating restoration file: <span class="currentStatus">Pending</span></div><div class="wpcontent">Restoring /wp-content/ directory: <span class="currentStatus">Pending</span></div><div class="database">Restoring database: <span class="currentStatus">Pending</span></div><div class="infomessage"><span class="currentStatus"></span></div><div class="errorMessage"><span class="currentStatus"></span></div>';
                 
 		$("#status").html(htmlvals);
                 $(".upload").find('.currentStatus').html('In Progress');
@@ -70,6 +79,7 @@
 		$("#upload_target").load(function (){
 			importRestore(); 
 		});
+		return false;
 	});
 	
 	//define importRestore function
