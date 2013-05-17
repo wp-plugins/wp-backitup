@@ -5,9 +5,16 @@
  * @package WP Backitup Pro
  * 
  * @author jcpeden
- * @version 1.2.1
+ * @version 1.2.2
  * @since 1.0.1
  */
+
+// localize the plugin
+function lang_setup() {
+	global $WPBackitupLite;
+    load_plugin_textdomain($WPBackitupLite->namespace, false, dirname(plugin_basename(__FILE__)) . '/lang/');
+} 
+add_action('after_setup_theme', 'lang_setup');
 
 // include recurseZip class
 if( !class_exists( 'recurseZip' ) ) {
@@ -87,7 +94,8 @@ if(!function_exists('recursive_copy')) {
 //Define DB backup function
 if(!function_exists('db_backup')) {
 	function db_backup($path) { 
-		$handle = fopen($path .'db-backup.sql', 'w+');
+           
+            $handle = fopen($path .'db-backup.sql', 'w+');
             
             
             $path_sql = $path .'/db-backup.sql';
@@ -171,8 +179,8 @@ function zip($source, $destination, $ignore) {
 
 //load presstrends
 function load_presstrends() {
-	global $WPBackitup;
-	if($WPBackitup->get_option( 'presstrends' ) == 'enabled') {
+	global $WPBackitupLite;
+	if($WPBackitupLite->get_option( 'presstrends' ) == 'enabled') {
 		// PressTrends Account API Key
 		$api_key = 'rwiyhqfp7eioeh62h6t3ulvcghn2q8cr7j5x';
 		$auth    = 'lpa0nvlhyzbyikkwizk4navhtoaqujrbw';

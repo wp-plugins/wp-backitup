@@ -2,7 +2,7 @@
 /**
  * WP Backitup Lite
  * 
- * @package WPBackitupLite Lite
+ * @package WP Backitup Lite
  * 
  * @global    object    $wpdb
  * 
@@ -33,9 +33,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
-
 // Include constants file
-require_once( dirname( __FILE__ ) . '/lib/constants.php' );
+include_once dirname( __FILE__ ) . '/lib/constants.php';
 
 class WPBackitupLite {
     var $namespace = "wp-backitup-lite";
@@ -44,7 +43,9 @@ class WPBackitupLite {
     
     // Default plugin options
     var $defaults = array(
-        'presstrends' => "enabled"
+        'presstrends' => "enabled",
+        'license_key' => "",
+        'status' => "inactive"
     );
     
     /**
@@ -61,7 +62,7 @@ class WPBackitupLite {
         // Load all library files used by this plugin
         $libs = glob( WPBACKITUP_DIRNAME . '/lib/*.php' );
         foreach( $libs as $lib ) {
-            include_once( $lib );
+            include_once $lib;
         }
         
         /**
@@ -102,9 +103,12 @@ class WPBackitupLite {
      * @uses wp_verify_nonce()
      */
     private function _admin_options_update() {
+        
         // Verify submission for processing using wp_nonce
         if( wp_verify_nonce( $_REQUEST['_wpnonce'], "{$this->namespace}-update-options" ) ) {
+            //create data array
             $data = array();
+
             /**
              * Loop through each POSTed value and sanitize it to protect against malicious code. Please
              * note that rich text (or full HTML fields) should not be processed by this function and 
@@ -113,16 +117,48 @@ class WPBackitupLite {
             foreach( $_POST['data'] as $key => $val ) {
                 $data[$key] = $this->_sanitize( $val );
             }
-            
-            /**
-             * Place your options processing and storage code here
-             */
-            
+
+            //check license status and try to activate if invalid
+            $license = trim ( $data['license_key'] );
+
+            // Check license
+            $api_params = array( 
+                'edd_action' => 'check_license', 
+                'license' => $license, 
+                'item_name' => urlencode( WPBACKITUP_ITEM_NAME ) 
+            );
+
+            // Call the custom API
+            $response = wp_remote_get( add_query_arg( $api_params, WPBACKITUP_SITE_URL ), array( 'timeout' => 15, 'sslverify' => false ) );
+
+            // make sure the response came back okay
+            if ( is_wp_error( $response ) )
+                return false;
+
+            // decode the license data
+            $license_data = json_decode( wp_remote_retrieve_body( $response ) );
+
+            if( $license_data->license != 'valid' ) {
+                // Try to activate license (process is almost identical to check_license)
+                $api_params = array( 
+                    'edd_action'=> 'activate_license', 
+                    'license'   => $license, 
+                    'item_name' => urlencode( WPBACKITUP_ITEM_NAME ) // the name of our product in EDD
+                );
+                $response = wp_remote_get( add_query_arg( $api_params, WPBACKITUP_SITE_URL ) );
+                if ( is_wp_error( $response ) )
+                    return false;
+                $license_data = json_decode( wp_remote_retrieve_body( $response ) );
+            }
+
+            /* Manually define status value */
+            $data['status'] = $license_data->license;
+
             // Update the options value with the data submitted
             update_option( $this->option_name, $data );
             
             // Redirect back to the options page with the message flag to show the saved message
-            wp_safe_redirect( $_REQUEST['_wp_http_referer'] . '&message=1' );
+            wp_safe_redirect( $_REQUEST['_wp_http_referer'] . '&update=1' );
             exit;
         }
     }
@@ -138,7 +174,7 @@ class WPBackitupLite {
      */
     private function _sanitize( $str ) {
         if ( !function_exists( 'wp_kses' ) ) {
-            require_once( ABSPATH . 'wp-includes/kses.php' );
+            include_once ABSPATH . 'wp-includes/kses.php';
         }
         global $allowedposttags;
         global $allowedprotocols;
@@ -173,7 +209,7 @@ class WPBackitupLite {
      * @uses add_options_page()
      */
     function admin_menu() {
-        $page_hook = add_menu_page( $this->friendly_name, $this->friendly_name, 'administrator', $this->namespace, array( &$this, 'admin_options_page' ), WPBACKITUP_URLPATH .'/images/icon.png', 77);
+        $page_hook = add_menu_page( $this->friendly_name, $this->friendly_name, 'administrator', $this->namespace, array( &$this, 'admin_options_page' ), WPBACKITUP_URLPATH .'/images/icon.png', 73);
         
         // Add print scripts and styles action based off the option page hook
         add_action( 'admin_print_scripts-' . $page_hook, array( &$this, 'admin_print_scripts' ) );
@@ -195,7 +231,7 @@ class WPBackitupLite {
         $page_title = $this->friendly_name . ' Options';
         $namespace = $this->namespace;
         
-        include( WPBACKITUP_DIRNAME . "/views/options.php" );
+        include WPBACKITUP_DIRNAME . "/views/options.php";
     }
     
     /**
@@ -205,6 +241,7 @@ class WPBackitupLite {
      */
     function admin_print_scripts() {
         wp_enqueue_script( "{$this->namespace}-admin" );
+        wp_enqueue_script( "{$this->namespace}-ajaxfileupload" );
     }
     
     /**
@@ -274,7 +311,7 @@ class WPBackitupLite {
 		if( $file == plugin_basename( WPBACKITUP_DIRNAME . '/' . basename( __FILE__ ) ) ) {
             $old_links = $links;
             $new_links = array(
-                "settings" => '<a href="options-general.php?page=' . $this->namespace . '">' . __( 'Settings' ) . '</a>'
+                "settings" => '<a href="admin.php?page=' . $this->namespace . '">' . __( 'Settings' ) . '</a>'
             );
             $links = array_merge( $new_links, $old_links );
 		}
@@ -322,6 +359,7 @@ class WPBackitupLite {
     function wp_register_scripts() {
         // Admin JavaScript
         wp_register_script( "{$this->namespace}-admin", WPBACKITUP_URLPATH . "/js/admin.js", array( 'jquery' ), $this->version, true );
+        wp_register_script( "{$this->namespace}-ajaxfileupload", WPBACKITUP_URLPATH . "/js/ajaxfileupload.js", array( 'jquery' ), $this->version, true );
     }
     
     /**

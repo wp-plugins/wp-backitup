@@ -1,7 +1,7 @@
 /**
  * WP Backitup Ajax File Upload
  * 
- * @version 1.2.1
+ * @version 1.2.0
  * @since 1.0.1
  */
 
