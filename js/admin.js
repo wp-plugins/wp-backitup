@@ -7,17 +7,6 @@
 
 (function($){
 	
-        
-	//define backup variables
-	var backup = {
-		action: 'backup',
-		beforeSend: function() {
-			$('.backup-icon').css('visibility','visible');
-                        var htmlText = "<div class='prerequisites'>Checking Prerequisites: <span class='currentStatus'>Pending</span></div><div class='backupfiles'>Backing up files: <span class='currentStatus'>Pending</span></div><div class='backupdb'>Backing up database: <span class='currentStatus'>Pending</span></div><div class='infofile'>Creating Info File: <span class='currentStatus'>Pending</span></div><div class='zipfile'>Creating Zip File: <span class='currentStatus'>Pending</span></div><div class='cleanup'>Cleaning Up: <span class='currentStatus'>Pending</span></div><div class='errorMessage'><span class='currentStatus'></span></div>";
-			$("#status").html(htmlText);
-                        window.intervalDefine = setInterval(display_log, 1000);
-		}
-	};
 	//define download variables
 	var download = {
 		action: 'download'

@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4
 Tested up to: 3.5.1
-Stable tag: 1.2.1
+Stable tag: 1.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -96,6 +96,9 @@ Yes.
 
 == Changelog ==
 
+= 1.2.2 =
+* Fixed fatal errors with plugin classname.
+
 = 1.2.1 =
 * Fixed issues with broken directory tree, brought versioning inline with WP Backitup Pro
 
@@ -154,6 +157,9 @@ Yes.
 * Plugin released.
 
 == Upgrade Notice ==
+
+= 1.2.2 =
+* Critical upgrade. Plugin broken for most users without this update.
 
 = 1.2.1 =
 * Critical upgrade. Plugin broken for most users without this update.
