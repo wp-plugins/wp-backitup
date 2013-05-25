@@ -1,19 +1,19 @@
 <?php
 /**
- * WP Backitup Lite
+ * WP Backitup
  * 
- * @package WP Backitup Lite
+ * @package WP Backitup
  * 
  * @global    object    $wpdb
  * 
  * @author jcpeden
- * @version 1.2.2
+ * @version 1.3.0
  */
 /*
-Plugin Name: WP Backitup Lite
+Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.2.2
+Version: 1.3.0
 Author: John Peden
 Author URI: http://www.johncpeden.com
 License: GPL3
@@ -36,8 +36,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Include constants file
 include_once dirname( __FILE__ ) . '/lib/constants.php';
 
-class WPBackitupLite {
-    var $namespace = "wp-backitup-lite";
+class WPBackitup {
+    var $namespace = "wp-backitup";
     var $friendly_name = WPBACKITUP_ITEM_NAME;
     var $version = WPBACKITUP_VERSION;
     
@@ -52,8 +52,8 @@ class WPBackitupLite {
      * Instantiation construction
      * 
      * @uses add_action()
-     * @uses WPBackitupLite::wp_register_scripts()
-     * @uses WPBackitupLite::wp_register_styles()
+     * @uses WPBackitup::wp_register_scripts()
+     * @uses WPBackitup::wp_register_styles()
      */
     function __construct() {
         // Name of the option_value to store plugin options in
@@ -77,8 +77,6 @@ class WPBackitupLite {
     
     /**
      * Add in various hooks
-     * 
-     * Place all add_action, add_filter, add_shortcode hook-ins here
      */
     private function _add_hooks() {
         // Options page for configuration
@@ -96,11 +94,17 @@ class WPBackitupLite {
     }
     
     /**
-     * Process update page form submissions
+     * Process update page form submissions and validate license key
      * 
-     * @uses WPBackitupLite::sanitize()
+     * @uses WPBackitup::sanitize()
      * @uses wp_redirect()
      * @uses wp_verify_nonce()
+     * @uses wp_remote_get()
+     * @uses add_query_arg()
+     * @uses is_wp_error()
+     * @uses wp_remote_retrieve_body()
+     * @uses update_option()
+     * @uses wp_safe_redirect()
      */
     private function _admin_options_update() {
         
@@ -194,9 +198,6 @@ class WPBackitupLite {
 
     /**
      * Hook into register_activation_hook action
-     * 
-     * Put code here that needs to happen when your plugin is first activated (database
-     * creation, permalink additions, etc.)
      */
     static function activate() {
         // Do activation actions
@@ -209,7 +210,7 @@ class WPBackitupLite {
      * @uses add_options_page()
      */
     function admin_menu() {
-        $page_hook = add_menu_page( $this->friendly_name, $this->friendly_name, 'administrator', $this->namespace, array( &$this, 'admin_options_page' ), WPBACKITUP_URLPATH .'/images/icon.png', 73);
+        $page_hook = add_menu_page( $this->friendly_name, $this->friendly_name, 'administrator', $this->namespace, array( &$this, 'admin_options_page' ), WPBACKITUP_URLPATH .'/images/icon.png', 77);
         
         // Add print scripts and styles action based off the option page hook
         add_action( 'admin_print_scripts-' . $page_hook, array( &$this, 'admin_print_scripts' ) );
@@ -292,17 +293,14 @@ class WPBackitupLite {
      * etc. up for use.
      */
     static function instance() {
-        global $WPBackitupLite;
+        global $WPBackitup;
         
         // Only instantiate the Class if it hasn't been already
-        if( !isset( $WPBackitupLite ) ) $WPBackitupLite = new WPBackitupLite();
+        if( !isset( $WPBackitup ) ) $WPBackitup = new WPBackitup();
     }
 	
 	/**
 	 * Hook into plugin_action_links filter
-	 * 
-	 * Adds a "Settings" link next to the "Deactivate" link in the plugin listing page
-	 * when the plugin is active.
 	 * 
 	 * @param object $links An array of the links to show, this will be the modified variable
 	 * @param string $file The name of the file being processed in the filter
@@ -322,10 +320,7 @@ class WPBackitupLite {
     /**
      * Route the user based off of environment conditions
      * 
-     * This function will handling routing of form submissions to the appropriate
-     * form processor.
-     * 
-     * @uses WPBackitupLite::_admin_options_update()
+     * @uses WPBackitup::_admin_options_update()
      */
     function route() {
         $uri = $_SERVER['REQUEST_URI'];
@@ -372,9 +367,9 @@ class WPBackitupLite {
         wp_register_style( "{$this->namespace}-admin", WPBACKITUP_URLPATH . "/css/admin.css", array(), $this->version, 'screen' );
     }
 }
-if( !isset( $WPBackitupLite ) ) {
-	WPBackitupLite::instance();
+if( !isset( $WPBackitup ) ) {
+	WPBackitup::instance();
 }
 
-register_activation_hook( __FILE__, array( 'WPBackitupLite', 'activate' ) );
-register_deactivation_hook( __FILE__, array( 'WPBackitupLite', 'deactivate' ) );
+register_activation_hook( __FILE__, array( 'WPBackitup', 'activate' ) );
+register_deactivation_hook( __FILE__, array( 'WPBackitup', 'deactivate' ) );

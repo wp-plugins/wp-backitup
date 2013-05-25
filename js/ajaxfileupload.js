@@ -47,7 +47,7 @@ jQuery.extend({
 		jQuery(oldElement).appendTo(form);
 
 
-		
+
 		//set attributes
 		jQuery(form).css('position', 'absolute');
 		jQuery(form).css('top', '-1200px');
@@ -84,7 +84,7 @@ jQuery.extend({
 				{
 					 xml.responseText = io.contentWindow.document.body?io.contentWindow.document.body.innerHTML:null;
                 	 xml.responseXML = io.contentWindow.document.XMLDocument?io.contentWindow.document.XMLDocument:io.contentWindow.document;
-					 
+
 				}else if(io.contentDocument)
 				{
 					 xml.responseText = io.contentDocument.document.body?io.contentDocument.document.body.innerHTML:null;
@@ -139,7 +139,7 @@ jQuery.extend({
 										{
 											jQuery(io).remove();
 											jQuery(form).remove();	
-											
+
 										} catch(e) 
 										{
 											jQuery.handleError(s, xml, null, e);
@@ -180,7 +180,7 @@ jQuery.extend({
 		{			
             jQuery.handleError(s, xml, null, e);
         }
-		
+
 		jQuery('#' + frameId).load(uploadCallback	);
         return {abort: function () {}};	
 
@@ -202,4 +202,3 @@ jQuery.extend({
         return data;
     }
 })
-
