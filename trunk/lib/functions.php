@@ -2,17 +2,17 @@
 /**
  * WP Backitup Functions
  * 
- * @package WP Backitup Pro
+ * @package WP Backitup
  * 
  * @author jcpeden
- * @version 1.2.2
+ * @version 1.3.0
  * @since 1.0.1
  */
 
 // localize the plugin
 function lang_setup() {
-	global $WPBackitupLite;
-    load_plugin_textdomain($WPBackitupLite->namespace, false, dirname(plugin_basename(__FILE__)) . '/lang/');
+	global $WPBackitup;
+    load_plugin_textdomain($WPBackitup->namespace, false, dirname(plugin_basename(__FILE__)) . '/lang/');
 } 
 add_action('after_setup_theme', 'lang_setup');
 
@@ -21,11 +21,34 @@ if( !class_exists( 'recurseZip' ) ) {
 	include_once 'includes/recurse_zip.php';
 }
 
+// include auto-update class
+if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
+	include_once 'includes/auto_update.php';
+}
+
+// retrieve our license key from the DB
+$license_key = trim( $this->get_option( 'license_key' ) );
+
+// setup the updater
+$edd_updater = new EDD_SL_Plugin_Updater( WPBACKITUP_SITE_URL, dirname ( dirname ( __FILE__) ) .'/index.php', array( 
+		'version' 	=> WPBACKITUP_VERSION, 		// current version number
+		'license' 	=> $license_key, 	// license key (used get_option above to retrieve from DB)
+		'item_name'     => WPBACKITUP_ITEM_NAME, 	// name of this plugin
+		'author' 	=> 'John Peden'  // author of this plugin
+	)
+);
+
 //load backup function
 function backup() {
 	include_once 'includes/backup.php';
 }
 add_action('wp_ajax_backup', 'backup');
+
+//load restore_path function
+function restore_path() {
+	include_once 'includes/restore_from_path.php';
+}
+add_action('wp_ajax_restore_path', 'restore_path');
 
 //load download function
 function download() {
@@ -179,8 +202,8 @@ function zip($source, $destination, $ignore) {
 
 //load presstrends
 function load_presstrends() {
-	global $WPBackitupLite;
-	if($WPBackitupLite->get_option( 'presstrends' ) == 'enabled') {
+	global $WPBackitup;
+	if($WPBackitup->get_option( 'presstrends' ) == 'enabled') {
 		// PressTrends Account API Key
 		$api_key = 'rwiyhqfp7eioeh62h6t3ulvcghn2q8cr7j5x';
 		$auth    = 'lpa0nvlhyzbyikkwizk4navhtoaqujrbw';
