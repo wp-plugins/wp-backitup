@@ -2,14 +2,14 @@
 /**
  * Constants used by this plugin
  * 
- * @package WP Backitup Pro
+ * @package WP Backitup
  * 
  * @author jcpeden
- * @version 1.3.0
+ * @version 1.4.0
  * @since 1.0.1
  */
 
-if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.3.0' );
+if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.4.0' );
 
 if( !defined( 'WPBACKITUP_DIRNAME' ) ) define( 'WPBACKITUP_DIRNAME', dirname( dirname( __FILE__ ) ) );
 

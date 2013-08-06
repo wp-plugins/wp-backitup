@@ -3,8 +3,8 @@ Contributors: jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
-Tested up to: 3.5.1
-Stable tag: 1.3.0
+Tested up to: 3.6.0
+Stable tag: 1.4.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,8 +93,11 @@ Yes.
 
 == Changelog ==
 
+= 1.4.0 =
+Fixed status reporting for backup/restore process and built-in localization.
+
 = 1.3.0 =
-Recommended upgrade: Amalgameted lite and pro versions of the plugin
+Recommended upgrade: Amalgameted lite and pro versions of the plugin.
 
 = 1.2.2 = 
 Major updates to improve plugin performance and stability.
@@ -139,6 +142,9 @@ WP Backitup integrated with licensing and auto-update engine.
 Initial version of the plugin released. 
 
 == Upgrade Notice ==
+
+= 1.4.0 =
+Recommended upgrade: Fixed status reporting for backup/restore process and built-in localization.
 
 = 1.3.0 =
 Recommended upgrade: Amalgameted lite and pro versions of the plugin

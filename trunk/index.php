@@ -7,13 +7,13 @@
  * @global    object    $wpdb
  * 
  * @author jcpeden
- * @version 1.3.0
+ * @version 1.4.0
  */
 /*
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.3.0
+Version: 1.4.0
 Author: John Peden
 Author URI: http://www.johncpeden.com
 License: GPL3
@@ -44,7 +44,7 @@ class WPBackitup {
     // Default plugin options
     var $defaults = array(
         'presstrends' => "enabled",
-        'license_key' => "",
+        'license_key' => "cat",
         'status' => "inactive"
     );
     
@@ -309,7 +309,7 @@ class WPBackitup {
 		if( $file == plugin_basename( WPBACKITUP_DIRNAME . '/' . basename( __FILE__ ) ) ) {
             $old_links = $links;
             $new_links = array(
-                "settings" => '<a href="admin.php?page=' . $this->namespace . '">' . __( 'Settings' ) . '</a>'
+                "settings" => '<a href="admin.php?page=' . $this->namespace . '">' . __( 'Manage' ) . '</a>'
             );
             $links = array_merge( $new_links, $old_links );
 		}
