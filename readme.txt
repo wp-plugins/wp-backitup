@@ -42,7 +42,7 @@ Creating a backup of your Wordpress site is easy, straightforward and for most s
 Need to restore a Wordpress site? Wordpress Backitup is definitely a great asset if you find yourself in this position. Assuming you've created a backup using Wordpress Backitup, you have two choices:
 
 1. Restore manually
-1. [Buy a Wordpress Backitup Pro license](http://www.wpbackitup.com/plugins/wp-backitup-pro/ “Buy a Wordpress Backitup Pro license”) and use the built-in restore feature.
+1. <a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/" title="Buy a Wordpress Backitup Pro license">Buy a Wordpress Backitup Pro license</a> and use the built-in restore feature.
 
 = How to manually restore a Wordpress backup created with Wordpress Backitup =
 1. Unzip the backup file
