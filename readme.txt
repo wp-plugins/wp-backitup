@@ -23,7 +23,11 @@ It should be easy to backup a Wordpress site, particularly your database but unf
 
 = What does Wordpress Backitup actually backup? =
 Wordpress Backitup creates a single, zipped backup of your entire site (minus Wordpress itself). This includes:
-* The Wordpress database, * Wordpress plugins, * Wordpress uploads, * Wordpress themes, * Anything else in your wp-content directory
+* The Wordpress database
+* Wordpress plugins
+* Wordpress uploads
+* Wordpress themes
+* Anything else in your wp-content directory
 
 = How does Wordpress Backitup create a backup zip =
 Creating a backup of your Wordpress site is easy, straightforward and for most sites very fast. Once Wordpress Backitup has been installed and activated, simply navigate to the Wordpress Backitup administration tab. From there, click the backup button and a number of things will happen in the background:
