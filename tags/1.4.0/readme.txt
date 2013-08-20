@@ -28,16 +28,24 @@ Wordpress Backitup creates a single, zipped backup of your entire site (minus Wo
 = How does Wordpress Backitup create a backup zip =
 Creating a backup of your Wordpress site is easy, straightforward and for most sites very fast. Once Wordpress Backitup has been installed and activated, simply navigate to the Wordpress Backitup administration tab. From there, click the backup button and a number of things will happen in the background:
 
-1. Any existing backup zips created using Wordpress Backitup will be purged, 2. The contents of your entire wp-content directory will be copied to the backup directory, 3. A dump of your entire database will be copied to the backup directory, 4. The backup directory will be zipped, 5. A download link will be created and shown to you in the Wordpress Backitup administration window.
+1. Any existing backup zips created using Wordpress Backitup will be purged
+1. The contents of your entire wp-content directory will be copied to the backup directory
+1. A dump of your entire database will be copied to the backup directory
+1. The backup directory will be zipped
+1. A download link will be created and shown to you in the Wordpress Backitup administration window.
 
 = How can I restore a Wordpress backup created with Wordpress Backitup? =
 Need to restore a Wordpress site? Wordpress Backitup is definitely a great asset if you find yourself in this position. Assuming you've created a backup using Wordpress Backitup, you have two choices:
 
 1. Restore manually
-2. [Buy a Wordpress Backitup Pro license](http://www.wpbackitup.com/plugins/wp-backitup-pro/ “Buy a Wordpress Backitup Pro license”) and use the built-in restore feature.
+1. [Buy a Wordpress Backitup Pro license](http://www.wpbackitup.com/plugins/wp-backitup-pro/ “Buy a Wordpress Backitup Pro license”) and use the built-in restore feature.
 
 = How to manually restore a Wordpress backup created with Wordpress Backitup =
-1. Unzip the backup file, 2. Using FTP, delete the contents of your target wp-content directory, 3. Using FTP, upload the contents of your backup zip to the target site's wp-content directory, 4. Using MySQL/PHPMyAdmin, empty your target site's database, 5. Using MySQL/PHPMyAdmin, import the database dump from your backup zip into your target site.
+1. Unzip the backup file
+1. Using FTP, delete the contents of your target wp-content directory
+1. Using FTP, upload the contents of your backup zip to the target site's wp-content directory
+1. Using MySQL/PHPMyAdmin, empty your target site's database
+1. Using MySQL/PHPMyAdmin, import the database dump from your backup zip into your target site.
 
 == Installation ==
 
