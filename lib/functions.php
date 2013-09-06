@@ -29,14 +29,56 @@ if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
 // retrieve our license key from the DB
 $license_key = trim( $this->get_option( 'license_key' ) );
 
-// setup the updater
-$edd_updater = new EDD_SL_Plugin_Updater( WPBACKITUP_SITE_URL, dirname ( dirname ( __FILE__) ) .'/index.php', array( 
-		'version' 	=> WPBACKITUP_VERSION, 		// current version number
-		'license' 	=> $license_key, 	// license key (used get_option above to retrieve from DB)
-		'item_name'     => WPBACKITUP_ITEM_NAME, 	// name of this plugin
-		'author' 	=> 'John Peden'  // author of this plugin
-	)
-);
+//define dbSize function
+function dbSize($dbname) {
+	mysql_select_db($dbname);
+	$result = mysql_query("SHOW TABLE STATUS");
+	$dbsize = 0;
+	while($row = mysql_fetch_array($result)) {
+	    $dbsize += $row["Data_length"] + $row["Index_length"];
+	}
+	return $dbsize;
+}
+
+//define formatFileSize function
+function formatFileSize($bytes) 
+	{
+    if ($bytes >= 1073741824)
+    {
+        $bytes = number_format($bytes / 1073741824, 2) . ' GB';
+    }
+    elseif ($bytes >= 1048576)
+    {
+        $bytes = number_format($bytes / 1048576, 2) . ' MB';
+    }
+    elseif ($bytes >= 1024)
+    {
+        $bytes = number_format($bytes / 1024, 2) . ' KB';
+    }
+    elseif ($bytes > 1)
+    {
+        $bytes = $bytes . ' bytes';
+    }
+    elseif ($bytes == 1)
+    {
+        $bytes = $bytes . ' byte';
+    }
+    else
+    {
+        $bytes = '0 bytes';
+    }
+
+    return $bytes;
+}
+
+//define dirSize function
+function dirSize($directory) {
+    $size = 0;
+    foreach(new RecursiveIteratorIterator(new RecursiveDirectoryIterator($directory)) as $file){
+		$size+=$file->getSize();
+    }
+    return $size;
+} 
 
 //load backup function
 function backup() {
@@ -120,7 +162,6 @@ if(!function_exists('db_backup')) {
            
             $handle = fopen($path .'db-backup.sql', 'w+');
             
-            
             $path_sql = $path .'/db-backup.sql';
             $db_name = DB_NAME; 
             $db_user  = DB_USER;
@@ -131,6 +172,20 @@ if(!function_exists('db_backup')) {
             fwrite($handle,$output);
             fclose($handle);
             return true;
+	}
+}
+
+//define dbDumpFileSize function
+if(!function_exists('dbDumpFileSize')) {
+	function dbDumpFileSize($path) {
+		if(glob($path . "*.sql")) {
+			foreach (glob($path . "*.sql") as $db) {
+				$filesize = filesize($db);
+			}
+		}
+		if ($filesize > 1) {
+			return true;	
+		}
 	}
 }
 
