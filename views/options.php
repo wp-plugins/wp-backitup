@@ -57,6 +57,7 @@
                 <li class="error102"><span class='status error'><?php _e('Error: Cannot create backup directory. Please check the CHMOD settings of your wp-backitup plugin directory', $namespace ); ?>.</span></li>
                 <li class="error103"><span class='status error'><?php _e('Error: Unable to backup your files. Please try again', $namespace ); ?>.</span></li>
                 <li class="error104"><span class='status error'><?php _e('Error: Unable to backup your database. Please try again', $namespace ); ?>.</span></li>
+                <li class="error114"><span class='status error'><?php _e('Error: Your database was accesible but a dump could not be created. Please contact support by clicking the link on the right, stating your web host when you submit the form.', $namespace ); ?>.</span></li>
                 <li class="error105"><span class='status error'><?php _e('Error: Unable to create site information file. Please try again', $namespace ); ?>.</span></li>
                 <li class="error106"><span class='status error'><?php _e('Warning: Unable to cleanup your backup directory', $namespace ); ?>.</span></li>
             </ul>

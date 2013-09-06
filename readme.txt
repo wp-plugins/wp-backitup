@@ -1,55 +1,31 @@
-=== WordPress Backitup ===
+=== WP Backitup ===
 Contributors: jcpeden
 Donate link: http://www.wpbackitup.com
-Tags: wordpress backup plugin, backup wordpress, wordpress database backup
+Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
 Tested up to: 3.6.0
-Stable tag: 1.4.0
+Stable tag: 1.4.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-A Wordpress backup plugin that allows you to backup a Wordpress site (including your Wordpress database) in just one click.
+Create a backup zip of your content and settings with a single click that can be used to restore your site quickly and easily.
 
 == Description ==
 
-= Want to backup Wordpress? =
-Wordpress Backitup allows you to backup Wordpress (your entire Wordpress site and database) in just a single click. Wordpress Backitup creates a backup zip of your site&apos;s content and database and allows you to backup your Wordpress site right from the administration dashboard. You no longer need knowledge of FTP, MySQL or PHPMyAdmin.
+= The Simple Way to Backup Your Site =
+WP Backitup creates a backup zip of your site&apos;s content and configuration in just a single click, 
+right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. 
 
-= How easy is it to backup a Wordpress site? =
-It should be easy to backup a Wordpress site, particularly your database but unfortunately unless you are familiar with the FTP, MySQL and/or PHPMyAdmin backing up your Wordpress site and its database can be quite a headache. As a result of it being difficult to backup Wordpress, many site owners just don't bother only to wish they had when their site is hacked or data is lost for some reason. Wordpress Backitup makes it easy to backup your site, just take a look at the video below.
+You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
 
-= Wordpress Backitup makes it easy to backup your Wordpress site and database =
-[youtube http://www.youtube.com/watch?v=o3RCzwLARSM]
+= Automatically Restore Your Backup Zips =
+Tired of messing around in PHPMyAdmin and with FTP trying to restore you backups? <a href="http://www.wpbackitup.com/wp-backitup-pro/" title="WP Backitup">WP Backitup Pro</a> offers all the features of <a href="http://wordpress.org/extend/plugins/wp-backitup/" title="WP Backitup Lite">WP Backitup</a> but allows you to import your backup zips in seconds, right from the Wordpress Dashboard.
 
-= What does Wordpress Backitup actually backup? =
-Wordpress Backitup creates a single, zipped backup of your entire site (minus Wordpress itself). This includes:
-* The Wordpress database
-* Wordpress plugins
-* Wordpress uploads
-* Wordpress themes
-* Anything else in your wp-content directory
+= Easy To Install and Use =
+Simply install the plugin directly to Wordpress and browse to the new menu 'WP Backitup'. From there, just follow the on-screen instructions and watch as WP Backitup creates a backup of you site's plugins, themes and uploads as well as you content and settings (including all custom widgets and settings for any additional plugins). 
 
-= How does Wordpress Backitup create a backup zip =
-Creating a backup of your Wordpress site is easy, straightforward and for most sites very fast. Once Wordpress Backitup has been installed and activated, simply navigate to the Wordpress Backitup administration tab. From there, click the backup button and a number of things will happen in the background:
-
-1. Any existing backup zips created using Wordpress Backitup will be purged
-1. The contents of your entire wp-content directory will be copied to the backup directory
-1. A dump of your entire database will be copied to the backup directory
-1. The backup directory will be zipped
-1. A download link will be created and shown to you in the Wordpress Backitup administration window.
-
-= How can I restore a Wordpress backup created with Wordpress Backitup? =
-Need to restore a Wordpress site? Wordpress Backitup is definitely a great asset if you find yourself in this position. Assuming you've created a backup using Wordpress Backitup, you have two choices:
-
-1. Restore manually
-1. <a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/" title="Buy a Wordpress Backitup Pro license">Buy a Wordpress Backitup Pro license</a> and use the built-in restore feature.
-
-= How to manually restore a Wordpress backup created with Wordpress Backitup =
-1. Unzip the backup file
-1. Using FTP, delete the contents of your target wp-content directory
-1. Using FTP, upload the contents of your backup zip to the target site's wp-content directory
-1. Using MySQL/PHPMyAdmin, empty your target site's database
-1. Using MySQL/PHPMyAdmin, import the database dump from your backup zip into your target site.
+= More questions? =
+Why not head over to the <a href="http://www.wpbackitup.com/" title="WP Backitup">WP Backitup site</a>?
 
 == Installation ==
 
@@ -57,31 +33,31 @@ Installation of the plugin is straightforward:
 
 1. Upload the plugin to your plugins directory via FTP or through the Wordpress dashboard.
 1. Activate the plugin.
-1. A new menu called 'Wordpress Backitup' will be added to your toolbar.
-1. Click 'Wordpress Backitup' to access the backup/restore interface.
+1. A new menu called 'WP Backitup' will be added to your toolbar.
+1. Click 'WP Backitup' to access the backup/restore interface.
 
 == Frequently Asked Questions ==
 
 = Can I manually restore my backup zips? =
-Sure! The backup zips generated by Wordpress Backitup contain a database dump and a copy of your wp-content directory. Simply upload your files and import your database.
+Sure! The backup zips generated by WP Backitup contain a database dump and a copy of your wp-content directory. Simply upload your files and import your database.
 
 = Is there an easier way to restore my backup zips? =
-Yes, purchase and download <a href="http://www.wpbackitup.com/wp-backitup-pro/" title="Wordpress Backitup">Wordpress Backitup</a>. Once installed, you'll be able to restore you backup zips without FTP or MySQL.
+Yes, purchase and download <a href="http://www.wpbackitup.com/wp-backitup-pro/" title="WP Backitup">WP Backitup</a>. Once installed, you'll be able to restore you backup zips without FTP or MySQL.
 
 = Will the plugin work on shared hosting/sub domains/webhost xxx? =
 Yes.
 
-= Will Wordpress Backitup work on Windows hosting? =
+= Will WP Backitup work on Windows hosting? =
 Yes.
 
 = Are you going to be makinggress bars both for backing up and restoring with this plugin? =
-It is likely this will feature in a new version of Wordpress Backitup.
+It is likely this will feature in a new version of WP Backitup.
 
 = Can this plugin back to Amazon S3? =
-This will feature in an upcoming version of Wordpress Backitup.
+This will feature in an upcoming version of WP Backitup.
 
 = Is there an auto back up schedule feature? =
-It is likely this will feature in a new version of Wordpress Backitup.
+It is likely this will feature in a new version of WP Backitup.
 
 = Will the plugin work with Wordpres version x.x? =
 The plugin works on the latest release of WordPress and is updated to function with all new releases.
@@ -89,22 +65,22 @@ The plugin works on the latest release of WordPress and is updated to function w
 = Can this backup one version of WordPress to a different version? =
 No. It is absolutely critical that your WordPress versions are exactly the same.
 
-= Will Wordpress Backitup work on WordPress Multisite? =
-Wordpress Backitup cannot yet backup/restore entire networks but it is compatible with WPMS sites.
+= Will WP Backitup work on WordPress Multisite? =
+WP Backitup cannot yet backup/restore entire networks but it is compatible with WPMS sites.
 
 = Does the plugin copy the database details as well? =
 Yes, a database dump is created with each backup.
 
 = Can I make a basic WordPress site, with all my desired plugins and settings, make a few pages, setup permalinks, remove all the default junk and load in a basic themplate? =
-Yes. Wordpress Backitup can be used to create a good starting point for any and all sites you work on.
+Yes. WP Backitup can be used to create a good starting point for any and all sites you work on.
 
-= Does Wordpress Backitup need to be installed? =
-Yes. You must install the Wordpress Backitup plugin on the site you wish to backup and the site you wish to restore to. Its just a simple plugin.
+= Does WP Backitup need to be installed? =
+Yes. You must install the WP Backitup plugin on the site you wish to backup and the site you wish to restore to. Its just a simple plugin.
 
-= Does Wordpress Backitup backup plugins settings or just the plugins themselves? =
-Wordpress Backitup creates a database dump and a backup of all your themes, plugins and uploads.
+= Does WP Backitup backup plugins settings or just the plugins themselves? =
+WP Backitup creates a database dump and a backup of all your themes, plugins and uploads.
 
-= Do you have any ideas about how large a blog is too big for Wordpress Backitup to handle? =
+= Do you have any ideas about how large a blog is too big for WP Backitup to handle? =
 I`ve tested up to 5 themes, 20 plugins and 100 posts/pages without any issues.
 
 = Do you do regularly update thisduct to match with WP version updates? =
@@ -116,6 +92,9 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+
+= 1.4.1 =
+Setup alert if DB is 0 bytes.
 
 = 1.4.0 =
 Fixed status reporting for backup/restore process and built-in localization.
@@ -130,7 +109,7 @@ Major updates to improve plugin performance and stability.
 Minor updates to plugin functionality.
 
 = 1.2.0 = 
-Brought versioning inline with Wordpress Backitup Lite. Fixed incorrecy message on restore interface. Fixed restorationcess.
+Brought versioning inline with WP Backitup Lite. Fixed incorrecy message on restore interface. Fixed restorationcess.
 
 = 1.1.0 = 
 Backup from mysqldump, restore from mysql command line, restore functionality from uploaded files, file size limit check according to server before uploads, setInterval termination after operation, status update as the task completes using XML.
@@ -160,12 +139,15 @@ Fixed the auto-update engine and license key activation system.
 Minor bugs patched for auto-update engine.
 
 = 1.0.1 =
-Wordpress Backitup integrated with licensing and auto-update engine.
+WP Backitup integrated with licensing and auto-update engine.
 
 = 1.0.0 =
 Initial version of the plugin released. 
 
 == Upgrade Notice ==
+
+= 1.4.1 =
+Recommended upgrade: Backitup will now alert and halt if your database is 0 bytes on backup.
 
 = 1.4.0 =
 Recommended upgrade: Fixed status reporting for backup/restore process and built-in localization.

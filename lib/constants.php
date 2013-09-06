@@ -5,15 +5,17 @@
  * @package WP Backitup
  * 
  * @author jcpeden
- * @version 1.4.0
+ * @version 1.4.1
  * @since 1.0.1
  */
 
-if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.4.0' );
+if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.4.1' );
 
 if( !defined( 'WPBACKITUP_DIRNAME' ) ) define( 'WPBACKITUP_DIRNAME', dirname( dirname( __FILE__ ) ) );
 
 if( !defined( 'WPBACKITUP_DIR_PATH' ) ) define( 'WPBACKITUP_DIR_PATH', dirname( dirname( dirname( __FILE__ ) ) ) );
+
+if( !defined( 'WPBACKITUP_CONTENT_PATH' ) ) define( 'WPBACKITUP_CONTENT_PATH', dirname(dirname(dirname(dirname(__FILE__)))) .'/' );
 
 if( !defined( 'WPBACKITUP_URLPATH' ) ) define( 'WPBACKITUP_URLPATH', WP_PLUGIN_URL . "/" . plugin_basename( WPBACKITUP_DIRNAME ) );
 
