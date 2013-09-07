@@ -43,9 +43,9 @@
             <!--backup status messages-->
             <ul class="backup-status">
                 <li class='prerequisites'><?php _e('Preparing to backup', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
-                <li class='backupfiles'><?php _e('Backing-up /wp-content/', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='backupdb'><?php _e('Backing-up database', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
-                <li class='infofile'><?php _e('Creating backup directory', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
+                <li class='backupfiles'><?php _e('Backing-up /wp-content/', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
+                <li class='infofile'><?php _e('Creating backup information file', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='zipfile'><?php _e('Zipping backup directory', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='cleanup'><?php _e('Cleaning up', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='finalinfo'><span class='status'><?php _e('Backup file created successfully. You can download your backup file using the link above', $namespace ); ?></span></li>
@@ -57,6 +57,7 @@
                 <li class="error102"><span class='status error'><?php _e('Error: Cannot create backup directory. Please check the CHMOD settings of your wp-backitup plugin directory', $namespace ); ?>.</span></li>
                 <li class="error103"><span class='status error'><?php _e('Error: Unable to backup your files. Please try again', $namespace ); ?>.</span></li>
                 <li class="error104"><span class='status error'><?php _e('Error: Unable to backup your database. Please try again', $namespace ); ?>.</span></li>
+                <li class="error114"><span class='status error'><?php _e('Error: Your database was accesible but a dump could not be created. Please contact support by clicking the link on the right, stating your web host when you submit the form.', $namespace ); ?>.</span></li>
                 <li class="error105"><span class='status error'><?php _e('Error: Unable to create site information file. Please try again', $namespace ); ?>.</span></li>
                 <li class="error106"><span class='status error'><?php _e('Warning: Unable to cleanup your backup directory', $namespace ); ?>.</span></li>
             </ul>

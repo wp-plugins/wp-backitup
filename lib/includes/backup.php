@@ -6,7 +6,7 @@
  * @package WP Backitup Pro
  * 
  * @author jcpeden
- * @version 1.4.0
+ * @version 1.4.2
  * @since 1.0.1
  */
 
@@ -18,7 +18,6 @@ global $WPBackitup;
 //Define variables
 $backup_project_dirname = get_bloginfo('name') .'-Export-' .date('Y-m-d-Hi'); 
 $backup_project_path = WPBACKITUP_DIRNAME ."/backups/". $backup_project_dirname .'/';
-$wp_content_path = dirname(dirname(dirname(dirname(dirname(__FILE__))))) .'/';
 
 //create log file
 $log = WPBACKITUP_DIRNAME ."/logs/status.log";
@@ -52,22 +51,22 @@ if(!is_writeable(WPBACKITUP_DIRNAME ."/backups/")) {
 	fwrite($fh, '<div class="prerequisites">1</div>');
 }
 
-//Backup with copy
-if(recursive_copy($wp_content_path, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip','cache' ) ) ) {
-	fwrite($fh, '<div class="backupfiles">1</div>');
-} else {
-    fwrite($fh, '<div class="backupfiles">0</div>');
-	fwrite($fh, '<div class="error103">1</div>');
-	die();
-}
-
 //Dump DB to project dir
-if(	db_backup($backup_project_path) ) {
+if( db_backup(DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, $backup_project_path) ) { 
 	fwrite($fh, '<div class="backupdb">1</div>');
 } else {
 	fwrite($fh, '<div class="backupdb">0</div>');
 	fwrite($fh, '<div class="error104">1</div>');
 	recursive_delete($backup_project_path);
+	die();
+}
+
+//Backup with copy
+if(recursive_copy(WPBACKITUP_CONTENT_PATH, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip','cache' ) ) ) {
+	fwrite($fh, '<div class="backupfiles">1</div>');
+} else {
+    fwrite($fh, '<div class="backupfiles">0</div>');
+	fwrite($fh, '<div class="error103">1</div>');
 	die();
 }
 
