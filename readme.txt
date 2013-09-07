@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
 Tested up to: 3.6.0
-Stable tag: 1.4.1
+Stable tag: 1.4.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Yes.
 
 == Changelog ==
 
+= 1.4.2 =
+Changed DB backup method to work on shared hosting.
+
 = 1.4.1 =
 Setup alert if DB is 0 bytes.
 
@@ -145,6 +148,9 @@ WP Backitup integrated with licensing and auto-update engine.
 Initial version of the plugin released. 
 
 == Upgrade Notice ==
+
+= 1.4.2 =
+Recommended upgrade: Many people on shared hosting will now be able to backup their database.
 
 = 1.4.1 =
 Recommended upgrade: Backitup will now alert and halt if your database is 0 bytes on backup.

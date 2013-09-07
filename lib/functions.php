@@ -5,8 +5,8 @@
  * @package WP Backitup
  * 
  * @author jcpeden
- * @version 1.4.0
- * @since 1.0.1
+ * @version 1.4.2
+ * @since 1.0.2
  */
 
 // localize the plugin
@@ -21,20 +21,15 @@ if( !class_exists( 'recurseZip' ) ) {
 	include_once 'includes/recurse_zip.php';
 }
 
-// include auto-update class
-if( !class_exists( 'EDD_SL_Plugin_Updater' ) ) {
-	include_once 'includes/auto_update.php';
-}
-
 // retrieve our license key from the DB
 $license_key = trim( $this->get_option( 'license_key' ) );
 
 //define dbSize function
 function dbSize($dbname) {
-	mysql_select_db($dbname);
-	$result = mysql_query("SHOW TABLE STATUS");
+	mysqli_select_db($dbname);
+	$result = mysqli_query("SHOW TABLE STATUS");
 	$dbsize = 0;
-	while($row = mysql_fetch_array($result)) {
+	while($row = mysqli_fetch_array($result)) {
 	    $dbsize += $row["Data_length"] + $row["Index_length"];
 	}
 	return $dbsize;
@@ -158,34 +153,105 @@ if(!function_exists('recursive_copy')) {
 
 //Define DB backup function
 if(!function_exists('db_backup')) {
-	function db_backup($path) { 
-           
-            $handle = fopen($path .'db-backup.sql', 'w+');
-            
-            $path_sql = $path .'/db-backup.sql';
-            $db_name = DB_NAME; 
-            $db_user  = DB_USER;
-            $db_pass = DB_PASSWORD; 
-            $db_host = DB_HOST;
+	function db_backup($user, $pass, $host, $db_name, $path) {
+		
+		//set fileName
+		$fileName = 'db-backup.sql' ; 
 
-            $output = shell_exec("mysqldump --user $db_user --password=$db_pass $db_name");
-            fwrite($handle,$output);
-            fclose($handle);
-            return true;
-	}
-}
-
-//define dbDumpFileSize function
-if(!function_exists('dbDumpFileSize')) {
-	function dbDumpFileSize($path) {
-		if(glob($path . "*.sql")) {
-			foreach (glob($path . "*.sql") as $db) {
-				$filesize = filesize($db);
+		// Check if directory is already created and has the proper permissions
+		if (!file_exists($path)) {
+			if(!mkdir($path , 0755) ){
+				return false;
 			}
+		} 
+
+		if (!is_writable($path)) {
+			if (!chmod($path , 0755) ) {
+				return false;
+			}
+		} 
+
+		$mysqli = new mysqli($host , $user , $pass , $db_name) ;
+		if (mysqli_connect_errno()) {
+		   return false;
 		}
-		if ($filesize > 1) {
-			return true;	
+
+		// Introduction information
+		$return = '';
+		$return .= "--\n";
+		$return .= "-- WP Backitup Database Backup \n";
+		$return .= "--\n";
+		$return .= '-- Created: ' . date("Y/m/d") . ' on ' . date("h:i") . "\n\n\n";
+		$return = "--\n";
+		$return .= "-- Database : " . $db_name . "\n";
+		$return .= "--\n";
+		$return .= "-- --------------------------------------------------\n";
+		$return .= "-- ---------------------------------------------------\n";
+		$return .= 'SET AUTOCOMMIT = 0 ;' ."\n" ;
+		$return .= 'SET FOREIGN_KEY_CHECKS=0 ;' ."\n" ;
+		$tables = array() ; 
+
+		// Exploring what tables this database has
+		$result = $mysqli->query('SHOW TABLES' ) ; 
+
+		// Cycle through "$result" and put content into an array
+		while ($row = $result->fetch_row()) {
+			$tables[] = $row[0] ;
 		}
+
+		// Cycle through each  table
+		foreach($tables as $table) { 
+			// Get content of each table
+			$result = $mysqli->query('SELECT * FROM '. $table) ; 
+
+			// Get number of fields (columns) of each table
+			$num_fields = $mysqli->field_count  ;
+			
+			// Add table information
+			$return .= "--\n" ;
+			$return .= '-- Tabel structure for table `' . $table . '`' . "\n" ;
+			$return .= "--\n" ;
+			$return.= 'DROP TABLE  IF EXISTS `'.$table.'`;' . "\n" ; 
+			
+			// Get the table-shema
+			$shema = $mysqli->query('SHOW CREATE TABLE '.$table) ;
+			
+			// Extract table shema 
+			$tableshema = $shema->fetch_row() ; 
+			
+			// Append table-shema into code
+			$return.= $tableshema[1].";" . "\n\n" ; 
+			
+			// Cycle through each table-row
+			while($rowdata = $result->fetch_row()) { 
+			
+				// Prepare code that will insert data into table 
+				$return .= 'INSERT INTO `'.$table .'`  VALUES ( '  ;
+				
+				// Extract data of each row 
+				for($i=0; $i<$num_fields; $i++) {
+					$return .= '"'.$rowdata[$i] . "\"," ;
+				}
+				
+				// Let's remove the last comma 
+				$return = substr("$return", 0, -1) ; 
+				$return .= ");" ."\n" ;
+
+			} 
+			$return .= "\n\n" ; 
+		}
+
+		// Close the connection
+		$mysqli->close() ;
+		$return .= 'SET FOREIGN_KEY_CHECKS = 1 ; '  . "\n" ; 
+		$return .= 'COMMIT ; '  . "\n" ;
+		$return .= 'SET AUTOCOMMIT = 1 ; ' . "\n"  ; 
+		
+		//save file
+		$handle = fopen($path . $fileName,'w+');
+		fwrite($handle,$return);
+		fclose($handle);
+	    return true;
 	}
 }
 

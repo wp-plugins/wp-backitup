@@ -43,9 +43,9 @@
             <!--backup status messages-->
             <ul class="backup-status">
                 <li class='prerequisites'><?php _e('Preparing to backup', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
-                <li class='backupfiles'><?php _e('Backing-up /wp-content/', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='backupdb'><?php _e('Backing-up database', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
-                <li class='infofile'><?php _e('Creating backup directory', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
+                <li class='backupfiles'><?php _e('Backing-up /wp-content/', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
+                <li class='infofile'><?php _e('Creating backup information file', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='zipfile'><?php _e('Zipping backup directory', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='cleanup'><?php _e('Cleaning up', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class='finalinfo'><span class='status'><?php _e('Backup file created successfully. You can download your backup file using the link above', $namespace ); ?></span></li>
