@@ -6,7 +6,7 @@
  * @package WP Backitup Pro
  * 
  * @author jcpeden
- * @version 1.4.0
+ * @version 1.4.2
  * @since 1.0.1
  */
 
@@ -51,17 +51,8 @@ if(!is_writeable(WPBACKITUP_DIRNAME ."/backups/")) {
 	fwrite($fh, '<div class="prerequisites">1</div>');
 }
 
-//Backup with copy
-if(recursive_copy(WPBACKITUP_CONTENT_PATH, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip','cache' ) ) ) {
-	fwrite($fh, '<div class="backupfiles">1</div>');
-} else {
-    fwrite($fh, '<div class="backupfiles">0</div>');
-	fwrite($fh, '<div class="error103">1</div>');
-	die();
-}
-
 //Dump DB to project dir
-if(	db_backup($backup_project_path) ) {
+if( db_backup(DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, $backup_project_path) ) { 
 	fwrite($fh, '<div class="backupdb">1</div>');
 } else {
 	fwrite($fh, '<div class="backupdb">0</div>');
@@ -70,11 +61,12 @@ if(	db_backup($backup_project_path) ) {
 	die();
 }
 
-//Check DB filesize
-if (!dbDumpFileSize($backup_project_path)) {
-	fwrite($fh, '<div class="backupdb">0</div>');
-	fwrite($fh, '<div class="error114">1</div>');
-	recursive_delete($backup_project_path);
+//Backup with copy
+if(recursive_copy(WPBACKITUP_CONTENT_PATH, $backup_project_path, $ignore = array( 'cgi-bin','.','..','._',$backup_project_dirname,'backupbuddy_backups','*.zip','cache' ) ) ) {
+	fwrite($fh, '<div class="backupfiles">1</div>');
+} else {
+    fwrite($fh, '<div class="backupfiles">0</div>');
+	fwrite($fh, '<div class="error103">1</div>');
 	die();
 }
 
