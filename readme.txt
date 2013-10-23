@@ -1,10 +1,10 @@
 === WP Backitup ===
-Contributors: jcpeden
+Contributors: jcpeden, tarunk
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
-Tested up to: 3.6.0
-Stable tag: 1.4.2
+Tested up to: 3.6.1
+Stable tag: 1.5.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -93,6 +93,9 @@ Yes.
 
 == Changelog ==
 
+= 1.5.0 =
+Changed DB Export and import method to work on all hosting.
+
 = 1.4.2 =
 Changed DB backup method to work on shared hosting.
 
@@ -148,6 +151,9 @@ WP Backitup integrated with licensing and auto-update engine.
 Initial version of the plugin released. 
 
 == Upgrade Notice ==
+
+= 1.5.0 =
+Critical upgrade: Fixes to backup and import processes to work on a wider range of hosts.
 
 = 1.4.2 =
 Recommended upgrade: Many people on shared hosting will now be able to backup their database.
