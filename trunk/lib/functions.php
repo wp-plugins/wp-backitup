@@ -226,17 +226,26 @@ if(!function_exists('db_backup')) {
 			while($rowdata = $result->fetch_row()) { 
 			
 				// Prepare code that will insert data into table 
-				$return .= 'INSERT INTO `'.$table .'`  VALUES ( '  ;
-				
+/*				$return .= 'INSERT INTO `'.$table .'`  VALUES ( '  ;
 				// Extract data of each row 
 				for($i=0; $i<$num_fields; $i++) {
 					$return .= '"'.$rowdata[$i] . "\"," ;
 				}
-				
 				// Let's remove the last comma 
 				$return = substr("$return", 0, -1) ; 
-				$return .= ");" ."\n" ;
-
+				$return .= ");" ."\n" ;*/
+				$return.= 'INSERT INTO '.$table.' VALUES(';
+				for($j=0; $j<$num_fields; $j++){
+				        $rowdata[$j] = addslashes($rowdata[$j]);
+				        $rowdata[$j] = ereg_replace("\n","\\n",$rowdata[$j]);
+				        if (isset($rowdata[$j])) { 
+						$return.= '"'.$rowdata[$j].'"' ; 
+					} else { 
+						$return.= '""'; 
+					}
+				        if ($j<($num_fields-1)) { $return.= ','; }
+				}
+				$return.= ");\n";
 			} 
 			$return .= "\n\n" ; 
 		}
