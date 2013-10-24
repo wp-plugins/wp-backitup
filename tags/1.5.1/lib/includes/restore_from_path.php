@@ -3,12 +3,13 @@
 /**
  * WP Backitup Restore Functions
  * 
- * @package WP Backitup Pro
+ * @package WP Backitup
  * 
  * @author jcpeden
  * @version 1.4.0
  * @since 1.0.1
  */
+
 
 //define constants
 if( !defined( 'WP_DIR_PATH' ) ) define( 'WP_DIR_PATH', dirname ( dirname ( dirname ( dirname ( dirname ( dirname ( __FILE__ ) ) ) ) ) ) );
@@ -19,8 +20,14 @@ if( !defined( 'WPBACKITUP_DIRNAME' ) ) define( 'WPBACKITUP_DIRNAME', basename(WP
 
 if( !defined( 'WP_CONTENT_PATH' ) ) define( 'WP_CONTENT_PATH', dirname( dirname( WPBACKITUP_DIR_PATH ) ) ) ;
 
-// Include recurse_zip.php
-include_once 'recurse_zip.php';
+
+//create log file
+$log = WPBACKITUP_DIR_PATH .'/backups/status.log';
+$fh = fopen($log, 'w') or die( "Can't open file" );
+echo '<ul>';
+
+// 15 minutes per image should be PLENTY
+	@set_time_limit(900);
 
 //define create_dir function
 if(!function_exists('create_dir')) {
@@ -29,41 +36,6 @@ if(!function_exists('create_dir')) {
 			@mkdir($dir, 0755);
 		}
 		return true;
-	}
-}
-
-if(!function_exists('redo_to_checkpoint')) {
-	function redo_to_checkpoint($checkpoint) {
-
-            if($checkpoint == "db")
-            {
-                if( glob($restoration_dir_path . "*.cur") ) {
-                    //collect connection information from form
-                    fwrite($fh, '<div class="database">In Progress</div>');
-                    include_once WP_DIR_PATH .'/wp-config.php';
-                    //Add user to DB in v1.0.5
-                    $user_id = $_POST['user_id'];
-                    //Connect to DB
-                    $output = db_import($restoration_dir_path, $import_siteurl, $current_siteurl, $table_prefix, $import_table_prefix, $dbc); 
-                }
-
-            }
-            
-	}
-}
-
-if(!function_exists('db_backup')) {
-	function db_backup($path) { 
-            $handle = fopen($path .'db-backup.cur', 'w+');
-            $path_sql = $path .'db-backup.cur';
-            $db_name = DB_NAME; 
-            $db_user  = DB_USER;
-            $db_pass = DB_PASSWORD; 
-            $db_host = DB_HOST;
-            $output = shell_exec("mysqldump --user $db_user --password=$db_pass $db_name > '$path_sql'");
-            fwrite($handle,$output);
-            fclose($handle);
-            return true;
 	}
 }
 
@@ -124,69 +96,80 @@ if(!function_exists('recursive_delete')){
 //define db_import function
 if(!function_exists('db_import')) {
 	function db_import($restoration_dir_path, $import_siteurl, $current_siteurl, $table_prefix, $import_table_prefix, $dbc) {
-		//13-4-13: John C Peden [mail@johncpeden.com] This was incomplete, I've updated to make it work
-		foreach(glob($restoration_dir_path . "*.sql") as $sql_file) {
-            $db_name = DB_NAME; 
-            $db_user  = DB_USER;
-            $db_pass = DB_PASSWORD; 
-            $db_host = DB_HOST;
-            $command = "mysql --user='$db_user' --password='$db_pass' --host='$db_host' $db_name < '$sql_file'";
-            $output = shell_exec(($command));
+		global $wpdb;
+		$sql_files = glob($restoration_dir_path . "*.sql");
+		foreach($sql_files as $sql_file) {
+			$templine = ''; // Temporary variable, used to store current query
+			$lines = file($sql_file); // Read in entire file
+			foreach ($lines as $line) { // Loop through each line
+				if (substr($line, 0, 2) == '--' || $line == '') continue; // Skip it if it's a comment
+				$templine .= $line; // Add this line to the current segment
+				if (substr(trim($line), -1, 1) == ';') { // If it has a semicolon at the end, it's the end of the query
+					//replace imported site url with current site url
+					if( strstr( trim($templine), trim($import_siteurl) ) == TRUE ) //If import site url is found
+					$templine = str_replace( trim($import_siteurl), trim($current_siteurl), $templine ); // Replace import site url with current site url
+					//if the table prefixes are different, replace the imported site prefixes with the current prefixes
+					if ($table_prefix != $import_table_prefix) {
+						if( strstr( trim($templine), trim($import_table_prefix) ) == TRUE ) //If import table prefix is found
+						$templine = str_replace( trim($import_table_prefix), trim($table_prefix), $templine ); // Replace import site table prefix with current site table prefix
+					}
+					// Perform the query
+					if( mysqli_query($dbc, $templine) === FALSE) 
+						print('Error performing query \'<strong>' . $templine . '\': ' . mysql_error() . '<br /><br />');
+					$templine = ''; // Reset temp variable to empty
+				}
+			}
 		}
 	return true;
 	}
 }
 
-//create log file
-$log = WPBACKITUP_DIR_PATH .'/logs/status.log';
-unlink($log);
-$fh = fopen($log, 'w') or die( "Can't write to log file" );
-
-// 15 minutes per image should be PLENTY
-@set_time_limit(900);
-
-//Delete the existing backup directory
-recursive_delete( WPBACKITUP_DIR_PATH .'/backups/' );
-
-//Re-create and empty backup dir
-if(!create_dir( WPBACKITUP_DIR_PATH .'/backups/' )) {
-	fwrite($fh, '<div class="error201">1</div>');
-	fclose($fh);
-	die();
+//Delete any zips in the upload directory first
+foreach (glob(WPBACKITUP_DIR_PATH .'/backups/' .'*.zip') as $file) {
+	unlink($file);
 }
  
 //Move the uploaded zip to the restoration directory
-$restore_file_name = basename( $_FILES['wpbackitup-zip']['name']);
+$restore_file_name = $_GET['name'];
+
+$orig_file_name = WP_DIR_PATH . "/wp-content/uploads/" . $_GET['name'];
 if( $restore_file_name == '') {
-	fwrite($fh, '<div class="error201">1</div>');
+	echo '<li class="error">No file selected<li></ul>' ;
 	fclose($fh);
 	die();
+} else {
+	echo '<li>Uploading restoration file...' ;
 }
 
 $restore_path = WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name; 
-if(move_uploaded_file($_FILES['wpbackitup-zip']['tmp_name'], $restore_path)) {
-	fwrite($fh, '<div class="upload">1</div>');
+if(copy($orig_file_name, $restore_path)) {
+	echo "Done!</li>";
 } else {
-	fwrite($fh, '<div class="error203">1</div>');
+	echo '</li><li class="error">Your file could not be uploaded</li></ul>';
 	fclose($fh);
 	die();
 }
 
+//Unzip the uploaded restore file	 
+echo "<li>Unzipping...";
+//include recurse_zip.php
+include_once 'recurse_zip.php';
 //unzip the upload
 $zip = new ZipArchive;
 $res = $zip->open(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 if ($res === TRUE) {
 	$zip->extractTo(WPBACKITUP_DIR_PATH .'/backups/');
 	$zip->close();
-	fwrite($fh, '<div class="unzipping">1</div>');
+	echo 'Done!</li>';		
 } else {
-	fwrite($fh, '<div class="error204">1</div>');
+	echo '</li><li class="error">Your restoration file could not be unzipped.</li></ul>';
 	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 	fclose($fh);
 	die();
 }
 
 //Identify the restoration directory
+echo '<li>Validating zip...' ;
 if ( count( glob( WPBACKITUP_DIR_PATH .'/backups/*', GLOB_ONLYDIR ) ) == 1 ) {
 	foreach( glob(WPBACKITUP_DIR_PATH .'/backups/*', GLOB_ONLYDIR ) as $dir) {
 		$restoration_dir_path = $dir .'/';
@@ -195,44 +178,57 @@ if ( count( glob( WPBACKITUP_DIR_PATH .'/backups/*', GLOB_ONLYDIR ) ) == 1 ) {
 
 //Validate the restoration
 if(glob($restoration_dir_path .'backupsiteinfo.txt') ){
-	fwrite($fh, '<div class="validation">1</div>');
+	echo 'Done!</li>';
 } else {
-	fwrite($fh, '<div class="error204">1</div>');
+	echo '</li><li class="error">Your zip file appears to be invalid. Please ensure you chose the correct zip file.</li></ul>';
 	recursive_delete($restoration_dir_path);
 	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 	fclose($fh);
 	die();
 }
 
-// Backup the current database
-if( db_backup($restoration_dir_path) ) {
-	fwrite($fh, '<div class="restore_point">1</div>');
+//Restore wp-content directories
+echo "<li>Restoring wp-content directory..." ;
+if(!recursive_delete(WP_CONTENT_PATH, array( 'cgi-bin','.','..','._', WPBACKITUP_DIRNAME ))) {
+	echo '</li><li class="error">Unable to remove existing wp-content directory for import. Please check your CHMOD settings in /wp-content/.</li></ul>';
+	recursive_delete($restoration_dir_path);
+	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
+	fclose($fh);
+	die();
+}
+if(!create_dir(WP_CONTENT_PATH)) {
+	echo '</li><li class="error">Unable to create new wp-content directory for import. Please check your CHMOD settings in /wp-content/.</li></ul>';
+	recursive_delete($restoration_dir_path);
+	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
+	fclose($fh);
+	die();
+}
+if(recursive_copy($restoration_dir_path, WP_CONTENT_PATH .'/', array( 'cgi-bin', '.', '..','._', $restore_file_name, 'status.log', 'db-backup.sql', 'backupsiteinfo.txt')) ) {
+	echo 'Done!</li>';
 } else {
-	fwrite($fh, '<div class="error205">1</div>');
+	echo '</li><li class="error">Unable to import wp-content. Please try again.</li></ul>';
+	recursive_delete($restoration_dir_path);
+	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 	fclose($fh);
 	die();
 }
 
 //if there is a database dump to restore
 if( glob($restoration_dir_path . "*.sql") ) {
-	
-	//Collect connection information from form 
+	//collect connection information from form
+	echo "<li>Restoring database..." ;
 	include_once WP_DIR_PATH .'/wp-config.php';
-	
 	//Add user to DB in v1.0.5
-	$user_id = $_POST['user_id'];
-	
+	$user_id = $_GET['userid'];
 	//Connect to DB
 	$dbc = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
 	if ( !$dbc ) {
-		fwrite($fh, '<div class="error206">1</div>');
-
+		echo '</li><li class="error">Unable to connect to your current database: " .mysqli_connect_error() ."</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//get siteurl
 	$q1 = "SELECT option_value FROM " .$table_prefix ."options WHERE option_name ='siteurl';";
 	if ($result = mysqli_query($dbc, $q1)) {
@@ -241,13 +237,12 @@ if( glob($restoration_dir_path . "*.sql") ) {
 		}
 		mysqli_free_result($result);
 	} else {
-		fwrite($fh, '<div class="error207">1</div>');
+		echo '</li><li class="error">Unable to get current site URL from database. Please try again.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//get homeurl
 	$q2 = "SELECT option_value FROM " .$table_prefix ."options WHERE option_name ='home';";
 	if ($result = mysqli_query($dbc, $q2)) {
@@ -256,13 +251,12 @@ if( glob($restoration_dir_path . "*.sql") ) {
 		}
 		mysqli_free_result($result);
 	} else {
-		fwrite($fh, '<div class="error208">1</div>');
+		echo '</li><li class="error">Unable to get current home URL from database. Please try again.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//get user login
 	$q3 = "SELECT user_login FROM ". $table_prefix ."users WHERE ID=" .$user_id .";";
 	if ($result = mysqli_query($dbc, $q3)) {
@@ -271,13 +265,12 @@ if( glob($restoration_dir_path . "*.sql") ) {
 		}
 		mysqli_free_result($result);
 	} else {
-		fwrite($fh, '<div class="error209">1</div>');
+		echo '</li><li class="error">Unable to get current user ID from database. Please try again.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//get user pass
 	$q4 = "SELECT user_pass FROM ". $table_prefix ."users WHERE ID=" .$user_id .";";
 	if ($result = mysqli_query($dbc, $q4)) {
@@ -286,13 +279,12 @@ if( glob($restoration_dir_path . "*.sql") ) {
 		}
 		mysqli_free_result($result);
 	} else {
-		fwrite($fh, '<div class="error210">1</div>');
+		echo '</li><li class="error">Unable to get current user password from database. Please try again.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//get user email
 	$q5 = "SELECT user_email FROM ". $table_prefix ."users WHERE ID=" .$user_id ."";
 	if ($result = mysqli_query($dbc, $q5)) {
@@ -301,99 +293,67 @@ if( glob($restoration_dir_path . "*.sql") ) {
 		}
 		mysqli_free_result($result);
 	} else {
-		fwrite($fh, '<div class="error211">1</div>');
+		echo '</li><li class="error">Unable to get current user email from database. Please try again.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//Collect previous backup site url start
 	$import_siteinfo_lines = file($restoration_dir_path .'backupsiteinfo.txt');
 	$import_siteurl = trim($import_siteinfo_lines[0]);
 	$current_siteurl = trim($siteurl ,'/');
 	$import_table_prefix = $import_siteinfo_lines[1];
-
 	//import the database
 	if(!db_import($restoration_dir_path, $import_siteurl, $current_siteurl, $table_prefix, $import_table_prefix, $dbc)) {
-		fwrite($fh, '<div class="error212">1</div>');
+		echo '</li><li class="error">Unable to get import your database. This may require importing the file manually.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-
 	//update the database
 	$q6 = "UPDATE ". $table_prefix ."options SET option_value='" .$current_siteurl ."' WHERE option_name='siteurl'";
 	$q7 = "UPDATE ". $table_prefix ."options SET option_value='" .$homeurl ."' WHERE option_name='home'";
 	$q8 = "UPDATE ". $table_prefix ."users SET user_login='" .$user_login ."', user_pass='" .$user_pass ."', user_email='" .$user_email ."' WHERE ID='" .$user_id ."'";
 	if(!mysqli_query($dbc, $q6) ) {
-		fwrite($fh, '<div class="error213">1</div>');
+		echo '</li><li class="error">Unable to update your current site URL value. This may require importing the file manually.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
 	if(!mysqli_query($dbc, $q7) ) {
-		fwrite($fh, '<div class="error214">1</div>');
+		echo '</li><li class="error">Unable to update your current home URL value. This may require importing the file manually.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}	
 	if(!mysqli_query($dbc, $q8) ) {
-		fwrite($fh, '<div class="error215">1</div>');
+		echo '</li><li class="error">Unable to update your user information. This may require importing the file manually.</li></ul>';
 		recursive_delete($restoration_dir_path);
 		unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 		fclose($fh);
 		die();
 	}
-	fwrite($fh, '<div class="database">1</div>');
+	echo 'Done!</li>';	
 } else {
-	fwrite($fh, '<div class="error216">1</div>');
+	echo '<li class="error">Warning: Database not detected in import file.</li>';
 }
 
 //Disconnect
 mysqli_close($dbc); 
 
-//Restore wp-content directories
-if(!recursive_delete(WP_CONTENT_PATH, array( 'cgi-bin','.','..','._', WPBACKITUP_DIRNAME ))) {
-	fwrite($fh, '<div class="error217">1</div>');
-	recursive_delete($restoration_dir_path);
-	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
-	fclose($fh);
-	die();
-}
-if(!create_dir(WP_CONTENT_PATH)) {
-	fwrite($fh, '<div class="error218">1</div>');
-	recursive_delete($restoration_dir_path);
-	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
-	fclose($fh);
-	die();
-}
-if(recursive_copy($restoration_dir_path, WP_CONTENT_PATH .'/', array( 'cgi-bin', '.', '..','._', $restore_file_name, 'status.log', 'db-backup.sql', 'backupsiteinfo.txt')) ) {
-	fwrite($fh, '<div class="wpcontent">1</div>');
-} else {
-	fwrite($fh, '<div class="error219">1</div>');
-	recursive_delete($restoration_dir_path);
-	unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
-	fclose($fh);
-	die();
-}
-
 //Delete the restoration directory
-if(!recursive_delete($restoration_dir_path)) {
-	fwrite($fh, '<div class="error220">1</div>');
-	fclose($fh);
-} else {
-	fwrite($fh, '<div class="cleanup">1</div>');
-}
+recursive_delete($restoration_dir_path);
 
 //Delete zip
 unlink(WPBACKITUP_DIR_PATH .'/backups/' . $restore_file_name);
 
 //close log file
-fwrite($fh, '<div class="finalinfo">1</div>');
+echo '<li>Restoration complete. Please refresh the page.</li>';
+echo '</ul>';
 fclose($fh);
 
 //End backup function
