@@ -5,11 +5,11 @@
  * @package WP Backitup
  * 
  * @author jcpeden
- * @version 1.5.1
+ * @version 1.5.2
  * @since 1.0.1
  */
 
-if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.5.1' );
+if( !defined( 'WPBACKITUP_VERSION' ) ) define( 'WPBACKITUP_VERSION', '1.5.2' );
 
 if( !defined( 'WPBACKITUP_DIRNAME' ) ) define( 'WPBACKITUP_DIRNAME', dirname( dirname( __FILE__ ) ) );
 
