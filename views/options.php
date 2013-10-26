@@ -11,7 +11,7 @@
         
         <!--Disable restoration form if the user has not activated-->
         <?php $status = $this->get_option( 'status' );
-                if( $status !== false && $status == 'valid' ) { ?>
+            if( $status !== false && $status == 'valid' ) { ?>
         <h3><?php _e('Restore', $namespace );?></h3>
         <iframe id="upload_target" name="upload_target" src=""></iframe>
         <p><?php _e('Restore a WP Backitup zip file and overwrite this site\'s content, themes, plugins, uploads and settings', $namespace );?></p>
@@ -67,7 +67,7 @@
                 <li class="upload"><?php _e('Uploading restoration zip', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class="unzipping"><?php _e('Unzipping', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class="validation"><?php _e('Validating restoration zip', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
-                <li class="restore_point"><?php _e('Setting checkpoint', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
+                <!--<li class="restore_point"><?php _e('Setting checkpoint', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>-->
                 <li class="database"><?php _e('Importing database', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class="wpcontent"><?php _e('Importing /wp-content/ directory', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
                 <li class="cleanup"><?php _e('Cleaning up', $namespace );?>...<span class='status'><?php _e('Done', $namespace );?></span><span class='fail error'><?php _e('Failed', $namespace );?></span></li>
@@ -102,46 +102,82 @@
             echo '<p><div id="php">PHP messages here</p></div>'; 
         } ?>
     </div>
+
     <div id="sidebar">
+
+        <!-- Display opt-in form if the user is unregistered -->
+        <?php $license = $this->get_option( 'license_key' );
+                $status = $this->get_option( 'status' );
+                if( $status != 'valid' ) { ?>
+                    <div class="widget">
+                        <h3 class="promo"><?php _e('Get a FREE license key', $namespace ); ?></h3>
+                        <p><?php _e('Enter your name and email to get a free license key in minutes', $namespace ); ?>!</p>
+
+                        <!-- Begin MailChimp Signup Form -->
+                        <div id="mc_embed_signup">
+                            <form action="http://johncpeden.us6.list-manage.com/subscribe/post?u=1ccd19f5614fdf304b12dfd40&amp;id=bbb489a770" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="optinform validate" target="_blank" novalidate>
+
+                                <div class="mc-field-group">
+                                    <input style="width:185px;" type="email" name="FNAME" class="text required name" id="mce-FNAME" value="Enter your first name..." tabindex="500" size="60" onfocus="this.value=''"  />
+                                    <input style="width:185px;" type="email" name="EMAIL" class="text required email" id="mce-EMAIL" value="Enter your email address..." tabindex="500" size="60" onfocus="this.value=''"  />
+                                </div>
+
+                                <div id="mce-responses" class="clear">
+                                    <div class="response" id="mce-error-response" style="display:none"></div>
+                                    <div class="response" id="mce-success-response" style="display:none"></div>
+                                </div>  
+
+                                <p><input type="submit" tabindex="501" value="Download" id="buttonid" class="submit button-secondary" name="submit"></p>
+
+                            </form>
+                        </div>
+
+                        <!--End mc_embed_signup-->
+                    </div>
+                <?php } ?>
+
+        <?php /*<div class="widget">
+            <h3 class="promo"><?php _e('Site Information', $namespace ); ?></h3>
+            <p>Backup Size: <?php echo formatFileSize(totalSize(WPBACKITUP_CONTENT_PATH) ); ?></p>
+            <p>WP Backitup is not recommended for sites larger than 50MB. Why not try <a href="http://ithemes.com/purchase/backupbuddy/">Backup Buddy</a>?</p>
+        </div> */ ?>
+
+        <!-- Display license key widget -->
         <form action="" method="post" id="<?php echo $namespace; ?>-form">
         <?php wp_nonce_field( $namespace . "-update-options" ); ?>
         <div class="widget">
             <h3 class="promo"><?php _e('License Key', $namespace ); ?></h3>
             <?php $license = $this->get_option( 'license_key' );
                 $status = $this->get_option( 'status' );
-                if( $status !== false && $status == 'valid' ) { ?>
-                    <p><?php _e('Pro features and auto-updates enabled', $namespace ); ?></p>
-                <?php } else { ?>
-                    <p><?php _e('Activate auto-restore and auto-updates by entering your license key', $namespace ); ?></p>
+                if( $status != 'valid' ) { ?>
+                    <p><?php _e('Enter your license key to activate restoration functionality', $namespace ); ?>.</p>
                 <?php } ?>
                 <p><input type="text" name="data[license_key]" id="license_key" value="<?php echo $license; ?>" />
                 <?php if( false !== $license ) { 
                     if( $status !== false && $status == 'valid' ) { ?>
                         <span style="color:green;"><?php _e('Active', $namespace); ?></span></p>
                         <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Update", $namespace ) ?>" /></p>
+                        <p><a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/"><?php _e('Upgrade your license',$namespace); ?></a></p>
                     <?php } else { ?>
                         <span style="color:red;"><?php _e('Inactive', $namespace); ?></span></p>
                         <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Activate", $namespace ) ?>" /></p>
-                        <p><a href="http://www.wpbackitup.com/wp-backitup-pro"><?php _e('Purchase a license key', $namespace); ?></a></p>
+                        <p><?php _e('Get a FREE license using the form above',$namespace); ?>.</p>
                     <?php } 
                 } ?>
         </div>             
         
+        <!-- Display links widget -->
         <div class="widget">
-            <?php if( $status !== false && $status == 'valid' ) {
-                    $support_anchor = __('WP Backitup support system',$namespace);
-                    $support_url = 'http://www.wpbackitup.com/support/';
-                } else {
-                    $support_anchor = __('support system',$namespace);
-                    $support_url = 'http://wordpress.org/support/plugin/wp-backitup';
+            <h3 class="promo"><?php _e('Useful Links', $namespace ); ?></h3>
+            <ul>
+                <?php if( false !== $license ) { 
+                    if( $status !== false && $status == 'valid' ) { ?>
+                        <li><a href="http://www.wpbackitup.com/your-account/"><?php _e('Your account',$namespace); ?></a></li>
+                        <li><a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/"><?php _e('Upgrade your license',$namespace); ?></a></li>
+                    <?php }
                 } ?>
-            <h3 class="promo"><?php _e('Need Help?', $namespace ); ?></h3>
-            <p><?php _e('Access the',$namespace); ?> <a href="<?php echo $support_url; ?>"><?php echo $support_anchor; ?></a>.</p>
-        </div>        
-        
-        <div class="widget">
-            <h3 class="promo"><?php _e('Spread the Word', $namespace ); ?></h3>
-            <p><a href="http://wordpress.org/extend/plugins/wp-backitup/"><?php _e('Rate WP Backitup', $namespace ); ?> 5&#9733;</a></p>
+                <li><a href="http://wordpress.org/support/plugin/wp-backitup"><?php _e('Get support',$namespace); ?></a></li>
+            </ul>
         </div>
 
         <div class="widget">
