@@ -3,8 +3,8 @@ Contributors: jcpeden, tarunk
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
-Tested up to: 3.7
-Stable tag: 1.5.2
+Tested up to: 3.7.1
+Stable tag: 1.5.3
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,18 +14,16 @@ Create a backup zip of your content and settings with a single click that can be
 
 = The Simple Way to Backup Your Site =
 WP Backitup creates a backup zip of your site&apos;s content and configuration in just a single click, 
-right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. 
-
-You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
+right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
 
 = Automatically Restore Your Backup Zips =
-Tired of messing around in PHPMyAdmin and with FTP trying to restore you backups? WP Backitup features a premium restoration feature that allows your backup zips to be restored right from the Wordpress interface. No need to worry about FTP, cPanel or PHPMyAdmin! Licenses are available to buy on the WP Backitup site but you can also <a href="http://www.wpbackitup.com/free-license/">get a free WP Backitup license here</a>.
+Tired of messing around in PHPMyAdmin and with FTP trying to restore you backups? WP Backitup features a premium restoration feature that allows your backup zips to be restored right from the Wordpress interface. No need to worry about FTP, cPanel or PHPMyAdmin! 
 
 = Easy To Install and Use =
 Simply install the plugin directly to Wordpress and browse to the new menu 'WP Backitup'. From there, just follow the on-screen instructions and watch as WP Backitup creates a backup of you site's plugins, themes and uploads as well as you content and settings (including all custom widgets and settings for any additional plugins). 
 
-= Get a free WP Backitup License =
-Missed the link above? You can <a href="http://www.wpbackitup.com/free-license/">get a free WP Backitup license here</a>. Just enter your email address and follow the instructions.
+= Where can I purchase a license? =
+You can <a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/">purchase a no-risk WP Backitup license</a> from the WP Backitup site. This will allow you to restore your backups from the Wordpress dashboard in minutes or get a full money-back refund.
 
 = More questions? =
 Please ask them in the <a href="http://wordpress.org/support/plugin/wp-backitup">support forum</a>.
@@ -97,6 +95,9 @@ Yes.
 
 == Changelog ==
 
+= 1.5.3 =
+Enabled plugin to work with version 3.7.1
+
 = 1.5.2 =
 Modified admin interface.
 
@@ -161,6 +162,9 @@ WP Backitup integrated with licensing and auto-update engine.
 Initial version of the plugin released. 
 
 == Upgrade Notice ==
+
+= 1.5.3 =
+Optional upgrade: No functionality changes.
 
 = 1.5.2 =
 Optional upgrade: No functionality changes.
