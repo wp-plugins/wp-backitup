@@ -110,29 +110,9 @@
                 $status = $this->get_option( 'status' );
                 if( $status != 'valid' ) { ?>
                     <div class="widget">
-                        <h3 class="promo"><?php _e('Get a FREE license key', $namespace ); ?></h3>
-                        <p><?php _e('Enter your name and email to get a free license key in minutes', $namespace ); ?>!</p>
-
-                        <!-- Begin MailChimp Signup Form -->
-                        <div id="mc_embed_signup">
-                            <form action="http://johncpeden.us6.list-manage.com/subscribe/post?u=1ccd19f5614fdf304b12dfd40&amp;id=bbb489a770" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="optinform validate" target="_blank" novalidate>
-
-                                <div class="mc-field-group">
-                                    <input style="width:185px;" type="email" name="FNAME" class="text required name" id="mce-FNAME" value="Enter your first name..." tabindex="500" size="60" onfocus="this.value=''"  />
-                                    <input style="width:185px;" type="email" name="EMAIL" class="text required email" id="mce-EMAIL" value="Enter your email address..." tabindex="500" size="60" onfocus="this.value=''"  />
-                                </div>
-
-                                <div id="mce-responses" class="clear">
-                                    <div class="response" id="mce-error-response" style="display:none"></div>
-                                    <div class="response" id="mce-success-response" style="display:none"></div>
-                                </div>  
-
-                                <p><input type="submit" tabindex="501" value="Download" id="buttonid" class="submit button-secondary" name="submit"></p>
-
-                            </form>
-                        </div>
-
-                        <!--End mc_embed_signup-->
+                        <h3 class="promo"><?php _e('Get a license key', $namespace ); ?></h3>
+                        <p><?php _e('Restore your backups from Wordpress in minutes or your money back', $namespace ); ?>.</p>
+                        <a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/"><?php _e('Purchase a license key for WP Backitup', $namespace ); ?></a>
                     </div>
                 <?php } ?>
 
@@ -161,7 +141,7 @@
                     <?php } else { ?>
                         <span style="color:red;"><?php _e('Inactive', $namespace); ?></span></p>
                         <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Activate", $namespace ) ?>" /></p>
-                        <p><?php _e('Get a FREE license using the form above',$namespace); ?>.</p>
+                        <p><?php _e('Purchase a no-risk license using the link above',$namespace); ?>.</p>
                     <?php } 
                 } ?>
         </div>             
