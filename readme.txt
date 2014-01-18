@@ -1,10 +1,10 @@
 === WP Backitup ===
-Contributors: jcpeden, tarunk
+Contributors: jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
-Tested up to: 3.7.1
-Stable tag: 1.5.3
+Tested up to: 3.8
+Stable tag: 1.5.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -94,6 +94,9 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+
+= 1.5.4 =
+Enabled plugin to work with version 3.8
 
 = 1.5.3 =
 Enabled plugin to work with version 3.7.1
