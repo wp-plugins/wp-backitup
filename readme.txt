@@ -1,10 +1,10 @@
 === WP Backitup ===
-Contributors: jcpeden, tarunk
+Contributors: jcpeden, cssimmon
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
-Tested up to: 3.6.1
-Stable tag: 1.5.0
+Tested up to: 3.8
+Stable tag: 1.5.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -14,18 +14,19 @@ Create a backup zip of your content and settings with a single click that can be
 
 = The Simple Way to Backup Your Site =
 WP Backitup creates a backup zip of your site&apos;s content and configuration in just a single click, 
-right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. 
-
-You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
+right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
 
 = Automatically Restore Your Backup Zips =
-Tired of messing around in PHPMyAdmin and with FTP trying to restore you backups? <a href="http://www.wpbackitup.com/wp-backitup-pro/" title="WP Backitup">WP Backitup Pro</a> offers all the features of <a href="http://wordpress.org/extend/plugins/wp-backitup/" title="WP Backitup Lite">WP Backitup</a> but allows you to import your backup zips in seconds, right from the Wordpress Dashboard.
+Tired of messing around in PHPMyAdmin and with FTP trying to restore you backups? WP Backitup features a premium restoration feature that allows your backup zips to be restored right from the Wordpress interface. No need to worry about FTP, cPanel or PHPMyAdmin! 
 
 = Easy To Install and Use =
 Simply install the plugin directly to Wordpress and browse to the new menu 'WP Backitup'. From there, just follow the on-screen instructions and watch as WP Backitup creates a backup of you site's plugins, themes and uploads as well as you content and settings (including all custom widgets and settings for any additional plugins). 
 
+= Where can I purchase a license? =
+You can <a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/">purchase a no-risk WP Backitup license</a> from the WP Backitup site. This will allow you to restore your backups from the Wordpress dashboard in minutes or get a full money-back refund.
+
 = More questions? =
-Why not head over to the <a href="http://www.wpbackitup.com/" title="WP Backitup">WP Backitup site</a>?
+Please ask them in the <a href="http://wordpress.org/support/plugin/wp-backitup">support forum</a>.
 
 == Installation ==
 
@@ -34,7 +35,8 @@ Installation of the plugin is straightforward:
 1. Upload the plugin to your plugins directory via FTP or through the Wordpress dashboard.
 1. Activate the plugin.
 1. A new menu called 'WP Backitup' will be added to your toolbar.
-1. Click 'WP Backitup' to access the backup/restore interface.
+1. Click 'WP Backitup' to access the backup interface.
+1. Enter your license key to unlock the restoration features.
 
 == Frequently Asked Questions ==
 
@@ -92,6 +94,18 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+
+= 1.5.4 =
+Enabled plugin to work with version 3.8
+
+= 1.5.3 =
+Enabled plugin to work with version 3.7.1
+
+= 1.5.2 =
+Modified admin interface.
+
+= 1.5.1 =
+Removed redundant code.
 
 = 1.5.0 =
 Changed DB Export and import method to work on all hosting.
@@ -151,6 +165,15 @@ WP Backitup integrated with licensing and auto-update engine.
 Initial version of the plugin released. 
 
 == Upgrade Notice ==
+
+= 1.5.3 =
+Optional upgrade: No functionality changes.
+
+= 1.5.2 =
+Optional upgrade: No functionality changes.
+
+= 1.5.1 =
+Optional upgrade: Redundant code was removed from plugin.
 
 = 1.5.0 =
 Critical upgrade: Fixes to backup and import processes to work on a wider range of hosts.
