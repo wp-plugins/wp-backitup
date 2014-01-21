@@ -1,5 +1,5 @@
 === WP Backitup ===
-Contributors: jcpeden
+Contributors: jcpeden, cssimmon
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
