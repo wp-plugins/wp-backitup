@@ -1,5 +1,5 @@
 === WP Backitup ===
-Contributors: jcpeden, cssimmon
+Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup,
 Requires at least: 3.4.2
@@ -52,10 +52,7 @@ Yes.
 = Will WP Backitup work on Windows hosting? =
 Yes.
 
-= Are you going to be makinggress bars both for backing up and restoring with this plugin? =
-It is likely this will feature in a new version of WP Backitup.
-
-= Can this plugin back to Amazon S3? =
+= Can this plugin backup to Amazon S3, dropbox or google drive? =
 This will feature in an upcoming version of WP Backitup.
 
 = Is there an auto back up schedule feature? =
@@ -85,7 +82,7 @@ WP Backitup creates a database dump and a backup of all your themes, plugins and
 = Do you have any ideas about how large a blog is too big for WP Backitup to handle? =
 I`ve tested up to 5 themes, 20 plugins and 100 posts/pages without any issues.
 
-= Do you do regularly update thisduct to match with WP version updates? =
+= Do you do regularly update this product to match with WP version updates? =
 Yes.
 
 == Screenshots ==
@@ -94,6 +91,13 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.6.0 =
+*	Significant performance improvements.
+*	Many improvements to user interface.
+*	Support for multiple backups.
+*	Added interface for large file uploads via FTP.
+*	Added restore point and database recovery when fatal errors are encountered.
+*	Added configurable debug logging.
 
 = 1.5.4 =
 Enabled plugin to work with version 3.8
