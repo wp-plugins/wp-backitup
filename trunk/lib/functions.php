@@ -21,6 +21,10 @@ if( !class_exists( 'recurseZip' ) ) {
 	include_once 'includes/recurse_zip.php';
 }
 
+// include recursive iterator
+if( !class_exists( 'RecursiveFilter_Iterator' ) ) {
+	include_once 'includes/RecursiveFilter_Iterator.php';
+}
 // retrieve our license key from the DB
 $license_key = trim( $this->get_option( 'license_key' ) );
 
@@ -81,6 +85,21 @@ function backup() {
 }
 add_action('wp_ajax_backup', 'backup');
 
+function deletefile()
+{
+	$fileToDel = str_replace('deleteRow', '', $_POST['filed']);
+	$restore_path =  WPBACKITUP_CONTENT_PATH .WPBACKITUP_BACKUP_FOLDER .'/' . $fileToDel;
+	_log('(functions.deletefile) Delete File:' . $restore_path);
+	if (unlink($restore_path))
+		echo 'deleted';
+	else
+		echo 'problem';
+	exit(0);
+}
+
+add_action('wp_ajax_deletefile', 'deletefile');
+
+
 //load restore_path function
 function restore_path() {
 	include_once 'includes/restore_from_path.php';
@@ -88,18 +107,28 @@ function restore_path() {
 add_action('wp_ajax_restore_path', 'restore_path');
 
 //load download function
-function download() {
-	if(glob(WPBACKITUP_DIRNAME . "/backups/*.zip")) {
-		foreach (glob(WPBACKITUP_DIRNAME . "/backups/*.zip") as $file) {
-			$filename = basename($file);
-			echo 'Download most recent export file: <a href="' .WPBACKITUP_URLPATH. '/backups/' .$filename .'">' .$filename .'</a>'; 
-		}
-	} else {
-		echo 'No export file available for download. Please create one.';
+//function download() {
+//	if(glob(WPBACKITUP_DIRNAME . "/backups/*.zip")) {
+//		foreach (glob(WPBACKITUP_DIRNAME . "/backups/*.zip") as $file) {
+//			$filename = basename($file);
+//			echo 'Download your last backup:</br><a href="' .WPBACKITUP_URLPATH. '/backups/' .$filename .'">' .$filename .'</a>'; 
+//		}
+//	} else {
+//		echo 'No export file available for download. Please create one.';
+//	}
+//	die();
+//}
+//add_action('wp_ajax_download', 'download');
+
+//Get Status Log
+function getStatusLog() {
+	$log = WPBACKITUP_DIRNAME .'/logs/status.log';
+	if (file_exists($log)){
+		unlink($log);
 	}
-	die();
+	$fh = fopen($log, 'w') or die( "Can't write to log file" );
+	return $fh;
 }
-add_action('wp_ajax_download', 'download');
 
 //load logreader function
 function logreader() {
@@ -111,12 +140,23 @@ function logreader() {
 }
 add_action('wp_ajax_logreader', 'logreader');
 
+//load status check function
+function statusreader() {
+	$log = WPBACKITUP_DIRNAME .'/logs/restore_status.log';
+	if(file_exists($log) ) {
+		readfile($log);
+	}
+	die();
+}
+add_action('wp_ajax_statusreader', 'statusreader');
+
 //define create_dir function
 if(!function_exists('create_dir')) {
 	function create_dir($dir) {
 		if( !is_dir($dir) ) {
 			@mkdir($dir, 0755);
 		}
+		_log('(functions.create_dir) Directory created: ' .$dir);
 		return true;
 	}
 }
@@ -124,12 +164,13 @@ if(!function_exists('create_dir')) {
 //Define recusive_copy function
 if(!function_exists('recursive_copy')) {
 	function recursive_copy($dir, $target_path, $ignore = array( 'cgi-bin','..','._' ) ) {
+		_log('(functions.recursive_copy) IGNORE:');
+		_log($ignore);
 		if( is_dir($dir) ) { //If the directory exists
 			if ($dh = opendir($dir) ) {
 				while(($file = readdir($dh)) !== false) { //While there are files in the directory
 					if ( !in_array($file, $ignore) && substr($file, 0, 1) != '.') { //Check the file is not in the ignore array
-						if (!is_dir( $dir.$file ) ) {
-								//Copy files to destination directory
+								if (!is_dir( $dir.$file ) ) {
 								$fsrc = fopen($dir .$file,'r');
 								$fdest = fopen($target_path .$file,'w+');
 								$len = stream_copy_to_stream($fsrc,$fdest);
@@ -138,40 +179,116 @@ if(!function_exists('recursive_copy')) {
 						} else { //If $file is a directory
 							$destdir = $target_path .$file; //Modify the destination dir
 							if(!is_dir($destdir)) { //Create the destdir if it doesn't exist
+								_log('(functions.recursive_copy) Create Folder: ' .$destdir);
 								@mkdir($destdir, 0755);
-							} 	
+						} 	
 							recursive_copy($dir .$file .'/', $target_path .$file .'/', $ignore);
 						}
 					}
 				}
 				closedir($dh);
 			}
-		}
+		}		
+		_log('(functions.recursive_copy) Recursive FROM: ' .$dir);
+		_log('(functions.recursive_copy) Recursive Copy TO: '.$target_path);
 	return true;
 	}	
 }
 
+//Generate SQL to rename existing WP tables.
+if(!function_exists('db_rename_wptables')) {
+	function db_rename_wptables($sql_file_path,$table_prefix) {
+		_log('(db_rename_wptables)Manually Create SQL Backup File:'.$sql_file_path);
+		
+		$db_name = DB_NAME; 
+        $db_user = DB_USER;
+        $db_pass = DB_PASSWORD; 
+        $db_host = DB_HOST;
+
+        //Get a connection to the DB
+        $mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name) ;
+		if (mysqli_connect_errno()) {
+		   return false;
+		}
+
+		$tables = array() ; 
+
+		// Exploring what tables this database has
+		$sql = "SHOW TABLES WHERE `Tables_in_" .DB_NAME ."` NOT LIKE 'save_%'";
+		$result = $mysqli->query($sql);
+
+		// Cycle through "$result" and put content into an array
+		while ($row = $result->fetch_row()) {
+			$tables[] = $row[0] ;
+		}
+		
+		// Close the connection
+		$mysqli->close() ;
+
+		// Cycle through each  table
+		$firstPass=true;
+		foreach($tables as $table) { 
+			$source_table=$table;
+			$target_table='save_'. $source_table;
+		
+			if($firstPass){
+				$firstPass=false;
+
+				// Script Header Information
+				$return = '';
+				$return .= "--\n";
+				$return .= "-- WP Backitup Rename WP Tables \n";
+				$return .= "--\n";
+				$return .= '-- Created: ' . date("Y/m/d") . "\n";
+				$return .= "--\n";
+				$return .= "-- Database : " . $db_name . "\n";
+				$return .= "--\n";
+				$return .= "-- --------------------------------------------------\n";
+				$return .= "-- ---------------------------------------------------\n";
+				$return .= 'SET AUTOCOMMIT = 0 ;' ."\n" ;
+				$return .= "--\n" ;
+				$return	.= 'RENAME TABLE '. "\n"; 	
+			}
+			else{
+				$return	.= "\n"  . ',';	
+			}
+
+			$return	.= '`'.$source_table.'` TO `' . $target_table  . '` ';
+		}
+
+		$return	.=';' . "\n" ;
+		$return .= 'COMMIT ; '  . "\n" ;
+		$return .= 'SET AUTOCOMMIT = 1 ; ' . "\n"  ; 
+		
+		//save file if there were any tables in the database
+		if (count($tables)>0){
+			$handle = fopen($sql_file_path,'w+');
+			fwrite($handle,$return);
+			fclose($handle);
+			_log('(db_rename_wptables)SQL Backup File Created:' .$sql_file_path);	
+		}
+
+		if (!file_exists($sql_file_path)){
+	    	_log('(db_rename_wptables) SQL file doesnt exist: ' .$sql_file_path);
+        	return false;
+		} 
+
+	    return true;
+	}
+}
+
+
 //Define DB backup function
 if(!function_exists('db_backup')) {
-	function db_backup($user, $pass, $host, $db_name, $path) {
+	function db_backup($sql_file_path) {
+		_log('(functions.db_backup)Manually Create SQL Backup File:'.$sql_file_path);
+
+		$db_name = DB_NAME; 
+        $db_user = DB_USER;
+        $db_pass = DB_PASSWORD; 
+        $db_host = DB_HOST;
 		
-		//set fileName
-		$fileName = 'db-backup.sql' ; 
-
-		// Check if directory is already created and has the proper permissions
-		if (!file_exists($path)) {
-			if(!mkdir($path , 0755) ){
-				return false;
-			}
-		} 
-
-		if (!is_writable($path)) {
-			if (!chmod($path , 0755) ) {
-				return false;
-			}
-		} 
-
-		$mysqli = new mysqli($host , $user , $pass , $db_name) ;
+		$mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name) ;
 		if (mysqli_connect_errno()) {
 		   return false;
 		}
@@ -232,7 +349,7 @@ if(!function_exists('db_backup')) {
 				$return.= 'INSERT INTO '.$table.' VALUES(';
 				for($j=0; $j<$num_fields; $j++){
 				        $rowdata[$j] = addslashes($rowdata[$j]);
-				        $rowdata[$j] = ereg_replace("\n","\\n",$rowdata[$j]);
+						$rowdata[$j] = str_replace("\n","\\n",$rowdata[$j]);
 				        if (isset($rowdata[$j])) { 
 						$return.= '"'.$rowdata[$j].'"' ; 
 					} else { 
@@ -252,10 +369,121 @@ if(!function_exists('db_backup')) {
 		$return .= 'SET AUTOCOMMIT = 1 ; ' . "\n"  ; 
 		
 		//save file
-		$handle = fopen($path . $fileName,'w+');
+		$handle = fopen($sql_file_path,'w+');
 		fwrite($handle,$return);
 		fclose($handle);
+
+		//Did the export work
+   		$file_size = filesize($sql_file_path);
+   		if(empty($file_size)) {
+   			_log('(functions.db_backup) Failure: SQL Export file was empty.');
+   			return false;
+   		}	      
+		
+		_log('(functions.db_backup)SQL Backup File Created:'.$sql_file_path);		
 	    return true;
+	}
+}
+
+if(!function_exists('db_SQLDump')) {
+	function db_SQLDump($sql_file_path) { 
+
+			_log('(functions.db_SQLDump) SQL Dump: ' .$sql_file_path);
+
+            $db_name = DB_NAME; 
+            $db_user = DB_USER;
+            $db_pass = DB_PASSWORD; 
+            $db_host = DB_HOST;
+			
+			//This is to ensure that exec() is enabled on the server           
+			if(exec('echo EXEC') == 'EXEC') {
+				try {
+					$process = 'mysqldump';
+            		//exec($process.' --user='.$db_user.' --password='.$db_pass.' --host='.$db_host.' '.$db_name.' > "'.$path_sql .'"');
+		             $command = $process
+		        	 . ' --host=' . $db_host
+		        	 . ' --user=' . $db_user
+		        	 . ' --password=' . $db_pass 
+		        	 . ' ' . $db_name
+		        	 . ' > "' . $sql_file_path .'"';
+
+            		$output = shell_exec($command);
+            		_log('(functions.db_SQLDump) shell execute output:');
+            		_log($output);
+
+            		//Did the export work
+	           		$file_size = filesize($sql_file_path);
+	           		if(empty($file_size)) {
+	           			_log('(functions.db_SQLDump) Failure: Dump was empty.');
+	           			return false;
+	           		}	
+	           	} catch(Exception $e) {
+                 	_log('(functions.db_SQLDump) Exception: ' .$e);
+                 	return false;
+                }
+            }
+            else
+            {
+            	_log('(functions.db_SQLDump) Failure: Exec() disabled.');
+            	return false;
+            }
+
+            _log('(functions.db_SQLDump) SQL Dump completed.');
+            return true;
+	}
+}
+//define db_import function
+if(!function_exists('db_run_sql')) {
+	function db_run_sql($sql_file) {
+		$file_size = filesize($sql_file);
+		_log('(functions.db_import)SQL Execute:' .$sql_file);
+
+		//Is the backup sql file empty
+		if(empty($file_size)) {
+			_log('(functions.db_import) Failure: SQL File was empty:' .$sql_file);
+			return false;
+		} 
+
+		//This is to ensure that exec() is enabled on the server           
+		if(exec('echo EXEC') != 'EXEC') {
+	    	_log('(functions.db_SQLDump) Failure: Exec() disabled.');
+           	return false;
+		}
+
+		try {
+
+			$db_name = DB_NAME;
+            $db_user = DB_USER;
+            $db_pass = DB_PASSWORD; 
+            $db_host = DB_HOST;
+
+            //Are you in test mode -  this should be in the wp-config
+            // if(!defined('DB_NAME_TESTDB' ) ) define( 'DB_NAME_TESTDB', '' );
+            // if(!empty(DB_NAME_TESTDB)) {
+            // 	$db_name=DB_NAME_TESTDB;
+            // 	_log('(functions.db_import) Test Database:' .$db_name);
+            // }
+
+            $process = 'mysql';
+            $command = $process
+        	. ' --host=' . $db_host
+        	. ' --user=' . $db_user
+        	. ' --password=' . $db_pass 
+        	. ' --database=' . $db_name
+        	. ' --execute="SOURCE ' . $sql_file .'"';
+
+            $output = shell_exec($command);
+            _log('(functions.db_import) shell execute output:');
+            _log($output);
+
+    	}catch(Exception $e) {
+ 			_log('(functions.db_import) Exception: ' .$e);
+ 			return false;
+        }
+
+		//Success   
+		_log('(functions.db_import)SQL Executed successfully:' .$sql_file);
+		return true;
 	}
 }
 
@@ -266,8 +494,67 @@ if(!function_exists('create_siteinfo')) {
 		$handle = fopen($siteinfo, 'w+');
 		$entry = site_url( '/' ) ."\n$table_prefix";
 		fwrite($handle, $entry); 
-		fclose($handle); 
+		fclose($handle);
+		_log('(funtions.create_siteinfo) Site Info created:'.$siteinfo); 
 		return true;
+	}
+}
+
+if(!function_exists('delete_allbutzips')){
+	function delete_allbutzips($dir){		  
+		$ignore = array('cgi-bin','.','..','._');
+		if( is_dir($dir) ){
+			if($dh = opendir($dir)) {
+				while( ($file = readdir($dh)) !== false ) {
+					$ext = pathinfo($file, PATHINFO_EXTENSION);
+					if (!in_array($file, $ignore) && substr($file, 0, 1) != '.' && $ext!="zip") { //Check the file is not in the ignore array
+						if(!is_dir($dir .'/'. $file)) {
+							unlink($dir .'/'. $file);
+						} else {
+							recursive_delete($dir.'/'. $file, $ignore);
+						}
+					}
+				}
+			}
+			@rmdir($dir);	
+			closedir($dh);
+		}
+		_log('(funtions.delete_allbutzips) Delete all but zips completed:'.$dir);
+	return true;
+	}
+}
+
+
+//Recursively delete all children
+if(!function_exists('delete_children_recursive')){
+	function delete_children_recursive($path, $ignore = array('cgi-bin','._'))
+	{
+	    if (is_dir($path))
+	    {
+	    	_log('(delete_children_recursive) Ignore:');
+	    	_log($ignore);
+	    	$iterator = new RecursiveDirectoryIterator($path);
+	    	$iterator->setFlags(RecursiveDirectoryIterator::SKIP_DOTS);
+	    	$filter = new RecursiveFilter_Iterator($iterator);
+	    	$filter->set_filter($ignore);
+
+	    	$all_files  = new RecursiveIteratorIterator($filter,RecursiveIteratorIterator::CHILD_FIRST);
+	 
+	        foreach ($all_files as $file)
+	        {
+	            if ($file->isDir())
+	            {
+	            	_log('(delete_recursive_new) delete folder:'.$file);
+		            rmdir($file->getPathname());
+	            }
+	            else
+	            {
+	            	_log('(delete_recursive_new) delete file:'.$file);
+	                unlink($file->getPathname());
+	            }
+	        }
+	    }
+	    return true;
 	}
 }
 
@@ -286,6 +573,7 @@ if(!function_exists('recursive_delete')){
 					}
 				}
 			}
+			_log('(functions.recursive_delete) Folder Deleted:' .$dir);
 			@rmdir($dir);	
 			closedir($dh);
 		}
@@ -330,8 +618,8 @@ function load_presstrends() {
 	global $WPBackitup;
 	if($WPBackitup->get_option( 'presstrends' ) == 'enabled') {
 		// PressTrends Account API Key
-		$api_key = 'rwiyhqfp7eioeh62h6t3ulvcghn2q8cr7j5x';
-		$auth    = 'lpa0nvlhyzbyikkwizk4navhtoaqujrbw';
+		$api_key = '7s4lfc8du5we4cjcdcw7wv3bedn596gjxmgy';
+		$auth    = 'uu8dz66bqreltwdq66hjculnyqkkwofy5';
 
 		// Start of Metrics
 		global $wpdb;
@@ -385,5 +673,129 @@ function load_presstrends() {
 		}
 	}
 }
+
 // PressTrends WordPress Action
 add_action('admin_init', 'load_presstrends');
+
+//Get Status Log
+if(!function_exists('deleteDebugLog')){
+	function deleteDebugLog() {
+		$debugLog = WPBACKITUP_DIRNAME ."/logs/debug_" .$date .".log";	
+		if (file_exists($debugLog)){
+			try{
+				unlink($debugLog);
+			} catch(Exception $e) {
+				//Dont do anything
+			}
+		}
+	}
+}
+
+//Get debug Log
+if(!function_exists('getDebugLogFile')){
+	function getDebugLogFile() {
+		try {
+			if (WPBACKITUP_DEBUG===true){
+				//Check to see if File exists
+				$date = date_i18n('Y-m-d',current_time( 'timestamp' ));
+				$debugLog = WPBACKITUP_DIRNAME ."/logs/debug_" .$date .".log";	
+				$dfh = fopen($debugLog, 'a');	
+				return $dfh;		
+			}
+		} catch(Exception $e) {
+			//Dont do anything
+		}
+	}
+}
+
+// //load logWriter function
+if(!function_exists('_log')){
+	function _log($message) {
+		//Is debug ON
+		try{
+			if (WPBACKITUP_DEBUG===true){
+				$dfh = getDebugLogFile("upload"); //Get File
+				if (!is_null($dfh)){
+					$date = date_i18n('Y-m-d Hi:i:s',current_time( 'timestamp' ));
+					if( is_array( $message ) || is_object( $message ) ){
+						fwrite($dfh, $date ." " .print_r( $message, true ) . PHP_EOL);
+				     } else {
+				     	fwrite($dfh, $date ." " .$message . PHP_EOL);			        
+				     }	
+				     fclose($dfh);					
+				}
+			}
+		} catch(Exception $e) {
+				//Dont do anything
+		}
+	}
+}
+
+// if(!function_exists('_log')){
+//   function _log( $message ) {
+//   	$debuglog = WPBACKITUP_CONTENT_PATH .'debug.log';
+//     if( WPBACKITUP_DEBUG === true ){
+// 		try{
+// 			$dfh = fopen($debuglog,'w+');
+// 			if( is_array( $message ) || is_object( $message ) ){
+// 		        //error_log( print_r( $message, true ) );
+// 				fwrite($dfh,print_r( $message, true ));
+// 		     } else {
+// 		        fwrite($dfh,$message);
+// 		     }
+
+// 		    fclose($dfh);
+
+// 		} catch(Exception $e) {
+// 			//Dont do anything
+// 			fclose($dfh);
+// 		}
+//     }
+//   }
+// }
+
+//Log all the constants
+if(!function_exists('_log_constants')){
+	function _log_constants() {
+		_log("**CONSTANTS**");
+		_log("WPBACKITUP_VERSION:" . WPBACKITUP_VERSION);
+		_log("WPBACKITUP_DIRNAME:" . WPBACKITUP_DIRNAME);
+		_log("WPBACKITUP_DIR_PATH:" . WPBACKITUP_DIRNAME);
+		_log("WPBACKITUP_CONTENT_PATH:" . WPBACKITUP_CONTENT_PATH);
+		_log("WPBACKITUP_BACKUP_FOLDER:" . WPBACKITUP_BACKUP_FOLDER);
+		_log("WPBACKITUP_RESTORE_FOLDER:" . WPBACKITUP_RESTORE_FOLDER);
+		_log("WPBACKITUP_URLPATH:" . WPBACKITUP_URLPATH);
+		_log("WPBACKITUP_BACKUPFILE_URLPATH:" . WPBACKITUP_BACKUPFILE_URLPATH );
+		_log("IS_AJAX_REQUEST:" . IS_AJAX_REQUEST );
+		_log("WPBACKITUP_SITE_URL:" . WPBACKITUP_SITE_URL ); 
+		_log("WPBACKITUP_ITEM_NAME:" . WPBACKITUP_ITEM_NAME ); 
+		_log("WPBACKITUP_PLUGIN_FOLDER:" . WPBACKITUP_PLUGIN_FOLDER );
+		_log("WPBACKITUP_SQL_DBBACKUP_FILENAME:" . WPBACKITUP_SQL_DBBACKUP_FILENAME);
+		_log("WPBACKITUP_SQL_TABLE_RENAME_FILENAME:" . WPBACKITUP_SQL_TABLE_RENAME_FILENAME);
+		_log("WPBACKITUP_PLUGINS_PATH:" . WPBACKITUP_PLUGINS_PATH);
+		_log("WPBACKITUP_PLUGINS_FOLDER:" . WPBACKITUP_PLUGINS_FOLDER);
+		_log("WPBACKITUP_THEMES_PATH:" . WPBACKITUP_THEMES_PATH);	
+		_log("WPBACKITUP_THEMES_FOLDER:" . WPBACKITUP_THEMES_FOLDER);		
+		_log("** END CONSTANTS**");
+	}
+}
+
+// if(!function_exists('redo_to_checkpoint')) {
+// 	function redo_to_checkpoint($checkpoint) {
+
+//             if($checkpoint == "db")
+//             {
+//                 if( glob($restoration_dir_path . "*.cur") ) {
+//                     //collect connection information from form
+//                     fwrite($fh, '<div class="database">In Progress</div>');
+//                     include_once WP_DIR_PATH .'/wp-config.php';
+//                     //Add user to DB in v1.0.5
+//                     $user_id = $_POST['user_id'];
+//                     //Connect to DB
+//                     $output = db_import($restoration_dir_path, $import_siteurl, $current_siteurl, $table_prefix, $import_table_prefix, $dbc); 
+//                 }
+
+//             }
+            
+// 	}
+// }
