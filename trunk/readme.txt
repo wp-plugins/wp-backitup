@@ -91,6 +91,17 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.6.1 =
+*	This release is mostly cosmetic changes and minor fixes to v1.6.0	
+*	Corrected path issue occurring on unix platform
+*	Updated backup zip to remove blanks in file name
+*	Changed backup suffix to backup instead of export
+*	Corrected backup.sql export file size check
+*	Fix license check for restore option 
+*	Update usage tracking default to off
+*	Correct issue with manual data export that contain non-ascii characters
+*	Add Date Time stamp on SQL restore export
+
 = 1.6.0 =
 *	Significant performance improvements.
 *	Many improvements to user interface.
@@ -98,6 +109,7 @@ Yes.
 *	Added interface for large file uploads via FTP.
 *	Added restore point and database recovery when fatal errors are encountered.
 *	Added configurable debug logging.
+* 	Added logging option to options page.
 
 = 1.5.4 =
 Enabled plugin to work with version 3.8

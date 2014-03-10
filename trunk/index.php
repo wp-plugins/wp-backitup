@@ -7,13 +7,13 @@
  * @global    object    $wpdb
  * 
  * @author cssimmon
- * @version 1.6.0
+ * @version 1.6.1
  */
 /*
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.6.0
+Version: 1.6.1
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -43,7 +43,8 @@ class WPBackitup {
     
     // Default plugin options
     var $defaults = array(
-        'presstrends' => "enabled",
+        'presstrends' => "disabled",
+        'logging' => "disabled",
         'license_key' => "",
         'status' => "inactive"
     );

@@ -16,8 +16,7 @@
           				
 		<?php
 		//Display a note for lite customers
-		$status = $this->get_option( 'status' );
-		if($status != 'valid' ) 
+		if(!license_active()) 
 		{
 			echo '<p> * WPBackItUp Lite customers may use these backup files to manually restore their site.  Please visit  <a href="http://www.wpbackitup.com/wp-backitup-pro/" target="_blank">www.wpbackitup.com</a> for manual restore instructions.</p>';
 		}				
@@ -50,7 +49,11 @@
 				<td><?php echo $filename?></td>
 				<td><a href="<?php echo WPBACKITUP_BACKUPFILE_URLPATH ?>/<?php echo $filename; ?>">Download</a></td>
 				<td><a href="#" title="<?php echo $filename; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
-				<td><a href="#" title="<?php echo $filename; ?>" class="restoreRow" id="restoreRow<?php echo $i; ?>">Restore</a></td>
+                <?php
+                    if (license_active()) {
+                        echo '<td><a href="#" title="' . $filename . '" class="restoreRow" id="restoreRow' . $i . '">Restore</a></td>';
+                    }
+                ?>
 			</tr>
 			<?php
 				$i++;
@@ -72,9 +75,7 @@
 		    
 				<?php 
 						//Display restore note for lite customers
-						$status = $this->get_option( 'status' );
-						if($status != 'valid' ) 
-						{ 
+						if (!license_active()) {
 							 echo '<p>* The automated restore feature is only available to Pro customers.  Please visit <a href="http://www.wpbackitup.com/wp-backitup-pro/" target="_blank">www.wpbackitup.com</a> to get WPBackItUp Pro risk free for 30 days.</p>'	;
 						}
 				?>
@@ -82,8 +83,7 @@
 		
 				<!--Disable upload form if the user has not activated-->
         <?php 
-						$status = $this->get_option( 'status' );
-						if( $status !== false && $status == 'valid' ) 
+						if( license_active()) 
 						{ ?>
 						<div class="widget">
 							<h3>
@@ -186,6 +186,7 @@
                 <span class='error222'><div class='isa_error'><?php _e('Error: Unable to create restore folder', $namespace ); ?>.</div></span>
                 <span class='error223'><div class='isa_error'><?php _e('Error: An error occurred during the restore.  We attempted to restore the database to its previous state but were unsuccessful.  Please contact wpbackitup customer support and do not attempt to perform any further restores', $namespace ); ?>.</div></span>
                 <span class='error224'><div class='isa_error'><?php _e('Error: An error occurred during the restore, however, we have successfully restored your database to the previous state', $namespace ); ?>.</div></span>
+                <span class='error225'><div class='isa_error'><?php _e('Error: Restore option is only available to WP BackItUp Pro users', $namespace ); ?>.</div></span>
             </div>
 
             <!--restore success messages-->
@@ -194,17 +195,18 @@
             </div>                
  
         </div>   
-        <?php if (WPBACKITUP_DEBUG===true) {
-            echo '<p><div id="php">Debug messages</p></div>'; 
+        <?php 
+            global $WPBACKITUP_DEBUG;
+            if ($WPBACKITUP_DEBUG===true) {
+            echo '<p><div id="php">Logging messages</p></div>'; 
         } ?>
     </div>
 
     <div id="sidebar">
 
         <!-- Display opt-in form if the user is unregistered -->
-        <?php $license = $this->get_option( 'license_key' );
-                $status = $this->get_option( 'status' );
-                if( $status != 'valid' ) { ?>
+        <?php 
+                if(!license_active()) { ?>
                     <div class="widget">
                         <h3 class="promo"><?php _e('Get a license key', $namespace ); ?></h3>
                         <p><?php _e('Tired of messing with FTP, MySQL and PHPMyAdmin? Restore your backups from this page in minutes or your money back', $namespace ); ?>.</p>
@@ -223,14 +225,14 @@
         <?php wp_nonce_field( $namespace . "-update-options" ); ?>
         <div class="widget">
             <h3 class="promo"><?php _e('License Key v '.WPBACKITUP_VERSION, $namespace); ?></h3>
-            <?php $license = $this->get_option( 'license_key' );
-                $status = $this->get_option( 'status' );
-                if( $status != 'valid' ) { ?>
+            <?php 
+                $license = $this->get_option( 'license_key' );
+                if(!license_active()) { ?>
                     <p><?php _e('Enter your license key to activate Pro features.', $namespace ); ?>.</p>
                 <?php } ?>
                 <p><input type="text" name="data[license_key]" id="license_key" value="<?php echo $license; ?>" />
-                <?php if( false !== $license ) { 
-                    if( $status !== false && $status == 'valid' ) { ?>
+                <?php 
+                    if(license_active() ) { ?>
                         <span style="color:green;"><?php _e('Pro License Active', $namespace); ?></span></p>
                         <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Update", $namespace ) ?>" /></p>
                     <?php } else { ?>
@@ -238,19 +240,19 @@
                         <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Activate", $namespace ) ?>" /></p>
                         <p><?php _e('Purchase a  <a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/" target="blank">no-risk </a>license using the purchase link above',$namespace); ?>.</p>
                     <?php } 
-                } ?>
+                ?>
         </div>             
         
         <!-- Display links widget -->
         <div class="widget">
             <h3 class="promo"><?php _e('Useful Links', $namespace ); ?></h3>
             <ul>
-                <?php if( false !== $license ) { 
-                    if( $status !== false && $status == 'valid' ) { ?>
+                <?php
+                    if(license_active()) { ?>
                         <li><a href="http://www.wpbackitup.com/your-account/" target="_blank"><?php _e('Your account',$namespace); ?></a></li>
                         <li><a href="http://www.wpbackitup.com/plugins/wp-backitup-pro/" target="_blank"><?php _e('Upgrade your license',$namespace); ?></a></li>
                     <?php }
-                } ?>
+                ?>
                 <li><a href="http://www.wpbackitup.com/support" target="_blank"><?php _e('Get support',$namespace); ?></a></li>
 								<li><a href="http://www.wpbackitup.com/feature-request" target="_blank"><?php _e('Feature Request',$namespace); ?></a></li>
 								<li>Have a suggestion? Why not submit a feature request.</li>
@@ -258,12 +260,22 @@
         </div>
 
         <div class="widget">
+            <h3 class="promo">Turn on logging?</h3>
+                <p><input type="radio" name="data[logging]" value="enabled" <?php if($this->get_option( 'logging' ) == 'enabled') echo 'checked'; ?>> <label><?php _e('Yes', $namespace ); ?></label></p>
+                <p><input type="radio" name="data[logging]" value="disabled" <?php if($this->get_option( 'logging' ) == 'disabled') echo 'checked'; ?>> <label><?php _e('No', $namespace ); ?></label></p>
+                <p><?php _e('This option should only be turned on when troubleshooting issues with WPBackItUp support.', $namespace ); ?></p>
+                <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Save", $namespace ) ?>" /></p>
+        </div>
+
+        <!--
+        <div class="widget">
             <h3 class="promo">Allow Usage Tracking?</h3>
                 <p><input type="radio" name="data[presstrends]" value="enabled" <?php if($this->get_option( 'presstrends' ) == 'enabled') echo 'checked'; ?>> <label><?php _e('Yes', $namespace ); ?></label></p>
                 <p><input type="radio" name="data[presstrends]" value="disabled" <?php if($this->get_option( 'presstrends' ) == 'disabled') echo 'checked'; ?>> <label><?php _e('No', $namespace ); ?></label></p>
                 <p><?php _e('Allow WPBackItUp to track how this plugin is used so we can make it better. We only track usage data related to this plugin and will never share this data.', $namespace ); ?></p>
                 <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e( "Save", $namespace ) ?>" /></p>
         </div>
+        -->
         </form>
     </div>
 </div>
