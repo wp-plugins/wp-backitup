@@ -1,7 +1,7 @@
 <?php
 /**
  * Constants used by this plugin
- * 
+ *   
  * @package WP Backitup
  * 
  * @author jcpeden
