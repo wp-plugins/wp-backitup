@@ -2,7 +2,7 @@
 /**
  * WP Backitup
  * 
- * @package WP Backitup
+ * @package WP Backitup 
  * 
  * @global    object    $wpdb
  * 
