@@ -6,19 +6,19 @@
  * 
  * @global    object    $wpdb
  * 
- * @author jcpeden
- * @version 1.5.5
+ * @author cssimmon
+ * @version 1.6.1
  */
 /*
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.5.5
-Author: John Peden
-Author URI: http://www.johncpeden.com
+Version: 1.6.1
+Author: Chris Simmons
+Author URI: http://www.wpbackitup.com
 License: GPL3
 
-Copyright 2012-2013 John Peden  (email : support@wpbackitup.com)
+Copyright 2012-2014 WPBackItUp  (email : support@wpbackitup.com)
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -43,7 +43,8 @@ class WPBackitup {
     
     // Default plugin options
     var $defaults = array(
-        'presstrends' => "enabled",
+        'presstrends' => "disabled",
+        'logging' => "disabled",
         'license_key' => "",
         'status' => "inactive"
     );
@@ -242,7 +243,7 @@ class WPBackitup {
      */
     function admin_print_scripts() {
         wp_enqueue_script( "{$this->namespace}-admin" );
-        wp_enqueue_script( "{$this->namespace}-ajaxfileupload" );
+        //wp_enqueue_script( "{$this->namespace}-ajaxfileupload" );
     }
     
     /**
@@ -354,7 +355,7 @@ class WPBackitup {
     function wp_register_scripts() {
         // Admin JavaScript
         wp_register_script( "{$this->namespace}-admin", WPBACKITUP_URLPATH . "/js/admin.js", array( 'jquery' ), $this->version, true );
-        wp_register_script( "{$this->namespace}-ajaxfileupload", WPBACKITUP_URLPATH . "/js/ajaxfileupload.js", array( 'jquery' ), $this->version, true );
+        //wp_register_script( "{$this->namespace}-ajaxfileupload", WPBACKITUP_URLPATH . "/js/ajaxfileupload.js", array( 'jquery' ), $this->version, true );
     }
     
     /**
