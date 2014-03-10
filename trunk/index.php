@@ -7,7 +7,7 @@
  * @global    object    $wpdb
  * 
  * @author cssimmon
- * @version 1.6.1
+ * @version 1.6.2
  */
 /*
 Plugin Name: WP Backitup
