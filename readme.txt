@@ -92,7 +92,7 @@ Yes.
 
 == Changelog ==
 = 1.6.2 =
-*	Fixed issue with version 1.6.1 update
+*	Fixed issue with version 1.6.1 update.
 
 = 1.6.1 =
 *	This release is mostly cosmetic changes and minor fixes to v1.6.0	
