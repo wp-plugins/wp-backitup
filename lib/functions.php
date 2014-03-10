@@ -28,6 +28,27 @@ if( !class_exists( 'RecursiveFilter_Iterator' ) ) {
 // retrieve our license key from the DB
 $license_key = trim( $this->get_option( 'license_key' ) );
 
+
+//Feth the debug status and set 
+global $WPBACKITUP_DEBUG;
+$WPBACKITUP_DEBUG=false;
+if ('enabled'==$this->get_option( 'logging' )){
+	$WPBACKITUP_DEBUG= true;
+}
+
+//Check the license key
+function license_active(){
+	global $WPBackitup;
+	$license_key = $WPBackitup->get_option( 'license_key' );
+	$license_status = $WPBackitup->get_option( 'status' );
+
+	if(false !== $license_key && false !== $license_status  && 'valid'== $license_status)
+	{
+		return true;
+	}	
+	return false;
+}
+
 //define dbSize function
 function dbSize($dbname) {
 	mysqli_select_db($dbname);
@@ -200,15 +221,9 @@ if(!function_exists('db_rename_wptables')) {
 	function db_rename_wptables($sql_file_path,$table_prefix) {
 		_log('(db_rename_wptables)Manually Create SQL Backup File:'.$sql_file_path);
 		
-		$db_name = DB_NAME; 
-        $db_user = DB_USER;
-        $db_pass = DB_PASSWORD; 
-        $db_host = DB_HOST;
-
-        //Get a connection to the DB
-        $mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name) ;
-		if (mysqli_connect_errno()) {
-		   return false;
+		$mysqli = db_get_sqlconnection();
+		if (false===$mysqli) {
+		 	return false;
 		}
 
 		$tables = array() ; 
@@ -241,7 +256,7 @@ if(!function_exists('db_rename_wptables')) {
 				$return .= "--\n";
 				$return .= '-- Created: ' . date("Y/m/d") . "\n";
 				$return .= "--\n";
-				$return .= "-- Database : " . $db_name . "\n";
+				$return .= "-- Database : " . DB_NAME . "\n";
 				$return .= "--\n";
 				$return .= "-- --------------------------------------------------\n";
 				$return .= "-- ---------------------------------------------------\n";
@@ -277,35 +292,85 @@ if(!function_exists('db_rename_wptables')) {
 	}
 }
 
+if(!function_exists('db_get_hostonly')) {
+	function db_get_hostonly($db_host) {
+ 		//Check for port
+        $host_array = explode(':',$db_host);
+        if (is_array($host_array)){
+			return $host_array[0];
+        }
+        return $db_host;
+	}
+}
+//Get rid of the port if its in the hostname
+if(!function_exists('db_get_portonly')) {
+	function db_get_portonly($db_host) {
+ 		//Check for port
+        $host_array = explode(':',$db_host);
+        if (is_array($host_array) && count($host_array)>1){
+			return $host_array[1];
+        }
+        
+        return false;
+	}
+}
+
+//Get SQL connection
+if(!function_exists('db_get_sqlconnection')) {
+	function db_get_sqlconnection() {
+		_log('(functions.db_get_sqlconnection)Get SQL connection to database.');
+		$db_name = DB_NAME; 
+        $db_user = DB_USER;
+        $db_pass = DB_PASSWORD; 
+        $db_host = db_get_hostonly(DB_HOST);
+        $db_port = db_get_portonly(DB_HOST);
+
+        _log('(functions.db_get_sqlconnection)Host:' . $db_host);
+        _log('(functions.db_get_sqlconnection)Port:' . $db_port);     
+      
+      	if (false===$db_port){
+      		$mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name);
+      	}
+        else {
+			$mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name,$db_port);
+        }
+		
+		if ($mysqli->connect_errno) {
+			_log('(functions.db_get_sqlconnection)Cannot connect to database.' . $mysqli->connect_error);
+		   	return false;
+		}
+		return $mysqli;
+    }
+}
 
 //Define DB backup function
 if(!function_exists('db_backup')) {
 	function db_backup($sql_file_path) {
 		_log('(functions.db_backup)Manually Create SQL Backup File:'.$sql_file_path);
-
-		$db_name = DB_NAME; 
-        $db_user = DB_USER;
-        $db_pass = DB_PASSWORD; 
-        $db_host = DB_HOST;
 		
-		$mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name) ;
-		if (mysqli_connect_errno()) {
-		   return false;
+		$mysqli = db_get_sqlconnection();
+		$mysqli->set_charset('utf8');
+
+		if (false===$mysqli) {
+		 	return false;
 		}
 
-		// Introduction information
-		$return = '';
+		// Script Header Information
+		$return  = '';
+		$return .= "-- ------------------------------------------------------\n";
+		$return .= "-- ------------------------------------------------------\n";
 		$return .= "--\n";
-		$return .= "-- WP Backitup Database Backup \n";
+		$return .= "-- WP BackItUp Manual Database Backup \n";
 		$return .= "--\n";
-		$return .= '-- Created: ' . date("Y/m/d") . ' on ' . date("h:i") . "\n\n\n";
-		$return = "--\n";
-		$return .= "-- Database : " . $db_name . "\n";
+		$return .= '-- Created: ' . date("Y/m/d") . ' on ' . date("h:i") . "\n";
 		$return .= "--\n";
-		$return .= "-- --------------------------------------------------\n";
-		$return .= "-- ---------------------------------------------------\n";
+		$return .= "-- Database : " . DB_NAME . "\n";
+		$return .= "--\n";
+		$return .= "-- ------------------------------------------------------\n";
+		$return .= "-- ------------------------------------------------------\n";
 		$return .= 'SET AUTOCOMMIT = 0 ;' ."\n" ;
 		$return .= 'SET FOREIGN_KEY_CHECKS=0 ;' ."\n" ;
+
 		$tables = array() ; 
 
 		// Exploring what tables this database has
@@ -350,11 +415,17 @@ if(!function_exists('db_backup')) {
 				for($j=0; $j<$num_fields; $j++){
 				        $rowdata[$j] = addslashes($rowdata[$j]);
 						$rowdata[$j] = str_replace("\n","\\n",$rowdata[$j]);
-				        if (isset($rowdata[$j])) { 
-						$return.= '"'.$rowdata[$j].'"' ; 
-					} else { 
-						$return.= '""'; 
-					}
+
+						if (isset($rowdata[$j])) {
+							 $return.= '"'.$rowdata[$j].'"' ;
+						 } else {
+						 	if (is_null($rowdata[$j])) {
+						 		$return.= 'NULL';//Dont think this is working but not causing issues	
+						 	} else {
+						 		$return.= '""';
+						 	}
+						  }
+				  		
 				        if ($j<($num_fields-1)) { $return.= ','; }
 				}
 				$return.= ");\n";
@@ -372,14 +443,14 @@ if(!function_exists('db_backup')) {
 		$handle = fopen($sql_file_path,'w+');
 		fwrite($handle,$return);
 		fclose($handle);
+		clearstatcache();
 
 		//Did the export work
-   		$file_size = filesize($sql_file_path);
-   		if(empty($file_size)) {
-   			_log('(functions.db_backup) Failure: SQL Export file was empty.');
-   			return false;
-   		}	      
-		
+		if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
+			_log('(functions.db_backup) Failure: SQL Export file was empty or didnt exist.');
+			return false;
+		}
+
 		_log('(functions.db_backup)SQL Backup File Created:'.$sql_file_path);		
 	    return true;
 	}
@@ -393,28 +464,44 @@ if(!function_exists('db_SQLDump')) {
             $db_name = DB_NAME; 
             $db_user = DB_USER;
             $db_pass = DB_PASSWORD; 
-            $db_host = DB_HOST;
+            $db_host = db_get_hostonly(DB_HOST);
+        	$db_port = db_get_portonly(DB_HOST);
 			
 			//This is to ensure that exec() is enabled on the server           
 			if(exec('echo EXEC') == 'EXEC') {
 				try {
 					$process = 'mysqldump';
-            		//exec($process.' --user='.$db_user.' --password='.$db_pass.' --host='.$db_host.' '.$db_name.' > "'.$path_sql .'"');
+
 		             $command = $process
-		        	 . ' --host=' . $db_host
-		        	 . ' --user=' . $db_user
-		        	 . ' --password=' . $db_pass 
-		        	 . ' ' . $db_name
+		        	 . ' --host=' . $db_host;
+					
+					//Check for port
+		        	 if (false!==$db_port){
+		        	 	$command .=' --port=' . $db_port;
+		        	 }	
+
+		        	 $command .=
+		        	   ' --user=' . $db_user
+		        	 . ' --password=' . $db_pass	        	 
+		        	 .=' ' . $db_name		        	 
 		        	 . ' > "' . $sql_file_path .'"';
 
-            		$output = shell_exec($command);
-            		_log('(functions.db_SQLDump) shell execute output:');
-            		_log($output);
+					//_log('(functions.db_SQLDump)Execute command:' . $command);
+
+            		exec($command,$output,$rtn_var);
+		            _log('(functions.db_SQLDump)Execute output:');
+		            _log($output);
+		            _log('Return Value:' .$rtn_var);
+
+		            //0 is success
+		            if ($rtn_var>0){
+		            	return false;
+		            }
 
             		//Did the export work
-	           		$file_size = filesize($sql_file_path);
-	           		if(empty($file_size)) {
-	           			_log('(functions.db_SQLDump) Failure: Dump was empty.');
+            		clearstatcache();
+	           		if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
+	           			_log('(functions.db_SQLDump) Failure: Dump was empty or missing.');
 	           			return false;
 	           		}	
 	           	} catch(Exception $e) {
@@ -435,18 +522,17 @@ if(!function_exists('db_SQLDump')) {
 //define db_import function
 if(!function_exists('db_run_sql')) {
 	function db_run_sql($sql_file) {
-		$file_size = filesize($sql_file);
-		_log('(functions.db_import)SQL Execute:' .$sql_file);
+		_log('(functions.db_run_sql)SQL Execute:' .$sql_file);
 
 		//Is the backup sql file empty
-		if(empty($file_size)) {
-			_log('(functions.db_import) Failure: SQL File was empty:' .$sql_file);
+		if (!file_exists($sql_file) || filesize($sql_file)<=0) {
+			_log('(functions.db_run_sql) Failure: SQL File was empty:' .$sql_file);
 			return false;
 		} 
 
 		//This is to ensure that exec() is enabled on the server           
 		if(exec('echo EXEC') != 'EXEC') {
-	    	_log('(functions.db_SQLDump) Failure: Exec() disabled.');
+	    	_log('(functions.db_run_sql) Failure: Exec() disabled.');
            	return false;
 		}
 
@@ -455,34 +541,37 @@ if(!function_exists('db_run_sql')) {
 			$db_name = DB_NAME;
             $db_user = DB_USER;
             $db_pass = DB_PASSWORD; 
-            $db_host = DB_HOST;
-
-            //Are you in test mode -  this should be in the wp-config
-            // if(!defined('DB_NAME_TESTDB' ) ) define( 'DB_NAME_TESTDB', '' );
-            // if(!empty(DB_NAME_TESTDB)) {
-            // 	$db_name=DB_NAME_TESTDB;
-            // 	_log('(functions.db_import) Test Database:' .$db_name);
-            // }
+            $db_host = db_get_hostonly(DB_HOST);
+        	$db_port = db_get_portonly(DB_HOST);
 
             $process = 'mysql';
             $command = $process
         	. ' --host=' . $db_host
-        	. ' --user=' . $db_user
+        	. ' --user=' . $db_user 
         	. ' --password=' . $db_pass 
         	. ' --database=' . $db_name
         	. ' --execute="SOURCE ' . $sql_file .'"';
 
-            $output = shell_exec($command);
-            _log('(functions.db_import) shell execute output:');
+			//_log('(functions.db_run_sql)Execute command:' . $command);
+
+            //$output = shell_exec($command);
+            exec($command,$output,$rtn_var);
+            _log('(functions.db_run_sql)Execute output:');
             _log($output);
+            _log('Return Value:' .$rtn_var);
+
+            //0 is success
+            if ($rtn_var>0){
+            	return false;
+            }
 
     	}catch(Exception $e) {
- 			_log('(functions.db_import) Exception: ' .$e);
+ 			_log('(functions.db_run_sql) Exception: ' .$e);
  			return false;
         }
 
 		//Success   
-		_log('(functions.db_import)SQL Executed successfully:' .$sql_file);
+		_log('(functions.db_run_sql)SQL Executed successfully:' .$sql_file);
 		return true;
 	}
 }
@@ -613,65 +702,70 @@ function zip($source, $destination, $ignore) {
     return $zip->close();
 }
 
-//load presstrends
+
+//Disable presstrends v 1.6.1
 function load_presstrends() {
-	global $WPBackitup;
-	if($WPBackitup->get_option( 'presstrends' ) == 'enabled') {
-		// PressTrends Account API Key
-		$api_key = '7s4lfc8du5we4cjcdcw7wv3bedn596gjxmgy';
-		$auth    = 'uu8dz66bqreltwdq66hjculnyqkkwofy5';
+	// global $WPBackitup;
+	// _log('Load Presstrends');
+	// if($WPBackitup->get_option( 'presstrends' ) == 'enabled') {
+	// 	_log('Presstrends enabled');
+	// 	// PressTrends Account API Key
+	// 	$api_key = '7s4lfc8du5we4cjcdcw7wv3bedn596gjxmgy';
+	// 	$auth    = 'uu8dz66bqreltwdq66hjculnyqkkwofy5';
 
-		// Start of Metrics
-		global $wpdb;
-		$data = get_transient( 'presstrends_cache_data' );
-		if ( !$data || $data == '' ) {
-			$api_base = 'http://api.presstrends.io/index.php/api/pluginsites/update/auth/';
-			$url      = $api_base . $auth . '/api/' . $api_key . '/';
+	// 	// Start of Metrics
+	// 	global $wpdb;
+	// 	$data = get_transient( 'presstrends_cache_data' );
+	// 	if ( !$data || $data == '' ) {
+	// 		_log('Presstrends cached data:' . $data);
+	// 		$api_base = 'http://api.presstrends.io/index.php/api/pluginsites/update/auth/';
+	// 		$url      = $api_base . $auth . '/api/' . $api_key . '/';
 
-			$count_posts    = wp_count_posts();
-			$count_pages    = wp_count_posts( 'page' );
-			$comments_count = wp_count_comments();
+	// 		$count_posts    = wp_count_posts();
+	// 		$count_pages    = wp_count_posts( 'page' );
+	// 		$comments_count = wp_count_comments();
 
-			// wp_get_theme was introduced in 3.4, for compatibility with older versions, let's do a workaround for now.
-			if ( function_exists( 'wp_get_theme' ) ) {
-				$theme_data = wp_get_theme();
-				$theme_name = urlencode( $theme_data->Name );
-			} else {
-				$theme_data = get_theme_data( get_stylesheet_directory() . '/style.css' );
-				$theme_name = $theme_data['Name'];
-			}
+	// 		// wp_get_theme was introduced in 3.4, for compatibility with older versions, let's do a workaround for now.
+	// 		if ( function_exists( 'wp_get_theme' ) ) {
+	// 			$theme_data = wp_get_theme();
+	// 			$theme_name = urlencode( $theme_data->Name );
+	// 		} else {
+	// 			$theme_data = get_theme_data( get_stylesheet_directory() . '/style.css' );
+	// 			$theme_name = $theme_data['Name'];
+	// 		}
 
-			$plugin_name = '&';
-			foreach ( get_plugins() as $plugin_info ) {
-				$plugin_name .= $plugin_info['Name'] . '&';
-			}
-			// CHANGE __FILE__ PATH IF LOCATED OUTSIDE MAIN PLUGIN FILE
-			$plugin_data         = get_plugin_data( __FILE__ );
-			$posts_with_comments = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type='post' AND comment_count > 0" );
-			$data                = array(
-				'url'             => stripslashes( str_replace( array( 'http://', '/', ':' ), '', site_url() ) ),
-				'posts'           => $count_posts->publish,
-				'pages'           => $count_pages->publish,
-				'comments'        => $comments_count->total_comments,
-				'approved'        => $comments_count->approved,
-				'spam'            => $comments_count->spam,
-				'pingbacks'       => $wpdb->get_var( "SELECT COUNT(comment_ID) FROM $wpdb->comments WHERE comment_type = 'pingback'" ),
-				'post_conversion' => ( $count_posts->publish > 0 && $posts_with_comments > 0 ) ? number_format( ( $posts_with_comments / $count_posts->publish ) * 100, 0, '.', '' ) : 0,
-				'theme_version'   => $plugin_data['Version'],
-				'theme_name'      => $theme_name,
-				'site_name'       => str_replace( ' ', '', get_bloginfo( 'name' ) ),
-				'plugins'         => count( get_option( 'active_plugins' ) ),
-				'plugin'          => urlencode( $plugin_name ),
-				'wpversion'       => get_bloginfo( 'version' ),
-			);
+	// 		$plugin_name = '&';
+	// 		foreach ( get_plugins() as $plugin_info ) {
+	// 			$plugin_name .= $plugin_info['Name'] . '&';
+	// 		}
+	// 		// CHANGE __FILE__ PATH IF LOCATED OUTSIDE MAIN PLUGIN FILE
+	// 		$plugin_data         = get_plugin_data( __FILE__ );
+	// 		$posts_with_comments = $wpdb->get_var( "SELECT COUNT(*) FROM $wpdb->posts WHERE post_type='post' AND comment_count > 0" );
+	// 		$data                = array(
+	// 			'url'             => stripslashes( str_replace( array( 'http://', '/', ':' ), '', site_url() ) ),
+	// 			'posts'           => $count_posts->publish,
+	// 			'pages'           => $count_pages->publish,
+	// 			'comments'        => $comments_count->total_comments,
+	// 			'approved'        => $comments_count->approved,
+	// 			'spam'            => $comments_count->spam,
+	// 			'pingbacks'       => $wpdb->get_var( "SELECT COUNT(comment_ID) FROM $wpdb->comments WHERE comment_type = 'pingback'" ),
+	// 			'post_conversion' => ( $count_posts->publish > 0 && $posts_with_comments > 0 ) ? number_format( ( $posts_with_comments / $count_posts->publish ) * 100, 0, '.', '' ) : 0,
+	// 			'theme_version'   => $plugin_data['Version'],
+	// 			'theme_name'      => $theme_name,
+	// 			'site_name'       => str_replace( ' ', '', get_bloginfo( 'name' ) ),
+	// 			'plugins'         => count( get_option( 'active_plugins' ) ),
+	// 			'plugin'          => urlencode( $plugin_name ),
+	// 			'wpversion'       => get_bloginfo( 'version' ),
+	// 		);
 
-			foreach ( $data as $k => $v ) {
-				$url .= $k . '/' . $v . '/';
-			}
-			wp_remote_get( $url );
-			set_transient( 'presstrends_cache_data', $data, 60 * 60 * 24 );
-		}
-	}
+	// 		foreach ( $data as $k => $v ) {
+	// 			$url .= $k . '/' . $v . '/';
+	// 		}
+	// 		_log('Prestrends URL' . $url);
+	// 		//wp_remote_get( $url );  - disable usage tracking
+	// 		set_transient( 'presstrends_cache_data', $data, 60 * 60 * 24 );
+	// 	}
+	// }
 }
 
 // PressTrends WordPress Action
@@ -680,13 +774,26 @@ add_action('admin_init', 'load_presstrends');
 //Get Status Log
 if(!function_exists('deleteDebugLog')){
 	function deleteDebugLog() {
-		$debugLog = WPBACKITUP_DIRNAME ."/logs/debug_" .$date .".log";	
-		if (file_exists($debugLog)){
-			try{
-				unlink($debugLog);
-			} catch(Exception $e) {
-				//Dont do anything
+		global $WPBACKITUP_DEBUG;
+		if ($WPBACKITUP_DEBUG===true){
+			$date = date_i18n('Y-m-d',current_time( 'timestamp' ));
+			$mydebugLog = WPBACKITUP_DIRNAME ."/logs/debug_" .$date .".log";	
+			if (file_exists($mydebugLog)){
+				try{
+					unlink($mydebugLog);
+				} catch(Exception $e) {
+					//Dont do anything
+				}
 			}
+
+			$debugLog = WPBACKITUP_CONTENT_PATH ."debug.log";	
+			if (file_exists($debugLog)){
+				try{
+					unlink($debugLog);
+				} catch(Exception $e) {
+					//Dont do anything
+				}
+			}	
 		}
 	}
 }
@@ -695,7 +802,8 @@ if(!function_exists('deleteDebugLog')){
 if(!function_exists('getDebugLogFile')){
 	function getDebugLogFile() {
 		try {
-			if (WPBACKITUP_DEBUG===true){
+			global $WPBACKITUP_DEBUG;
+			if ($WPBACKITUP_DEBUG===true){
 				//Check to see if File exists
 				$date = date_i18n('Y-m-d',current_time( 'timestamp' ));
 				$debugLog = WPBACKITUP_DIRNAME ."/logs/debug_" .$date .".log";	
@@ -712,9 +820,10 @@ if(!function_exists('getDebugLogFile')){
 if(!function_exists('_log')){
 	function _log($message) {
 		//Is debug ON
+		global $WPBACKITUP_DEBUG;
 		try{
-			if (WPBACKITUP_DEBUG===true){
-				$dfh = getDebugLogFile("upload"); //Get File
+			if ($WPBACKITUP_DEBUG===true){
+				$dfh = getDebugLogFile(); //Get File
 				if (!is_null($dfh)){
 					$date = date_i18n('Y-m-d Hi:i:s',current_time( 'timestamp' ));
 					if( is_array( $message ) || is_object( $message ) ){
@@ -731,32 +840,15 @@ if(!function_exists('_log')){
 	}
 }
 
-// if(!function_exists('_log')){
-//   function _log( $message ) {
-//   	$debuglog = WPBACKITUP_CONTENT_PATH .'debug.log';
-//     if( WPBACKITUP_DEBUG === true ){
-// 		try{
-// 			$dfh = fopen($debuglog,'w+');
-// 			if( is_array( $message ) || is_object( $message ) ){
-// 		        //error_log( print_r( $message, true ) );
-// 				fwrite($dfh,print_r( $message, true ));
-// 		     } else {
-// 		        fwrite($dfh,$message);
-// 		     }
-
-// 		    fclose($dfh);
-
-// 		} catch(Exception $e) {
-// 			//Dont do anything
-// 			fclose($dfh);
-// 		}
-//     }
-//   }
-// }
-
 //Log all the constants
 if(!function_exists('_log_constants')){
 	function _log_constants() {
+		_log("**SYSTEM CONSTANTS**");
+		_log("WPBackItUp License Active: " . (license_active() ? 'true' : 'false'));	
+		_log("Wordpress Version:" . get_bloginfo( 'version'));
+		_log("PHP Version:" . phpversion());		
+		_log("Operating System:" .  php_uname());		
+
 		_log("**CONSTANTS**");
 		_log("WPBACKITUP_VERSION:" . WPBACKITUP_VERSION);
 		_log("WPBACKITUP_DIRNAME:" . WPBACKITUP_DIRNAME);

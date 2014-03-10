@@ -49,6 +49,12 @@ deleteDebugLog();
 _log('***BEGIN RESTORE.PHP***');
 _log_constants();
 
+if (!license_active()){
+	_log('Restore is not available because pro license is not active.');
+	write_fatal_error_status('error225');
+ 	die();
+ }
+
 //--Get form post values 
 $backup_file_name = $_POST['selected_file'];//Get the backup file name
 if( $backup_file_name == '') {
@@ -288,7 +294,8 @@ function validate_restore_folder($restore_folder_root){
 
 // Backup the current database try dump first
 function backup_database($restore_folder_root){
-	$backup_file = $restore_folder_root . 'db-backup.cur';
+	$date = date_i18n('Y-m-d-Hi',current_time( 'timestamp' ));
+	$backup_file = $restore_folder_root . 'db-backup-' . $date .'.cur';
 	_log('Backup the current database: ' .$backup_file);
 	 if(!db_SQLDump($backup_file)) {	 	
 		//Try a manual restore since dump didnt work
@@ -332,7 +339,7 @@ function validate_SQL_exists($restore_folder_root,$backupSQLFile){
 //Get SQL Connection
 function get_sql_connection($restoration_dir_path){
 	//Connect to DB
-	$dbc = mysqli_connect(DB_HOST, DB_USER, DB_PASSWORD, DB_NAME);
+	$dbc = db_get_sqlconnection();
 	if ( !$dbc ) {
 		_log('Error: Cant connect to database.');
 		write_fatal_error_status('error206');

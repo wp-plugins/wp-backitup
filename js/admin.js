@@ -235,12 +235,16 @@
     // built id of the row to be inserted dynamically
     if (data != undefined)
     {
+      var restoreColumn = '<td><a href="#" title="' + data.file + '" class="restoreRow" id="restoreRow' + cur_row + '">Restore</a></td>\n';
       var newRow = '<tr ' + css_class + ' id="row' + cur_row + '">\n\
           <td>' + data.file +'</td>\n\
           <td><a href="' + data.link + '">Download</a></td>\n\
-          <td><a href="#" title="' + data.file + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n\
-          <td><a href="#" title="' + data.file + '" class="restoreRow" id="restoreRow' + cur_row + '">Restore</a></td>\n\
-          </tr>';
+          <td><a href="#" title="' + data.file + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n';
+      
+      if (true==data.license)  
+        newRow +=restoreColumn;
+
+      newRow +='</tr>';
 
       if ($('#nofiles'))
         $('#nofiles').remove();

@@ -21,10 +21,11 @@ include_once dirname(dirname( __FILE__ )) . '/constants.php';
 global $WPBackitup;
 $fileUTCDateTime=current_time( 'timestamp' );
 $localDateTime = date_i18n('Y-m-d-Hi',$fileUTCDateTime);
-$backup_project_dirname = get_bloginfo('name') .'-Export-' .$localDateTime; 
+$backup_project_dirname = str_replace(' ','',get_bloginfo('name')) .'_Backup_' .$localDateTime; 
 $backup_project_path = WPBACKITUP_CONTENT_PATH .WPBACKITUP_BACKUP_FOLDER .'/'. $backup_project_dirname .'/';
 $backup_folder_root = WPBACKITUP_CONTENT_PATH .WPBACKITUP_BACKUP_FOLDER .'/';
 $restore_folder_root = WPBACKITUP_RESTORE_FOLDER;
+
 
 //*****************//
 //*** MAIN CODE ***//
@@ -63,19 +64,14 @@ if(!is_writeable($backup_folder_root)) {
 		@mkdir($backup_project_path, 0755);
 		_log('Backup Content Folder Created:'.$backup_project_path);
 	}
-	//Why do we need to do this? - delete all zip files in backup folder
-	//foreach(glob($backup_folder_root ."*.zip") as $zip) {
-	//	unlink($zip);
-	//	_log('Zip file removed:'.$zip);
-	//}
 	fwrite($fh, '<div class="prerequisites">1</div>');
 }
 
 //Try MySQLDump First
-_log('Create the SQL Backup File:'.$backup_project_path);
 $sqlFileName=$backup_project_path . WPBACKITUP_SQL_DBBACKUP_FILENAME;
+_log('Create the SQL Backup File:'.$sqlFileName);
 if(db_SQLDump($sqlFileName) ) { 
-	fwrite($fh, '<div class="backupdb">1</div>');
+  	fwrite($fh, '<div class="backupdb">1</div>');
 } else {
 	//Try manual extract if mysqldump isnt working
 	if(db_backup($sqlFileName) ) { 
@@ -83,11 +79,12 @@ if(db_SQLDump($sqlFileName) ) {
 	} else {
 		fwrite($fh, '<div class="backupdb">0</div>');
 		fwrite($fh, '<div class="error104">1</div>');
-		recursive_delete($backup_project_path);
+		cleanup_on_failure($backup_project_path);
 		die();
 	}
 }
-_log('Created the SQL Backup File:'.$backup_project_path);
+
+_log('Created the SQL Backup File:'.$sqlFileName);
 
 //Backup with copy
 _log('Recursive Copy FROM:'.WPBACKITUP_CONTENT_PATH);
@@ -110,7 +107,7 @@ _log('Create Site Info:'.$backup_project_path);
 if (!create_siteinfo($backup_project_path, $wpdb->prefix) ) {
     fwrite($fh, '<div class="infofile">0</div>');
 		fwrite($fh, '<div class="error105">1</div>');
-		recursive_delete($backup_project_path);
+		cleanup_on_failure($backup_project_path);
 		die();
 } else {
     fwrite($fh, '<div class="infofile">1</div>');
@@ -138,8 +135,8 @@ fwrite($fh, '<div class="finalinfo">1</div>');
 fclose($fh);
 
 $response['file'] = basename($src) . '.zip';
-//$response['CreateDate'] = date('F j, Y g:i a',strtotime($localDateTime));
 $response['link'] = WPBACKITUP_BACKUPFILE_URLPATH . '/' . $backup_project_dirname . '.zip';
+$response['license'] = license_active();
 
 _log('Jason Response Values:');
 _log(json_encode($response));
@@ -148,4 +145,16 @@ echo json_encode($response);
 
 _log("*** END BACKUP.PHP ***");
 die();
-//End backup function
+
+/******************/
+/*** Functions ***/
+/******************/
+function cleanup_on_failure($backup_project_path){
+	global $WPBACKITUP_DEBUG;
+	if ($WPBACKITUP_DEBUG===true){
+		_log('Cleanup On Fail suspended: debug on.');
+	}
+	else{		
+		recursive_delete($backup_project_path);   
+	}
+}
