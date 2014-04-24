@@ -91,6 +91,9 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.6.6 =
+*	Add Azure Support
+
 = 1.6.5 =
 *	Correct issue with subversion tags
 

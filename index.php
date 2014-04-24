@@ -7,13 +7,13 @@
  * @global    object    $wpdb
  * 
  * @author cssimmon
- * @version 1.6.5 
+ * @version 1.6.6 
  */
 /*
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.6.5
+Version: 1.6.6
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
