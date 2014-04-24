@@ -456,6 +456,69 @@ if(!function_exists('db_backup')) {
 	}
 }
 
+//define run manual SQL function
+if(!function_exists('db_run_sql_manual')) {
+	function db_run_sql_manual($sql_file) {
+		_log('(functions.db_run_sql_manual)SQL Execute:' .$sql_file);
+
+		//Is the backup sql file empty
+		if (!file_exists($sql_file) || filesize($sql_file)<=0) {
+			_log('(functions.db_run_sql_manual) Failure: SQL File was empty:' .$sql_file);
+			return false;
+		} 
+
+		$query = file_get_contents($sql_file); 	
+		if (empty($query)) return false;
+
+		try {
+
+				$mysqli = db_get_sqlconnection();
+				$mysqli->set_charset('utf8');
+
+				if (false===$mysqli) {
+				 	return false;
+				}
+
+				if($mysqli->multi_query($query))  
+				{ 
+				    do { 
+				        /* store first result set */ 
+				        if($resultSet = $mysqli->store_result())  
+				        { 
+				            while($row = $resultSet->fetch_row())  
+				            { 
+				                _log("%s\n", $row[0]); 
+				            } 
+				            $resultSet->free(); 
+				        } 
+
+				         //print divider 
+				        if($mysqli->more_results())  
+				        { 
+						     // $loadArray = array("Creating tables....", "please wait..", "stay tuned while all table definitions are dumped..."); 
+						     // $upperLimit = count($loadArray) - 1; 
+					      //    $randNumb = rand(0, $upperLimit); 
+					      //    echo $loadArray[$randNumb]; echo ' 	'; 
+				       //     	 $loadArray = array();  
+				        } 
+
+				    } while ($mysqli->next_result()); 				    
+
+					$mysqli->close();
+				}            
+
+    	}catch(Exception $e) {
+ 			_log('(functions.db_run_sql_manual) Exception: ' .$e);
+ 			return false;
+        }
+
+		//Success   
+		_log('(functions.db_run_sql_manual)SQL Executed successfully:' .$sql_file);
+		return true;
+	}
+}
+
+
 if(!function_exists('db_SQLDump')) {
 	function db_SQLDump($sql_file_path) { 
 
@@ -561,7 +624,7 @@ if(!function_exists('db_run_sql')) {
             _log('Return Value:' .$rtn_var);
 
             //0 is success
-            if ($rtn_var>0){
+            if ($rtn_var!=0){
             	return false;
             }
 
