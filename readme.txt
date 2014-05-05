@@ -87,12 +87,12 @@ Yes.
 
 == Screenshots ==
 1. Once activated, the plugin loads a new menu into your toolbar.
-2. Simply click 'Backup' to generate a backup of your site. The plugin will update you on itsgress.
+2. Simply click 'Backup' to generate a backup of your site. The plugin will update you on its progress.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
 = 1.6.6 =
-*	Add Azure Support
+*	Wordpress 3.9 support
 
 = 1.6.5 =
 *	Correct issue with subversion tags
