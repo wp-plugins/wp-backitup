@@ -399,15 +399,11 @@ function restore_database(){
 //Run DB restore
 function import_backedup_database($backupSQLFile){
 	_log('Import the backed up database.');
-	//Try SQL Import first
 	if(!db_run_sql($backupSQLFile)) {
-		//Do it manually if the import doesnt work
-		if(!db_run_sql_manual($backupSQLFile)) { 
-			_log('Error: Database import error.');
-			write_fatal_error_status('error212');			
-			delete_restore_folder();
-			die();	
-		}
+		_log('Error: Database import error.');
+		write_fatal_error_status('error212');			
+		delete_restore_folder();
+		die();	
 	}
 	_log('Backed up database imported.');
 }
