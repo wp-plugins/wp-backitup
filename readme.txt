@@ -3,7 +3,7 @@ Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup   
 Requires at least: 3.4.2
-Tested up to: 3.9
+Tested up to: 3.9.1
 Stable tag: 1.6.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -91,6 +91,10 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.6.7 =
+*	Wordpress 3.9.1 support
+*	Unicode fix to support utf8 content
+
 = 1.6.6 =
 *	Wordpress 3.9 support
 

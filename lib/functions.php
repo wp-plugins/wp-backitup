@@ -370,6 +370,12 @@ if(!function_exists('db_backup')) {
 		$return .= "-- ------------------------------------------------------\n";
 		$return .= 'SET AUTOCOMMIT = 0 ;' ."\n" ;
 		$return .= 'SET FOREIGN_KEY_CHECKS=0 ;' ."\n" ;
+		$return .= "\n";
+
+        $return .= '/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;' ."\n" ;
+        $return .= '/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;' ."\n" ;
+        $return .= '/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;' ."\n" ;
+        $return .= '/*!40101 SET NAMES utf8 */;' ."\n" ;
 
 		$tables = array() ; 
 
@@ -391,7 +397,7 @@ if(!function_exists('db_backup')) {
 			
 			// Add table information
 			$return .= "--\n" ;
-			$return .= '-- Tabel structure for table `' . $table . '`' . "\n" ;
+			$return .= '-- Table structure for table `' . $table . '`' . "\n" ;
 			$return .= "--\n" ;
 			$return.= 'DROP TABLE  IF EXISTS `'.$table.'`;' . "\n" ; 
 			
@@ -552,9 +558,9 @@ if(!function_exists('db_run_sql')) {
         	. ' --database=' . $db_name
         	. ' --execute="SOURCE ' . $sql_file .'"';
 
-			//_log('(functions.db_run_sql)Execute command:' . $command);
+			_log('(functions.db_run_sql)Execute command:' . $command);
 
-            //$output = shell_exec($command);
+            $output = shell_exec($command);
             exec($command,$output,$rtn_var);
             _log('(functions.db_run_sql)Execute output:');
             _log($output);
