@@ -249,8 +249,8 @@ class WPBackItUp_FileSystem {
 			  }
 			  else{
                 $log_file_path = str_replace('.zip','.log',$val);
-			    unlink($val);
-                unlink($log_file_path);
+                if (file_exists($val)) unlink($val);
+                if (file_exists($log_file_path)) unlink($log_file_path);
                 $this->logger->log('(FileSytem.purge_FilesByDate) Delete File:)' .$val);
 
 			  }
@@ -282,7 +282,7 @@ class WPBackItUp_FileSystem {
             $date_diff = $current_date->diff($file_mod_date);
 
             if($date_diff->days>=$days){
-                unlink($file);
+                if (file_exists($file)) unlink($file);
                 $this->logger->log('Delete:' . $file);
             }
             else{
