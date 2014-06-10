@@ -84,7 +84,28 @@ iframe {
 }
 
 /** Status Reporting **/
-.backup-status, .backup-status span, .backup-errors, .backup-errors span, .restore-status, .restore-status span, .restore-errors, .restore-errors div, .restore-success, .restore-success div, .upload-status, .upload-status span {
+ .backup-status, 
+ .backup-status span,
+
+ .backup-errors,
+ .backup-errors div,
+ .backup-unexpected-error,
+ 
+ .backup-success,
+ .backup-success div,
+
+ .restore-status,
+ .restore-status span,
+
+ .restore-errors, 
+ .restore-errors div, 
+
+ .restore-success,
+ .restore-success div,
+
+ .upload-status, 
+ .upload-status span
+ {
 	display: none;
 }
 
