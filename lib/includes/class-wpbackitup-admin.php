@@ -119,6 +119,10 @@ class WPBackitup_Admin {
 
         //View Log Action
         add_action('admin_post_viewlog', array( &$this,'admin_viewlog'));
+
+        //List Logs Action
+        add_action('admin_post_nopriv_listlogs', array( &$this,'admin_listlogs'));
+
     }
 
 
@@ -329,6 +333,11 @@ class WPBackitup_Admin {
     function admin_viewlog(){
         include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/viewlog.php' );
     }
+
+    function admin_listlogs(){
+        include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/listlogs.php' );
+    }
+
 
 
     /**
@@ -883,21 +892,21 @@ class WPBackitup_Admin {
      * Activation action
      */
     public static function activate() {
-        $logger = new WPBackItUp_Logger(true);
+//        $logger = new WPBackItUp_Logger(true);
 
        try{
             //Check backup folder folders
             $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
              if( !is_dir($backup_dir) ) {
                  @mkdir($backup_dir, 0755);
-                 $logger->log('Backup Folder Created:' . $backup_dir);
+//                 $logger->log('Backup Folder Created:' . $backup_dir);
              }
 
              //Check restore folder folders
              $restore_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER;
              if( !is_dir($restore_dir) ) {
                  @mkdir($restore_dir, 0755);
-                 $logger->log('Restore Folder Created:' . $backup_dir);
+//                 $logger->log('Restore Folder Created:' . $backup_dir);
              }
 
            //Make sure they exist now
@@ -906,11 +915,9 @@ class WPBackitup_Admin {
            }
 
        } catch (Exception $e) {
-           $logger->log(' Activation Exception:' . $e->getMessage());
+//           $logger->log(' Activation Exception:' . $e->getMessage());
            exit ('WP BackItUp encountered an error during activation.</br>' .$e->getMessage());
        }
-
-
     }
 
     /**
@@ -952,6 +959,26 @@ class WPBackitup_Admin {
         //$license_data = json_decode( wp_remote_retrieve_body( $response ) );
 
         return true;
+    }
+
+    function get_anchor_with_utm($pretty,$page,$campaign,$content=null, $term=null ){
+
+        $medium='plugin';
+        $source=$this->namespace;
+
+        $utm_url = WPBACKITUP__SITE_URL .'/' .$page .'/?utm_medium=' .$medium . '&utm_source=' .$source .'&utm_campaign=' .$campaign;
+
+        if (!empty($content)){
+            $utm_url .= '&utm_content=' .$content;
+        }
+
+        if (!empty($term)){
+            $utm_url .= '&utm_term=' .$term;
+        }
+
+        $anchor = '<a href="'.$utm_url .'" target="_blank">' .$pretty .'</a>';
+        return $anchor;
+
     }
 
     /* ---------------------   END PRIVATES   -----------------------------------------*/

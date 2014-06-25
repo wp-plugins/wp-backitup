@@ -1,6 +1,5 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
-
       $page_title = $this->friendly_name . ' Backup';
       $namespace = $this->namespace;
 
@@ -27,7 +26,32 @@
       // get retention number set
       $retain_archives = $this->backup_retained_number();
 
-  ?>  
+      $campaign='lite';
+      if ($license_active) $campaign='premium';
+
+    //Make sure backup folder exists
+    $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
+    $backup_folder_exists=false;
+    if( !is_dir($backup_dir) ) {
+        if (!@mkdir($backup_dir, 0755)){
+            $backup_folder_exists=true;
+        }
+    }else{
+        $backup_folder_exists=true;
+    }
+
+?>
+
+<?php
+
+//Fatal Error - no backup folder
+if (!$backup_folder_exists) {
+    echo '<div class="error"><p><strong>Error: Backup folder does not exist. Please contact ';
+    echo($this->get_anchor_with_utm('support','support' ,$campaign,'backup+error','no+backup+folder'));
+    echo ' for assistance.</strong></p></div>';
+}
+?>
+
 <script type="text/javascript">var __namespace = "<?php echo($namespace); ?>";</script>
 <div class="wrap">
   <h2><?php echo $page_title; ?></h2>
@@ -37,11 +61,14 @@
       <p><b>Click the backup button to create a zipped backup file of this site's database, plugins, themes and settings.</b></p>
       <p>Once your backup file has been created it will appear in the available backups section below. This file can remain on your hosting providers server but we recommend that you download and save it somewhere safe.</p>
       <p> Licensed WP BackItUp users can use these backup files to perform an automated restore of their site.</p>        
-      <p><input type="submit" id="backup-button" class="backup-button button-primary" value="<?php _e("Backup", $namespace) ?>"/><img class="backup-icon status-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></p>
+      <p>
+          <?php if ($backup_folder_exists) :?>
+            <input type="submit" id="backup-button" class="backup-button button-primary" value="<?php _e("Backup", $namespace) ?>"/><img class="backup-icon status-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></p>
+          <?php endif; ?>
       <?php
       //Display a note for lite customers
       if (!$license_active)
-        echo '<p> * WP BackItUp Lite customers may use these backup files to manually restore their site.  Please visit  <a href="'.WPBACKITUP__SITE_URL .'" target="_blank">' .WPBACKITUP__SITE_URL .'</a> for manual restore instructions.</p>';
+        echo '<p> * WP BackItUp Lite customers may use these backup files to manually restore their site.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'documentation/restore',$campaign,'backup','manual+restore') .' for manual restore instructions.</p>';
       ?>
     </div>
 
@@ -116,7 +143,7 @@
       <?php
       //Display restore note for lite customers
       if (!$license_active)
-        echo '<p>* The automated restore feature is only available to licensed WP BackItUp customers.  Please visit <a href="'.WPBACKITUP__SITE_URL .'" target="_blank">' .WPBACKITUP__SITE_URL .'</a> to get WP BackItUp risk free for 30 days.</p>';
+        echo '<p>* The automated restore feature is only available to licensed WP BackItUp customers.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'pricing-purchase',$campaign,'available+backups','risk+free') . ' to get WP BackItUp risk free for 30 days.</p>';
       ?>
     </div>		
 
@@ -181,7 +208,7 @@
       <div class="widget">
         <h3 class="promo"><?php _e('Get a license', $namespace); ?></h3>
         <p><?php _e('Tired of messing with FTP, MySQL and PHPMyAdmin? Restore your backups from this page in minutes or your money back', $namespace); ?>.</p>
-        <a href="<?php _e(WPBACKITUP__SITE_URL, $namespace); ?>" target="blank"><?php _e('Purchase a license for WP BackItUp', $namespace); ?></a>
+        <?php echo($this->get_anchor_with_utm('Purchase a license for WP BackItUp','pricing-purchase',$campaign,'get+license','purchase')) ?>
       </div>
     <?php endif; ?>
 
@@ -231,11 +258,11 @@
         <?php endif; ?>
 
         <?php if ($license_status=='invalid' || $license_status==''): ?>
-          <p><?php _e('Purchase a <a href="'. WPBACKITUP__SITE_URL .'" target="blank">no-risk </a>license using the purchase link above', $namespace); ?>.</p>       
+          <p>Purchase a <?php echo($this->get_anchor_with_utm('no-risk','pricing-purchase',$campaign,'license','no+risk'))?>  license using the purchase link above.</p>
         <?php endif; ?>
 
         <?php if ($license_status=='expired'): ?>
-          <div>License expired? <?php _e('Click <a href="'. WPBACKITUP__SITE_URL .'/expired-license" target="blank">here </a>for more info.', $namespace); ?> </div>
+          <div>License expired? <?php echo($this->get_anchor_with_utm('here','documentation/faqs/expired-license',$campaign,'license','license+expired'))?> for more info.</div>
         <?php endif; ?>
         
 
@@ -246,12 +273,12 @@
         <h3 class="promo"><?php _e('Useful Links', $namespace); ?></h3>
         <ul>
           <?php if ($license_active) : ?>
-            <li><a href="<?php _e(WPBACKITUP__SITE_URL, $namespace); ?>/your-account/" target="_blank"><?php _e('Your account', $namespace); ?></a></li>
-            <li><a href="<?php _e(WPBACKITUP__SITE_URL, $namespace); ?>" target="_blank"><?php _e('Upgrade your license', $namespace); ?></a></li>
+            <li><?php echo($this->get_anchor_with_utm('Your account','your-account',$campaign,'useful+links','your+account'))?></li>
+            <li><?php echo($this->get_anchor_with_utm('Upgrade your license','pricing-purchase',$campaign,'useful+links','upgrade+license'))?></li>
           <?php endif; ?>
-          <li><a href="<?php _e(WPBACKITUP__SITE_URL, $namespace); ?>/help" target="_blank"><?php _e('Help', $namespace); ?></a></li>
-          <li><a href="<?php _e(WPBACKITUP__SITE_URL, $namespace); ?>/support" target="_blank"><?php _e('Get support', $namespace); ?></a></li>
-          <li><a href="<?php _e(WPBACKITUP__SITE_URL, $namespace); ?>/feature-request" target="_blank"><?php _e('Feature Request', $namespace); ?></a></li>
+            <li><?php echo($this->get_anchor_with_utm('Documentation','documentation',$campaign,'useful+links','help'))?></li>
+            <li><?php echo($this->get_anchor_with_utm('Get support','support' ,$campaign,'useful+links','get+support'))?></li>
+            <li><?php echo($this->get_anchor_with_utm('Feature request','feature-request' ,$campaign,'useful+links','feature+request'))?></li>
           <li>Have a suggestion? Why not submit a feature request.</li>
         </ul>
       </div>
