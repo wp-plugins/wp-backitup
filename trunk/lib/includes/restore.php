@@ -96,30 +96,31 @@ set_status('preparing',$active,true);
 //set path to backup file
 $backup_file_path = $wp_restore->backup_folder_path .$backup_file_name ;
 
+$logger->log('DELETE RESTORE FOLDER');
 delete_restore_folder();
 
+$logger->log('CREATE RESTORE FOLDER');
 create_restore_folder($wp_restore->restore_folder_path);
 set_status('preparing',$complete,false);
 
+$logger->log('UNZIP BACKUP');
 set_status('unzipping',$active,true);
 unzip_backup($backup_file_path,$wp_restore->restore_folder_path);
 set_status('unzipping',$complete,false);
 
+$logger->log('VALIDATE BACKUP');
 set_status('validation',$active,true);
 $restoration_dir_path=validate_restore_folder($wp_restore->restore_folder_path);
 
 $backupSQLFile = $restoration_dir_path . WPBACKITUP__SQL_DBBACKUP_FILENAME;
 
+$logger->log('VALIDATE SQL');
 validate_SQL_exists($backupSQLFile);
 
 $siteurl =  get_siteurl();
-
 $homeurl = get_homeurl();
-
 $user_login = get_user_login($user_id);
-
 $user_pass = get_user_pass($user_id);
-
 $user_email = get_user_email($user_id);
 
 //Collect previous backup site url start

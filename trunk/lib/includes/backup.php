@@ -69,7 +69,7 @@ $status_array = array(
 	'backupfiles'=>$inactive,	
 	'zipfile'=>$inactive,
 	'cleanup'=>$inactive	
- ); 
+ );
 
 global $logger;
 $log_path = WPBACKITUP__BACKUP_PATH;
@@ -87,7 +87,6 @@ $logger->logConstants();
 $backup_start_time = current_time( 'timestamp');
 
 $WPBackitup->increment_backup_count();
-
 
 //Dont do anything with this now, just post date time
 $jsonResponse = new stdClass();
