@@ -2,7 +2,7 @@
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup wordpress, database backup, backup database, download database, backup and restore, restoring wordpress, restore wordpress, restore wordpress backup   
-Requires at least: 3.4.2
+Requires at least: 3.8.0
 Tested up to: 3.9.1
 Stable tag: 1.7.3
 License: GPLv2 or later
