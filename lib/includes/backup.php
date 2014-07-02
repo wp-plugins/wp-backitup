@@ -110,42 +110,51 @@ sleep(3);//For UI only
 //die();
 //TEST END HERE
 
-$logger->log('CLEANUP');
+$logger->log('**CLEANUP**');
+
 cleanup_BackupFolder($wp_backup->backup_folder_root);
-create_BackupFolder($wp_backup->backup_project_path);
+create_folder($wp_backup->backup_folder_root); //Create Root Folder
+
+create_folder($wp_backup->backup_project_path);//Create Project Folder
 check_BackupFolder($wp_backup->backup_project_path);
+
 set_status('preparing',$complete,false);
+$logger->log('**END CLEANUP**');
 
 //Backup the database
-$logger->log('SQL EXPORT');
+$logger->log('**SQL EXPORT**');
 set_status('backupdb',$active,true);
 sleep(3);//For UI only
 $sqlFileName=$wp_backup->backup_project_path . WPBACKITUP__SQL_DBBACKUP_FILENAME;
 export_Database($sqlFileName);
 set_status('backupdb',$complete,false);
+$logger->log('**END SQL EXPORT**');
 
 //Extract the site info
-$logger->log('SITE INFO');
+$logger->log('**SITE INFO**');
 set_status('infofile',$active,true);
 sleep(3);//For UI only
 create_SiteInfoFile($wp_backup->backup_project_path);
 set_status('infofile',$complete,false);
+$logger->log('**END SITE INFO**');
 
 //Backup the WP-Content
-$logger->log('WP CONTENT');
+$logger->log('**WP CONTENT**');
 set_status('backupfiles',$active,true);
 sleep(3);//For UI only
 backup_wpcontent();
 set_status('backupfiles',$complete,false);
+$logger->log('**END WP CONTENT**');
 
 //Zip up the backup folder
-$logger->log('ZIP');
+$logger->log('**BACKUP ZIP**');
 set_status('zipfile',$active,true);
 sleep(3);//For UI only
 $logger->log('Zip Up the Backup Folder:'.$wp_backup->backup_project_path);
 $zip = new WPBackItUp_Zip($logger);
 $zip->compress($wp_backup->backup_project_path, $wp_backup->backup_folder_root);
 set_status('zipfile',$complete,false);
+$logger->log('**END BACKUP ZIP**');
 
 //Send JSON response
 $jsonResponse = new stdClass();
@@ -161,10 +170,11 @@ if (file_exists($logger->logFilePath)) {
 }
 
 //Cleanup
-$logger->log('CLEANUP');
+$logger->log('**CLEANUP**');
 set_status('cleanup',$active,true);
 cleanup($wp_backup->backup_project_path);
 set_status('cleanup',$complete,false);
+$logger->log('**END CLEANUP**');
 
 //Send success Email to user before cleanup
 send_backup_notification_email(null,true);
@@ -283,7 +293,7 @@ function check_BackupFolder($path){
 	}
 }
 
-function create_BackupFolder($path){
+function create_folder($path){
 	global $logger;
 	$fileSystem = new WPBackItUp_FileSystem($logger);
 	
@@ -390,28 +400,28 @@ function cleanup_on_failure($path){
 }
 
 function cleanup_BackupFolder($dir){
-	global $logger;
-	$logger->log('Cleanup Backup Folder:'.$dir);		  
-	$ignore = array('cgi-bin','.','..','._');
-	if( is_dir($dir) ){
-		if($dh = opendir($dir)) {
-			while( ($file = readdir($dh)) !== false ) {
-				$ext = pathinfo($file, PATHINFO_EXTENSION);
-				if (!in_array($file, $ignore) && substr($file, 0, 1) != '.' && $ext!="zip" && $ext!="log") { //Check the file is not in the ignore array
-					if(!is_dir($dir .'/'. $file)) {
-						unlink($dir .'/'. $file);
-					} else {
-						$fileSystem = new WPBackItUp_FileSystem($logger);
-						$fileSystem->recursive_delete($dir.'/'. $file, $ignore);
-					}
-				}
-			}
-		}
-		@rmdir($dir);	
-		closedir($dh);
-	}
-	$logger->log('Cleanup Backup Folder completed:'.$dir);
-	return true;
+    global $logger;
+    $logger->log('Cleanup Backup Folder:'.$dir);
+    $ignore = array('cgi-bin','.','..','._');
+    if( is_dir($dir) ){
+        if($dh = opendir($dir)) {
+            while( ($file = readdir($dh)) !== false ) {
+                $ext = pathinfo($file, PATHINFO_EXTENSION);
+                if (!in_array($file, $ignore) && substr($file, 0, 1) != '.' && $ext!="zip" && $ext!="log") { //Check the file is not in the ignore array
+                    if(!is_dir($dir .'/'. $file)) {
+                        unlink($dir .'/'. $file);
+                    } else {
+                        $fileSystem = new WPBackItUp_FileSystem($logger);
+                        $fileSystem->recursive_delete($dir.'/'. $file, $ignore);
+                    }
+                }
+            }
+        }
+        @rmdir($dir);
+        closedir($dh);
+    }
+    $logger->log('Cleanup Backup Folder completed:'.$dir);
+    return true;
 }
 
 

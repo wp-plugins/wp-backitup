@@ -147,7 +147,7 @@
                     console.log("JSON error response received.");
                     status_message='An unexpected error has occurred: &nbsp;' + jsonData.message;
 
-                    $('.backup-status').hide();
+                    //$('.backup-status').hide();
 
                     var unexpected_error= $('.backup-unexpected-error');
                     unexpected_error.html(status_message);

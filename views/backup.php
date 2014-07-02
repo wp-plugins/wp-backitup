@@ -33,7 +33,7 @@
     $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
     $backup_folder_exists=false;
     if( !is_dir($backup_dir) ) {
-        if (!@mkdir($backup_dir, 0755)){
+        if (@mkdir($backup_dir, 0755)){
             $backup_folder_exists=true;
         }
     }else{

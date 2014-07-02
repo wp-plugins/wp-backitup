@@ -91,14 +91,19 @@ class WPBackItUp_FileSystem {
                                     fclose($fsrc);
                                     fclose($fdest);
                                 } catch(Exception $e) {
-                                    $this->logger->log('(FileSystem.recursive_copy) Exception: ' .$e);
+                                    $this->logger->log('(FileSystem.recursive_copy) File Copy Exception: ' .$e);
                                     return false;
                                 }
                             } else { //If $file is a directory
                                 $destdir = $target_path .$file; //Modify the destination dir
                                 if(!is_dir($destdir)) { //Create the destdir if it doesn't exist
                                     $this->logger->log('(FileSytem.recursive_copy) Create Folder: ' .$destdir);
-                                    @mkdir($destdir, 0755);
+                                    try {
+                                        @mkdir($destdir, 0755);
+                                    } catch(Exception $e) {
+                                        $this->logger->log('(FileSystem.recursive_copy)Create Folder Exception: ' .$e);
+                                        return false;
+                                    }
                                 }
                                 $this->recursive_copy($dir .$file .'/', $target_path .$file .'/', $ignore);
                             }
@@ -185,7 +190,7 @@ class WPBackItUp_FileSystem {
             ($file == "cgi-bin" ))  {
             $ignore = true;
 
-            $this->logger->log('(FileSystem.recursive_delete) IGNORE:'.$file);
+            $this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
         }
 
         return $ignore;

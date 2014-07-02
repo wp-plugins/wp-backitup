@@ -22,7 +22,7 @@
 
             }
         } else {
-             echo('No logs in backup folder');
+             echo('No logs in backup folder<br>');
         }
 
         //Get logs in logs folder
@@ -36,7 +36,7 @@
 
             }
         } else {
-            echo('No logs in logs folder');
+            echo('No logs in logs folder<br>');
         }
         die();
     }
@@ -54,7 +54,7 @@
             if(file_exists($log_path) ) {
                 stream_file($log_path, $log_filename);
             } else {
-                echo('No file found in folder');
+                echo('No log file found in folder<br>');
             }
         }
         die();
