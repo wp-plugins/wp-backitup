@@ -1,7 +1,8 @@
 === WP Backitup ===
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
-Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore
+Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin,
+backup buddy,
 Requires at least: 3.8.0
 Tested up to: 3.9.1
 Stable tag: 1.7.4
@@ -91,6 +92,12 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.7.5 =
+* Feature: Add exclusion of non-WP Backitup backups to increase performance
+* Fix: correct date issue for php 5.2 users
+* Fix: correct issue with backup log listing in backup view
+* Fix: correct issue with delete file when no log exists
+
 = 1.7.4 =
 * Fix to backup folder create & checks
 * Security Enhancements

@@ -110,8 +110,7 @@ if (!$backup_folder_exists) {
             $log_filename = basename($log_file);
 
             $logExists=false;
-            if (in_array($log_file,$log_filelist)) $logExists=true;
-
+            if (is_array($log_filelist) && in_array($log_file,$log_filelist)) $logExists=true;
 
             $class = $i % 2 == 0 ? 'class="alternate"' : '';
             ?>

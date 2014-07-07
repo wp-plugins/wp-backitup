@@ -147,8 +147,9 @@ class WPBackitup_Admin {
         //Add Settings Menu Nav
         add_submenu_page( $this->namespace, 'Settings', 'Settings', 'administrator', $this->namespace.'-settings', array( &$this, 'admin_settings_page' ) );
 
-        //add_submenu_page( $this->namespace, 'Test', 'Test', 'administrator', $this->namespace.'-test', array( &$this, 'admin_test_page' ) );
-
+        if (WPBACKITUP__DEBUG===true){
+            add_submenu_page( $this->namespace, 'Test', 'Test', 'administrator', $this->namespace.'-test', array( &$this, 'admin_test_page' ) );
+        }
         // remove duplicate submenu page. wp limitations // 
         // http://wordpress.stackexchange.com/questions/16401/remove-duplicate-main-submenu-in-admin
         remove_submenu_page($this->namespace,$this->namespace); 
@@ -234,14 +235,14 @@ class WPBackitup_Admin {
      * The admin section backup page rendering method
      *
      */
-//    public  function admin_test_page()
-//    {
-//        if( !current_user_can( 'manage_options' ) ) {
-//            wp_die( 'You do not have sufficient permissions to access this page' );
-//        }
-//
-//        include WPBACKITUP__PLUGIN_PATH . "/views/test.php";
-//    }
+    public  function admin_test_page()
+    {
+        if( !current_user_can( 'manage_options' ) ) {
+            wp_die( 'You do not have sufficient permissions to access this page' );
+        }
+
+        include WPBACKITUP__PLUGIN_PATH . "/views/test.php";
+    }
   
      /**
      * Route the user based off of environment conditions
@@ -318,16 +319,15 @@ class WPBackitup_Admin {
         $backup_file_path =  WPBACKITUP__BACKUP_PATH .'/' . $backup_file_name;
         $log_file_path = str_replace('.zip','.log',$backup_file_path);
 
-        if (unlink($backup_file_path)) {
-            echo 'deleted';
-            //Delete the log
-            unlink($log_file_path);
-        }
-        else{
-            echo 'error';
+        if (file_exists($backup_file_path)){
+            unlink($backup_file_path);
         }
 
-        exit(0);
+        if (file_exists($log_file_path)) {
+            unlink($log_file_path);
+        }
+
+        exit('deleted');
     }
 
     function admin_viewlog(){
@@ -659,7 +659,8 @@ class WPBackitup_Admin {
         //echo($license_last_check_date->format('Y-m-d H:i:s') .'</br>');
           
         $now = new DateTime('now');//Get NOW
-        $yesterday = $now->sub(new DateInterval('P1D'));//subtract a day
+        $yesterday = $now->modify('-1 day');//subtract a day
+        //$yesterday = $now->sub(new DateInterval('P1D'));//subtract a day PHP 3.0 only
         //echo($yesterday->format('Y-m-d H:i:s') .'</br>');
 
         //Validate License

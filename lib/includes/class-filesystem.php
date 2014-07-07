@@ -79,10 +79,12 @@ class WPBackItUp_FileSystem {
         $this->logger->log($ignore);
 
         if( is_dir($dir) ) { //If the directory exists
-            if (!$this->ignore($dir,$ignore)){
+            //Exclude all the OTHER backup folders under wp-content
+            //Will create the folders but NOT the contents
+            if (!$this->ignore($dir,$ignore) && !$this->is_backup_folder($dir) ){
                 if ($dh = opendir($dir) ) {
                     while(($file = readdir($dh)) !== false) { //While there are files in the directory
-                        if ( !$this->ignore($file,$ignore)) { //Check the file is not in the ignore array
+                        if (!$this->ignore($file,$ignore)) { //Check the file is not in the ignore array
                             if (!is_dir( $dir.$file ) ) {
                                 try {
                                     $fsrc = fopen($dir .$file,'r');
@@ -179,7 +181,6 @@ class WPBackItUp_FileSystem {
     }
 
     private function ignore($file, $ignoreList){
-        $ignore = false;
 
         //Exclude these files and folders from the delete
         if (in_array(basename($file), $ignoreList) ||
@@ -188,14 +189,32 @@ class WPBackItUp_FileSystem {
             ($file == ".." ) ||
             ($file == "._" ) ||
             ($file == "cgi-bin" ))  {
-            $ignore = true;
 
             $this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
+            return true;
         }
 
-        return $ignore;
+        return false;
     }
 
+    //Check for backup folders
+    private function is_backup_folder($dir){
+        if  (
+            strpos(strtolower($dir),'/wp-content/backup')!== false ||
+            strpos(strtolower($dir),'/wp-content/updraft')!== false ||
+            strpos(strtolower($dir),'/wp-content/wp-clone')!== false ||
+            strpos(strtolower($dir),'/wp-content/uploads/backwpup')!== false ||
+            strpos(strtolower($dir),'/wp-content/uploads/backupwordpress')!== false
+            ){
+
+                $this->logger->log('(FileSystem.is_backup_folder) SKIP Backup Folder: ' .$dir);
+                return true;
+
+            }else{
+                return false;
+            }
+
+    }
 
 
 //    function delete_children_recursive($path, $ignore = array('cgi-bin','._'))
@@ -261,7 +280,7 @@ class WPBackItUp_FileSystem {
 			  }
 			}
 		}
-		$this->logger->log('(FileSytem.purge_FilesByDate) Completed.)');
+		$this->logger->log('(FileSytem.purge_FilesByDate) Completed.');
 	}
 
     public function purge_files($path, $file_extension, $days)
@@ -284,9 +303,15 @@ class WPBackItUp_FileSystem {
         {
             $current_date = new DateTime('now');
             $file_mod_date = new DateTime(date('Y-m-d',filemtime($file)));
-            $date_diff = $current_date->diff($file_mod_date);
 
-            if($date_diff->days>=$days){
+            //PHP 5.3 only
+            //$date_diff = $current_date->diff($file_mod_date);
+            //$date_diff_days = $date_diff->days;
+
+            $util = new WPBackItUp_Utility( $this->logger);
+            $date_diff_days=$util->date_diff_days($file_mod_date,$current_date);
+
+            if($date_diff_days>=$days){
                 if (file_exists($file)) unlink($file);
                 $this->logger->log('Delete:' . $file);
             }

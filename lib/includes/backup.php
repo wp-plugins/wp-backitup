@@ -84,14 +84,14 @@ $wp_backup = new WPBackItUp_Backup($logger,$backup_name);
 //*****************//
 $logger->log('***BEGIN BACKUP***');
 $logger->logConstants();
-$backup_start_time = current_time( 'timestamp');
+$backup_start_time = new datetime('now');
 
 $WPBackitup->increment_backup_count();
 
 //Dont do anything with this now, just post date time
 $jsonResponse = new stdClass();
 $jsonResponse->message = 'processing';
-$jsonResponse->server_time=$backup_start_time;
+$jsonResponse->server_time=$backup_start_time->format('U');
 write_response_file($jsonResponse);
 
 //Cleanup & Validate the backup folded is ready 
@@ -100,14 +100,6 @@ sleep(3);//For UI only
 
 //TESTS GO HERE
 
-//$response['message'] ='success';
-//$response['filedate'] = $localDateTime;
-//$response['file'] = $wp_backup->backup_filename;
-//$response['zip_link'] = WPBACKITUP__BACKUP_URL . '/' . $wp_backup->backup_filename;
-//$response['license'] = $this->license_active();
-//$response['retained'] = $wp_backup->backup_retained_number;
-//echo json_encode($response);
-//die();
 //TEST END HERE
 
 $logger->log('**CLEANUP**');
@@ -143,6 +135,7 @@ $logger->log('**WP CONTENT**');
 set_status('backupfiles',$active,true);
 sleep(3);//For UI only
 backup_wpcontent();
+//validate_wpcontent(); - add this for next release?
 set_status('backupfiles',$complete,false);
 $logger->log('**END WP CONTENT**');
 
@@ -208,7 +201,7 @@ function cleanup($path){
 	$fileSystem->purge_FilesByDate($wp_backup->backup_retained_number,$wp_backup->backup_folder_root);
 
     //Purge logs older than 5 days
-    $fileSystem->purge_files(WPBACKITUP__BACKUP_PATH .'/','log',5);
+    $fileSystem->purge_files(WPBACKITUP__BACKUP_PATH .'/','log',$wp_backup->backup_retained_days);
   	
 }
 
@@ -216,7 +209,7 @@ function backup_wpcontent(){
 	global $logger,$wp_backup;
 
     $fromFolder = WPBACKITUP__CONTENT_PATH . '/';
-	$ignore = array( WPBACKITUP__BACKUP_FOLDER,$wp_backup->backup_name,$wp_backup->restore_folder_root,'backupbuddy_backups','*.zip','cache' );
+	$ignore = array( WPBACKITUP__BACKUP_FOLDER,$wp_backup->backup_name,$wp_backup->restore_folder_root,'upgrade','cache' );
 		
 	$logger->log('Recursive Copy FROM:'.$fromFolder);
 	$logger->log('Recursive Copy TO:'.$wp_backup->backup_project_path);
@@ -231,6 +224,23 @@ function backup_wpcontent(){
 		die();
 	}
 	$logger->log('Recursive Copy completed');
+}
+
+function validate_wpcontent(){
+    global $logger,$wp_backup;
+    $source_dir_path = WPBACKITUP__CONTENT_PATH . '/';
+    $target_dir_path = $wp_backup->backup_project_path;
+
+    $logger->log('Validate content folder TO:' .$source_dir_path);
+    $logger->log('Validate content folder FROM:' .$target_dir_path);
+
+    $ignore = array(WPBACKITUP__PLUGIN_FOLDER,'debug.log','backupsiteinfo.txt','db-backup.sql');
+    $filesystem = new WPBackItUp_FileSystem($logger);
+    if(!$filesystem->recursive_validate($source_dir_path. '/', $target_dir_path . '/',$ignore)) {
+        $logger->log('Error: Content folder is not the same as backup.');
+    }
+
+    $logger->log('Content folder validation complete.');
 }
 
 //Create siteinfo in project dir
@@ -312,11 +322,19 @@ function send_backup_notification_email($err, $status)
 	global $WPBackitup, $logger, $backup_start_time,$status_array;
 	$utility = new WPBackItUp_Utility($logger);
 
-    $start_date = new DateTime(date( 'Y-m-d H:i:s',$backup_start_time));
-    $backup_end_time = current_time( 'timestamp' );
-    $interval = $start_date->diff(new DateTime(date( 'Y-m-d H:i:s',$backup_end_time)));
+    //$start_date = new DateTime(date( 'Y-m-d H:i:s',$backup_start_time));
+    $backup_end_time = new DateTime('now');
 
-    $logger->log('Script Processing Time:' .$interval->format('%i Minutes %s Seconds'));
+    $util = new WPBackItUp_Utility($logger);
+    $seconds = $util->date_diff_seconds($backup_start_time,$backup_end_time);
+
+    $processing_minutes = round($seconds / 60);
+    $processing_seconds = $seconds % 60;
+
+    //PHP 5.3
+    //$interval = $start_date->diff(new DateTime(date( 'Y-m-d H:i:s',$backup_end_time)));
+
+    $logger->log('Script Processing Time:' .$processing_minutes .' Minutes ' .$processing_seconds .' Seconds');
 
     $status_description = array(
         'preparing'=>'Preparing for backup...Done',
@@ -347,9 +365,9 @@ function send_backup_notification_email($err, $status)
         $message = '<b>Your backup did not complete successfully.</b><br/><br/>';
     }
 
-    $message .= 'Backup started: ' . date( 'Y-m-d H:i:s',$backup_start_time)  . '<br/>';
-    $message .= 'Backup ended: ' . date( 'Y-m-d H:i:s',$backup_end_time) . '<br/>';
-    $message .= 'Processing Time: ' . $interval->format('%i Minutes %s Seconds') . '<br/>';
+    $message .= 'Backup started: ' . $backup_start_time->format( 'Y-m-d H:i:s') . '<br/>';
+    $message .= 'Backup ended: ' . $backup_end_time->format( 'Y-m-d H:i:s') . '<br/>';
+    $message .= 'Processing Time: ' .$processing_minutes .' Minutes ' .$processing_seconds .' Seconds <br/>';
 
     $message .= '<br/>';
 

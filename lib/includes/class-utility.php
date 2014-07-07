@@ -46,5 +46,26 @@ class WPBackItUp_Utility {
 
 	}
 
+    //Function for PHP version 5.2
+    //Diff Approximation only
+    function date_diff_days($date1,$date2 ){
+
+        $date_diff_seconds = $this->date_diff_seconds($date1,$date2 );
+        $days = round($date_diff_seconds/86400);
+        return $days;
+    }
+
+    //Function for PHP version 5.2
+    //Diff Approximation only
+    function date_diff_seconds($date1,$date2 ){
+        // the necessary way using PHP 5.2
+        $date1_string = $date1->format('U');
+        $date2_string = $date2->format('U');
+
+        // get a difference represented as an int, number of seconds
+        $date_diff_seconds = abs($date1_string - $date2_string);
+
+        return $date_diff_seconds;
+    }
 }	
 

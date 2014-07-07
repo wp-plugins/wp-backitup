@@ -18,6 +18,7 @@ class WPBackItUp_Backup {
 	public $backup_folder_root;
 	public $restore_folder_root;
 	public $backup_retained_number;
+    public $backup_retained_days;
 
 	function __construct($logger,$backup_name) {
 		global $WPBackitup;
@@ -37,6 +38,7 @@ class WPBackItUp_Backup {
 			$this->restore_folder_root=$restore_folder_root;
 
 			$this->backup_retained_number = $WPBackitup->backup_retained_number();
+            $this->backup_retained_days = 5; //Prob need to move this to main propery
 
 		} catch(Exception $e) {
 			//Dont do anything
