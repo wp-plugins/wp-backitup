@@ -5,7 +5,7 @@ Tags: backup, back up, backups, backup wordpress, backup database, backup plugin
 backup buddy,
 Requires at least: 3.8.0
 Tested up to: 3.9.1
-Stable tag: 1.7.5
+Stable tag: 1.7.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
