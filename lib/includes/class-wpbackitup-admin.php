@@ -48,6 +48,7 @@ class WPBackitup_Admin {
         'notification_email' => "",
         'backup_retained_number' => "3",
         'lite_backup_retained_number' => "1",
+        'lite_registration_email' => "",
         'backup_count'=>0,
         'successful_backup_count'=>0,
         'stats_last_check_date'=> "1970-01-01 00:00:00",
@@ -101,21 +102,21 @@ class WPBackitup_Admin {
         add_action( 'admin_enqueue_scripts', array( &$this, 'load_resources' ) );   
 
         //Load the backup action
-        add_action('wp_ajax_backup', array( &$this, 'ajax_backup' ));
+        add_action('wp_ajax_wp-backitup_backup', array( &$this, 'ajax_backup' ));
 
         //Load the restore action
-        add_action('wp_ajax_restore', array( &$this, 'ajax_restore' ));
+        add_action('wp_ajax_wp-backitup_restore', array( &$this, 'ajax_restore' ));
 
         //Load the upload action
-        add_action('wp_ajax_upload', array( &$this, 'ajax_upload' ));
+        add_action('wp_ajax_wp-backitup_upload', array( &$this, 'ajax_upload' ));
 
 	    //Status reader for UI
-	    add_action('wp_ajax_status_reader', array( &$this,'ajax_status_reader'));
+	    add_action('wp_ajax_wp-backitup_status_reader', array( &$this,'ajax_status_reader'));
 
-        add_action('wp_ajax_response_reader', array( &$this,'ajax_response_reader'));
+        add_action('wp_ajax_wp-backitup_response_reader', array( &$this,'ajax_response_reader'));
 
         //Delete File Action
-        add_action('wp_ajax_delete_file', array( &$this,'ajax_delete_file'));
+        add_action('wp_ajax_wp-backitup_delete_file', array( &$this,'ajax_delete_file'));
 
         //View Log Action
         add_action('admin_post_viewlog', array( &$this,'admin_viewlog'));
@@ -172,11 +173,11 @@ class WPBackitup_Admin {
 
     public  function load_resources() {
         // Admin JavaScript
-        wp_register_script( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "/js/admin.js", array( 'jquery' ), $this->version, true );
+        wp_register_script( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "js/wpbackitup_admin.js", array( 'jquery' ), $this->version, true );
         //wp_register_script( "{$this->namespace}-admin-viewlog", WPBACKITUP__PLUGIN_URL . "/js/admin_test.js", array( 'jquery' ), $this->version, true );
 
         // Admin Stylesheet
-        wp_register_style( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "/css/admin.css", array(), $this->version, 'screen' );
+        wp_register_style( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "css/wpbackitup_admin.css", array(), $this->version, 'screen' );
 
         wp_register_style( 'google-fonts', '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css');
         wp_enqueue_style( 'google-fonts' );
@@ -267,6 +268,10 @@ class WPBackitup_Admin {
                 if( wp_verify_nonce( $nonce, "{$this->namespace}-update-options" ) ) {
                     $this->_admin_options_update();
                 }
+
+                if( wp_verify_nonce( $nonce, "{$this->namespace}-register-lite" ) ) {
+                    $this->_admin_register_lite();
+                }
             } 
             // Handle GET requests
             else {
@@ -298,7 +303,7 @@ class WPBackitup_Admin {
 		if(file_exists($log) ) {
 			readfile($log);
 		}
-		die();
+		exit;
 	}
 
     public  function ajax_response_reader() {
@@ -310,7 +315,7 @@ class WPBackitup_Admin {
             $rtnData->message = 'No response log found.';
             echo json_encode($rtnData);
         }
-        die();
+        exit;
     }
 
     public  function ajax_delete_file()
@@ -413,6 +418,92 @@ class WPBackitup_Admin {
                     $this->set_option($key, $val);
                     $logger->log('Updated Option: ' .$key .':' .$val);
                 }
+            }
+
+            // Redirect back to the options page with the message flag to show the saved message
+            wp_safe_redirect( $_REQUEST['_wp_http_referer'] . '&update=1' );
+            exit;
+        }
+    }
+
+    /**
+     * Process registration page form submissions
+     *
+     */
+    public  function _admin_register_lite() {
+        // Verify submission for processing using wp_nonce
+        if( wp_verify_nonce( $_REQUEST['_wpnonce'], "{$this->namespace}-register-lite" ) ) {
+
+            /**
+             * Loop through each POSTed value and sanitize it to protect against malicious code. Please
+             * note that rich text (or full HTML fields) should not be processed by this function and
+             * dealt with directly.
+             */
+
+            $logger = new WPBackItUp_Logger(false);
+            $logger->log("Register WP BackItUp Lite");
+            $logger->log($_POST);
+
+            $val = $_POST['email'];
+            $email = $this->_sanitize($val);
+            if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)){
+                $urlparts = parse_url(site_url());
+                $domain = $urlparts['host'];
+                $logger->log('Lite Registration Values: ' .$domain .':' .$email);
+
+                //Not capturing these yet
+                $first_name='';
+                $last_name='';
+
+                //save option to DB
+                $this->set_option('lite_registration_email', $email);
+
+                //register with mail chimp
+                $mailchimp_form_id = '5e70c18c53'; //DEV
+                $mailchimp_form_id = '8e8e45c83b'; //PRD
+
+
+                $form_data =  array(
+                    'yks-mailchimp-list-ct'=>'0',
+                    'yks-mailchimp-list-id'=>$mailchimp_form_id,
+                    $mailchimp_form_id .'EMAIL' => $email,
+                    $mailchimp_form_id .'WEBSITE' => $domain,
+                    $mailchimp_form_id .'FNAME' => $first_name,
+                    $mailchimp_form_id .'LNAME' => $last_name
+                );
+
+                //URL Encode the Form Data
+                $form_data=http_build_query($form_data);
+
+                $post_url=WPBACKITUP__SECURESITE_URL . '/wp-admin/admin-ajax.php';
+
+                $logger->log('Lite User Registration Post URL: ' .$post_url);
+                $logger->log('Lite User Registration Post Form Data: ' .$form_data);
+
+                $response = wp_remote_post( $post_url, array(
+                        'method' => 'POST',
+                        'timeout' => 45,
+                        'redirection' => 5,
+                        'httpversion' => '1.0',
+                        'blocking' => true,
+                        'headers' => array(),
+                        'body' => array(
+                            'action' => 'yks_mailchimp_form'
+                        , 'form_action' => 'frontend_submit_form'
+                        , 'form_data' => $form_data
+                        ),
+                        'cookies' => array()
+                    )
+                );
+
+                if ( is_wp_error( $response ) ) {
+                    $error_message = $response->get_error_message();
+                    $logger->log('Lite User Registration Error: ' .$error_message);
+                } else {
+                    $logger->log('Lite User Registered Successfully:');
+                    $logger->log($response);
+                }
+
             }
 
             // Redirect back to the options page with the message flag to show the saved message
@@ -613,6 +704,20 @@ class WPBackitup_Admin {
         return $this->get('successful_backup_count');
     }
 
+    function lite_registration_email(){
+        return $this->get('lite_registration_email');
+    }
+
+    function is_lite_registered(){
+        $lite_email_registration= $this->lite_registration_email();
+        if (!empty($lite_email_registration)) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+
     /**---------- END GETTERS --------------- **/
 
     /**---------- SETTERS --------------- **/
@@ -761,11 +866,11 @@ class WPBackitup_Admin {
                     $logger->log('Current Month: ' .date('m'));
 
                     //only EXPIRE current month
-                    if ($expire_date_array[month]==date('m')) {
+                    //if ($expire_date_array[month]==date('m')) {
                         $data['license_status'] ='expired';
                         $data['license_status_message'] ='License has expired.';
                         $logger->log('Expire License.');
-                    }
+                    //}
                 }
 
                 if (($license_data->license=='invalid') && ($license_data->error=='no_activations_left')){
@@ -962,10 +1067,17 @@ class WPBackitup_Admin {
         return true;
     }
 
-    function get_anchor_with_utm($pretty,$page,$campaign,$content=null, $term=null ){
+    //Pretty= Pretty version of anchor
+    //Page = page to link to
+    //content = Widget Name(where)
+    //term = pinpoint where in widget
+    function get_anchor_with_utm($pretty, $page, $content = null, $term = null){
 
-        $medium='plugin';
-        $source=$this->namespace;
+        $medium='plugin'; //Campaign Medium
+        $source=$this->namespace; //plugin name
+
+        $campaign='lite';
+        if ($this->license_active()) $campaign='premium';
 
         $utm_url = WPBACKITUP__SITE_URL .'/' .$page .'/?utm_medium=' .$medium . '&utm_source=' .$source .'&utm_campaign=' .$campaign;
 

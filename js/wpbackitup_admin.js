@@ -6,6 +6,7 @@
  */
 
 (function($){
+    var namespace = 'wp-backitup';
 
     //Add View Log Click event to backup page
     add_viewlog_onclick();
@@ -34,12 +35,12 @@
 
     /* define logreader variables */
     var response_reader = {
-        action: 'response_reader'
+        action: get_action_name('response_reader')
     };
 
       /* define logreader variables */
       var status_reader = {
-        action: 'status_reader'
+        action: get_action_name('status_reader')
       };
 
   function add_viewlog_onclick(){
@@ -129,7 +130,7 @@
         var jqxhr = $.ajax({
             url: ajaxurl,
             type: 'POST',
-            data: {action: "response_reader"},
+            data: {action: get_action_name('response_reader')},
             dataType: "json"
         });
 
@@ -179,7 +180,7 @@
       var jqxhr = $.ajax({
           url: ajaxurl,
           type: 'POST',
-          data: {action: "backup"},
+          data: {action: get_action_name('backup')},
           cache: false,
           dataType: "json",
 
@@ -232,7 +233,7 @@
             $.ajax({
                 url: ajaxurl,
                 type: 'post',
-                data: {action: "restore", selected_file: filename,user_id: userid},
+                data: {action: get_action_name('restore'), selected_file: filename,user_id: userid},
                 success: function(response) {
                    /* Return PHP messages, used for development */
                     $("#php").html(response);
@@ -277,7 +278,7 @@
         jQuery.each($('#wpbackitup-zip')[0].files, function(i, file) {
             formData.append('uploadFile-'+i, file);
         });
-        formData.append('action', 'upload');
+        formData.append('action', get_action_name('upload'));
         formData.append('_wpnonce', $('#_wpnonce').val());
         formData.append('_wp_http_referer',$("[name='_wp_http_referer']").val());
 
@@ -371,7 +372,7 @@
       $.ajax({
         url: ajaxurl,
         type: 'post',
-        data: {action: "delete_file", filed: filename},
+        data: {action: get_action_name('delete_file'), filed: filename},
         success: function(data) {
           if (data === 'deleted')
           {
@@ -494,6 +495,10 @@
             }
         }
         return false;
+    }
+
+    function get_action_name(action) {
+        return namespace + '_' + action;
     }
 
 })(jQuery);

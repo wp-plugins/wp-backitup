@@ -3,29 +3,44 @@
     $page_title = $this->friendly_name . ' Settings';
     $namespace = $this->namespace;
 
+    $license_active = $this->license_active();
+    $is_lite_registered = $this->is_lite_registered();
+
+    //Hold off on this for a bit
+    $disabled='';
+//    if (!$license_active && !$is_lite_registered){
+//        $disabled='disabled';
+//    }
+
 ?> 
 
 <div class="wrap">
   <h2><?php echo $page_title; ?></h2>
   <div id="content">
 
-    <!-- Display Settings widget -->
-    <form action="admin-post.php" method="post" id="<?php echo $namespace; ?>-form">
-      <?php wp_nonce_field($namespace . "-update-options"); ?>
-      <div class="widget">
-        <h3 class="promo"><i class="fa fa-envelope"></i> Email Notifications</h3>
-        <p><b>Please enter your email address if you would like to receive backup email notifications.</b></p>
-        <p><?php _e('Backup email notifications will be sent for every backup and will contain status information related to the backup.', $namespace); ?></p>
-        <p><input type="text" name="data[notification_email]" value="<?php echo $this->notification_email(); ?>" size="30"></p>
-        <div class="submit"><input type="submit" name="Save_Email" class="button-primary" value="<?php _e("Save", $namespace) ?>" /></div>
-        <?php
-        if ( false !== ( $msg = get_transient('settings-error-email') ) && $msg)
-        {
-          echo '<p class="error">'.$msg.'</p>';
-          delete_transient('settings-error-email');
-        }
-        ?>
-      </div>
+
+        <!-- Display Settings widget -->
+        <form action="admin-post.php" method="post" id="<?php echo $namespace; ?>-form">
+          <?php wp_nonce_field($namespace . "-update-options"); ?>
+          <div class="widget">
+            <h3 class="promo"><i class="fa fa-envelope"></i> Email Notifications</h3>
+            <p><b>Please enter your email address if you would like to receive backup email notifications.</b></p>
+            <p><?php _e('Backup email notifications will be sent for every backup and will contain status information related to the backup.', $namespace); ?></p>
+            <p><input type="text" name="data[notification_email]" value="<?php echo $this->notification_email(); ?>" size="30"></p>
+            <div class="submit"><input <?php echo($disabled) ; ?> type="submit" name="Save_Email" class="button-primary" value="<?php _e("Save", $namespace) ?>" />
+<!--              --><?php //if (!$license_active && !$is_lite_registered) : ?>
+<!--                * Please register WP BackItUp to use this feature.-->
+<!--             --><?php //endif; ?>
+            </div>
+            <?php
+            if ( false !== ( $msg = get_transient('settings-error-email') ) && $msg)
+            {
+              echo '<p class="error">'.$msg.'</p>';
+              delete_transient('settings-error-email');
+            }
+            ?>
+          </div>
+
 
       <div class="widget">
         <h3 class="promo"><i class="fa fa-trash-o"></i> Backup Retention</h3>

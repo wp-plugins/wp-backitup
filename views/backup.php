@@ -9,7 +9,7 @@
       //Get license info 
       $version = $this->version;
       $license_key = $this->license_key();
-      $license_active = $this->license_active();       
+      $license_active = $this->license_active();
 
       $license_type = $this->license_type();
       $license_type_description = $this->license_type_description();
@@ -26,8 +26,8 @@
       // get retention number set
       $retain_archives = $this->backup_retained_number();
 
-      $campaign='lite';
-      if ($license_active) $campaign='premium';
+      $lite_registration_email = $this->lite_registration_email();
+      $is_lite_registered = $this->is_lite_registered();
 
     //Make sure backup folder exists
     $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
@@ -47,7 +47,7 @@
 //Fatal Error - no backup folder
 if (!$backup_folder_exists) {
     echo '<div class="error"><p><strong>Error: Backup folder does not exist. Please contact ';
-    echo($this->get_anchor_with_utm('support','support' ,$campaign,'backup+error','no+backup+folder'));
+    echo($this->get_anchor_with_utm('support','support','backup+error','no+backup+folder'));
     echo ' for assistance.</strong></p></div>';
 }
 ?>
@@ -68,7 +68,7 @@ if (!$backup_folder_exists) {
       <?php
       //Display a note for lite customers
       if (!$license_active)
-        echo '<p> * WP BackItUp Lite customers may use these backup files to manually restore their site.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'documentation/restore',$campaign,'backup','manual+restore') .' for manual restore instructions.</p>';
+        echo '<p> * WP BackItUp Lite customers may use these backup files to manually restore their site.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'documentation/restore/how-to-manually-restore-your-wordpress-database','backup','manual+restore') .' for manual restore instructions.</p>';
       ?>
     </div>
 
@@ -142,7 +142,7 @@ if (!$backup_folder_exists) {
       <?php
       //Display restore note for lite customers
       if (!$license_active)
-        echo '<p>* The automated restore feature is only available to licensed WP BackItUp customers.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'pricing-purchase',$campaign,'available+backups','risk+free') . ' to get WP BackItUp risk free for 30 days.</p>';
+        echo '<p>* The automated restore feature is only available to licensed WP BackItUp customers.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'pricing-purchase','available+backups','risk+free') . ' to get WP BackItUp risk free for 30 days.</p>';
       ?>
     </div>		
 
@@ -204,11 +204,23 @@ if (!$backup_folder_exists) {
   <div id="sidebar">
     <!-- Display opt-in form if the user is unregistered -->
     <?php if (!$license_active) : ?>
-      <div class="widget">
-        <h3 class="promo"><?php _e('Get a license', $namespace); ?></h3>
-        <p><?php _e('Tired of messing with FTP, MySQL and PHPMyAdmin? Restore your backups from this page in minutes or your money back', $namespace); ?>.</p>
-        <?php echo($this->get_anchor_with_utm('Purchase a license for WP BackItUp','pricing-purchase',$campaign,'get+license','purchase')) ?>
-      </div>
+        <?php if (!$is_lite_registered) : ?>
+            <form action="" method="post" id="<?php echo $namespace; ?>-form">
+              <?php wp_nonce_field($namespace . "-register-lite"); ?>
+            <div class="widget">
+                <h3 class="promo"><?php _e('Register WP BackItUp', $namespace); ?></h3>
+                <p><?php _e('Enter your email address to register your version of WP BackItUp.  Registered users will receive <b>special offers</b> and access to our world class <b>support</b> team.', $namespace); ?></p>
+                <input type="text" name="email" id="email" placeholder="email address" value="<?php echo($lite_registration_email) ?>" />
+                <div class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Register", $namespace) ?>" /></div>
+            </div>
+           </form>
+       <?php else : ?>
+          <div class="widget">
+            <h3 class="promo"><?php _e('Get a license', $namespace); ?></h3>
+            <p><?php _e('Tired of messing with FTP, MySQL and PHPMyAdmin? Restore your backups from this page in minutes or your money back', $namespace); ?>.</p>
+            <?php echo($this->get_anchor_with_utm('Purchase a license for WP BackItUp','pricing-purchase','get+license','purchase')) ?>
+          </div>
+      <?php endif ?>
     <?php endif; ?>
 
 
@@ -257,11 +269,12 @@ if (!$backup_folder_exists) {
         <?php endif; ?>
 
         <?php if ($license_status=='invalid' || $license_status==''): ?>
-          <p>Purchase a <?php echo($this->get_anchor_with_utm('no-risk','pricing-purchase',$campaign,'license','no+risk'))?>  license using the purchase link above.</p>
+          <p>Purchase a <?php echo($this->get_anchor_with_utm('no-risk','pricing-purchase','license','no+risk'))?>  license using the purchase link above.</p>
         <?php endif; ?>
 
         <?php if ($license_status=='expired'): ?>
-          <div>License expired? <?php echo($this->get_anchor_with_utm('here','documentation/faqs/expired-license',$campaign,'license','license+expired'))?> for more info.</div>
+          <div>License expired? <?php echo($this->get_anchor_with_utm('Renew Now ','documentation/faqs/expired-license','license','license+expired'))?> and save 20%.</div>
+          <div>* Offer valid for a limited time!</div>
         <?php endif; ?>
         
 
@@ -272,12 +285,16 @@ if (!$backup_folder_exists) {
         <h3 class="promo"><?php _e('Useful Links', $namespace); ?></h3>
         <ul>
           <?php if ($license_active) : ?>
-            <li><?php echo($this->get_anchor_with_utm('Your account','your-account',$campaign,'useful+links','your+account'))?></li>
-            <li><?php echo($this->get_anchor_with_utm('Upgrade your license','pricing-purchase',$campaign,'useful+links','upgrade+license'))?></li>
+            <li><?php echo($this->get_anchor_with_utm('Your account','your-account','useful+links','your+account'))?></li>
+            <li><?php echo($this->get_anchor_with_utm('Upgrade your license','pricing-purchase','useful+links','upgrade+license'))?></li>
           <?php endif; ?>
-            <li><?php echo($this->get_anchor_with_utm('Documentation','documentation',$campaign,'useful+links','help'))?></li>
-            <li><?php echo($this->get_anchor_with_utm('Get support','support' ,$campaign,'useful+links','get+support'))?></li>
-            <li><?php echo($this->get_anchor_with_utm('Feature request','feature-request' ,$campaign,'useful+links','feature+request'))?></li>
+            <li><?php echo($this->get_anchor_with_utm('Documentation','documentation','useful+links','help'))?></li>
+
+            <?php if ($license_active || $is_lite_registered) : ?>
+                <li><?php echo($this->get_anchor_with_utm('Get support','support' ,'useful+links','get+support'))?></li>
+            <?php endif; ?>
+
+            <li><?php echo($this->get_anchor_with_utm('Feature request','feature-request' ,'useful+links','feature+request'))?></li>
           <li>Have a suggestion? Why not submit a feature request.</li>
         </ul>
       </div>

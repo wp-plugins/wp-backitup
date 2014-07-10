@@ -92,6 +92,12 @@ Yes.
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.7.5.1 =
+* This is a minor release with some small UI fixes.
+* Feature: Add lite registration
+* Fix: correct license expiration month
+* Fix: added namespace prefix to all ajax actions
+
 = 1.7.5 =
 * Feature: Add exclusion of non-WP Backitup backups to increase performance
 * Fix: correct date issue for php 5.2 users

@@ -7,8 +7,6 @@
     $backup_folder_root = WPBACKITUP__BACKUP_PATH .'/';
 
     $license_active = $this->license_active();
-    $campaign='lite';
-    if ($license_active) $campaign='premium';
 
     //Make sure backup folder exists
     $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
@@ -38,14 +36,14 @@
 //Fatal Error - no backup folder
 if (!$backup_folder_exists) {
 echo '<div class="error"><p><strong>Error: Backup folder does not exist. Please contact ';
-            echo($this->get_anchor_with_utm('support','support' ,$campaign,'restore+error','no+backup+folder'));
+            echo($this->get_anchor_with_utm('support','support' ,'restore+error','no+backup+folder'));
             echo ' for assistance.</strong></p></div>';
 }
 
 //Fatal Error - no restore folder
 if (!$restore_folder_exists) {
     echo '<div class="error"><p><strong>Error: Restore folder does not exist. Please contact ';
-    echo($this->get_anchor_with_utm('support','support' ,$campaign,'restore+error','no+restore+folder'));
+    echo($this->get_anchor_with_utm('support','support' ,'restore+error','no+restore+folder'));
     echo ' for assistance.</strong></p></div>';
 }
 ?>

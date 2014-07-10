@@ -400,7 +400,9 @@ function send_backup_notification_email($err, $status)
         }
 	}
 
-    $message .='<br/><br/>Checkout <a href="https://www.wpbackitup.com">www.wpbackitup.com</a> for info about WP BackItUp and our other products.<br/>';
+    $term='success';
+    if(!$status)$term='error';
+      $message .='<br/><br/>Checkout '. $WPBackitup->get_anchor_with_utm('www.wpbackitup.com', '', 'notification+email', $term) .' for info about WP BackItUp and our other products.<br/>';
 
 	$notification_email = $WPBackitup->get_option('notification_email');
 	if($notification_email)
