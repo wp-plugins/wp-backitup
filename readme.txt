@@ -9,25 +9,57 @@ Stable tag: 1.7.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Create a backup zip of your content and settings with a single click that can be used to restore your site quickly and easily.
+Simple & complete backups of your WordPress website with this easy to use plugin.
 
 == Description ==
 
-= The Simple Way to Backup Your Site =
-WP Backitup creates a backup zip of your site&apos;s content and configuration in just a single click, 
-right from your Wordpress dashboard. There is no need to FTP into your site and no knowledge of MySQL or PHPMyAdmin is required. You can use your backup zip to restore your site or to clone a site&apos;s content and settings when setting up a new one.
+= The Simplest Way to Backup Your Wordpress Site =
+Backing up your Wordpress website is easy with WP BackItUp.  Simply install WP BackItUp and within minutes you will have a complete backup of your entire site.  No complex configuration to deal with.  No advanced knowledge of Wordpress required. No FTP, cPanel , MySQL,  or PHPMyAdmin involved.  If you can press a button then you can backup your Wordpress site with WP BackItUp.
 
-= Automatically Restore Your Backup Zips =
-Tired of messing around in PHPMyAdmin and with FTP trying to restore you backups? WP Backitup features a premium restoration feature that allows your backup zips to be restored right from the Wordpress interface. No need to worry about FTP, cPanel or PHPMyAdmin! 
+WP BackItUp creates a backup archive (zip) of your entire website (database, plugins, themes, uploads, content) with a single click.  Backup archives can be quickly and easily downloaded so that they can be stored securely and separately from your hosted Wordpress site.
 
-= Easy To Install and Use =
-Simply install the plugin directly to Wordpress and browse to the new menu 'WP Backitup'. From there, just follow the on-screen instructions and watch as WP Backitup creates a backup of you site's plugins, themes and uploads as well as you content and settings (including all custom widgets and settings for any additional plugins). 
+Here are just a few of our incredible features.
 
-= Where can I purchase a license? =
-You can <a href="http://www.wpbackitup.com">purchase a no-risk WP Backitup license</a> from the WP Backitup site. This will allow you to restore your backups from the Wordpress dashboard in minutes or get a full money-back refund.
+**Features**
+------------
+* **Easy to use**,  just one click and your site is backed up
+* **Easy to setup** because there is no setup required
+* **Simple** & easy to understand interface
+* **Fast** backups
+* Support if you run into any trouble
+* Status notifications by email
+* Works in low memory & shared hosting environments
+* Works on all Wordpress platforms (Linux & Windows Server)
+* **Complete backup**, which includes database, plugins, themes, uploads, everything
+* Compresses(zip) your backups to **save** you **space**
+* Stores backups to a folder on your server
+* Download backup archives right from your WordPress dashboard
+* Cleans up all work files to save space
+* Simple **restore** right from your Wordpress dashboard(premium only)
+* Debug mode that provides full logging of the backup
+* Tested and supported on all current PHP versions (5.2, 5.3, 5.4, 5.5)
+* Premium version and priority support available
+
+
+= Don't Risk Losing Your Website =
+Does the thought of losing your website keep you up at night? All the time, effort and money you've invested, gone in an instant.  Wordpress is an incredible product but there are many things that can cause you to lose your website.  You could get hacked, your hosting company could go out of business, you could install a bad plugin or theme, the list is endless and without good backups, you could lose everything. If this isn't one of the things keeping you up at night, then it really should be. It was keeping us up at night so we decided to do something about it.
+
+In 2012 we created the WP BackItUp plugin and made it freely available to the Wordpress community so that we can all sleep better at night knowing our content is safe.  Since 2012 we have added many incredible features and even created a premium version, but our fundamental goal is still the same.   We want to make Wordpress backups as **simple**, **effective** and **easy** as possible because we don’t want anything to stop you from backing up your Wordpress site regularly.  We offer this plugin to you for free so that you will **BackItUp** and sleep better at night.
+
+= Automatically Restore/Clone/Migrate your Website? =
+Need to restore, clone or migrate your website to another host, we make that easy too.  The premium version of WP BackItUp will allow you to restore your site from backup with a single click.  All you need to do is select the backup you want to restore and click restore, right from your Wordpress dashboard. That’s it, your site is back up and running in minutes.
+
+= Free Support =
+We offer free support via the Wordpress [support forum](http://wordpress.org/support/plugin/wp-backitup) for this plugin but before posting a question please make sure you are running the current version of WP BackItUp. We make frequent releases to add features and fix issues so please make sure you are up to date before posting an issue.   We also ask that you review the [online documentation](http://www.wpbackitup.com/documentation) and [FAQ's](https://www.wpbackitup.com/documentation/faqs) sections of [www.wpbackitup.com](http://www.wpbackitup.com) before posting your questions.
+
+= Professional Support =
+WP BackItUp is supported by a team of professional developers.  If you are using WP BackItUp to secure your business website then professional support is available to our premium customers. Please see [www.wpbackitup.com](http://www.wpbackitup.com) for details.
+
+= Premium Plugin Available =
+WP BackItUp premium allows you to restore your backups from the WordPress dashboard in minutes or get a full money-back refund.  You can purchase a [no-risk WP Backitup license](https://www.wpbackitup.com) anytime from the WP Backitup site.
 
 = More questions? =
-Please ask them in the <a href="http://wordpress.org/support/plugin/wp-backitup">support forum</a>.
+Please review our [FAQ’s](http://wordpress.org/plugins/wp-backitup/faq/) or ask them in the [support forum](http://wordpress.org/support/plugin/wp-backitup).
 
 == Installation ==
 
