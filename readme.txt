@@ -50,26 +50,28 @@ In 2012 we created the WP BackItUp plugin and made it freely available to the Wo
 Need to restore, clone or migrate your website to another host, we make that easy too.  The premium version of WP BackItUp will allow you to restore your site from backup with a single click.  All you need to do is select the backup you want to restore and click restore, right from your Wordpress dashboard. That’s it, your site is back up and running in minutes.
 
 = Free Support =
-We offer free support via the Wordpress [support forum](http://wordpress.org/support/plugin/wp-backitup) for this plugin but before posting a question please make sure you are running the current version of WP BackItUp. We make frequent releases to add features and fix issues so please make sure you are up to date before posting an issue.   We also ask that you review the [online documentation](http://www.wpbackitup.com/documentation) and [FAQ's](https://www.wpbackitup.com/documentation/faqs) sections of [www.wpbackitup.com](http://www.wpbackitup.com) before posting your questions.
+We offer free support via the Wordpress [support forum](http://wordpress.org/support/plugin/wp-backitup) for this plugin but before posting a question please make sure you are running the current version of WP BackItUp. We make frequent releases to add features and fix issues so please make sure you are up to date before posting an issue.   We also ask that you review the [online documentation](http://www.wpbackitup.com/documentation/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+doc) and [FAQ's](https://www.wpbackitup.com/documentation/faqs/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+faq) sections of [www.wpbackitup.com](http://www.wpbackitup.com/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+a) before posting your questions.
 
 = Professional Support =
-WP BackItUp is supported by a team of professional developers.  If you are using WP BackItUp to secure your business website then professional support is available to our premium customers. Please see [www.wpbackitup.com](http://www.wpbackitup.com) for details.
+WP BackItUp is supported by a team of professional developers.  If you are using WP BackItUp to secure your business website then professional support is available to our premium customers. Please see [www.wpbackitup.com](http://www.wpbackitup.com/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=professional+support+a) for details.
 
 = Premium Plugin Available =
-WP BackItUp premium allows you to restore your backups from the WordPress dashboard in minutes or get a full money-back refund.  You can purchase a [no-risk WP Backitup license](https://www.wpbackitup.com) anytime from the WP Backitup site.
+WP BackItUp premium allows you to restore your backups from the WordPress dashboard in minutes or get a full money-back refund.  You can purchase a [no-risk WP Backitup license](https://www.wpbackitup.com/pricing-purchase/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=premium+plugin+no+risk) anytime from the WP Backitup site.
 
 = More questions? =
 Please review our [FAQ’s](http://wordpress.org/plugins/wp-backitup/faq/) or ask them in the [support forum](http://wordpress.org/support/plugin/wp-backitup).
 
 == Installation ==
 
-Installation of the plugin is straightforward:
+Installing WP-BackItUp is very easy and straightforward. 
 
-1. Upload the plugin to your plugins directory via FTP or through the Wordpress dashboard.
+1. Search for 'WP BackItUp' in the WordPress.org plugin directory and click install. Or, upload the files to your wp-content/wp-backitup/ folder.
 1. Activate the plugin.
-1. A new menu called 'WP Backitup' will be added to your toolbar.
+1. A new menu called 'WP Backitup' will be added to the left side navigation of your WordPress dashboard.
 1. Click 'WP Backitup' to access the backup interface.
-1. Enter your license key to unlock the restoration features.
+1. Enter your sites license key for premium features. You may purchase a license key at [www.wpbackitup.com](https://www.wpbackitup.com/pricing-purchase/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=installation&utm_term=install+license)
+
+You can find more detailed instructions at [www.wpbackitup.com](http://wpbackitup.com/documentation/faqs/install/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=installation&utm_term=install+instructions)
 
 == Frequently Asked Questions ==
 
@@ -158,7 +160,7 @@ Yes.
 * Major user interface improvements
 * Improvements to upload functionality
 * Add Feature: Backup Email Notifications
-* Add Feature: Backup Retention 
+* Add Feature: Backup Retention
 * Bug fix: Create Backup & Restore folders on activation
 * Updates to license activation
 
@@ -182,12 +184,12 @@ Yes.
 *	Fixed issue with version 1.6.1 update.
 
 = 1.6.1 =
-*	This release is mostly cosmetic changes and minor fixes to v1.6.0	
+*	This release is mostly cosmetic changes and minor fixes to v1.6.0
 *	Corrected path issue occurring on unix platform
 *	Updated backup zip to remove blanks in file name
 *	Changed backup suffix to backup instead of export
 *	Corrected backup.sql export file size check
-*	Fix license check for restore option 
+*	Fix license check for restore option
 *	Update usage tracking default to off
 *	Correct issue with manual data export that contain non-ascii characters
 *	Add Date Time stamp on SQL restore export
@@ -228,34 +230,34 @@ Fixed status reporting for backup/restore process and built-in localization.
 = 1.3.0 =
 Recommended upgrade: Amalgameted lite and pro versions of the plugin.
 
-= 1.2.2 = 
+= 1.2.2 =
 Major updates to improve plugin performance and stability.
 
-= 1.2.1 = 
+= 1.2.1 =
 Minor updates to plugin functionality.
 
-= 1.2.0 = 
+= 1.2.0 =
 Brought versioning inline with WP Backitup Lite. Fixed incorrecy message on restore interface. Fixed restorationcess.
 
-= 1.1.0 = 
+= 1.1.0 =
 Backup from mysqldump, restore from mysql command line, restore functionality from uploaded files, file size limit check according to server before uploads, setInterval termination after operation, status update as the task completes using XML.
 
-= 1.0.9 = 
+= 1.0.9 =
 Introduced mysqldump for backup and shell exec for copy/delete operations.
 
-= 1.0.8 = 
+= 1.0.8 =
 Added ability to restore from server.
 
-= 1.0.7 = 
+= 1.0.7 =
 Improved auto-update facility and plugin stability.
 
-= 1.0.6 = 
+= 1.0.6 =
 Fixed critical issues the auto-upgradecess.
 
-= 1.0.5 = 
+= 1.0.5 =
 Fixed critical issues the auto-upgradecess.
 
-= 1.0.4 = 
+= 1.0.4 =
 Fixed issues with the restorationcess.
 
 = 1.0.3 =
@@ -268,7 +270,7 @@ Minor bugs patched for auto-update engine.
 WP Backitup integrated with licensing and auto-update engine.
 
 = 1.0.0 =
-Initial version of the plugin released. 
+Initial version of the plugin released.
 
 == Upgrade Notice ==
 
@@ -308,31 +310,31 @@ Recommended upgrade: Minor update to plugin structure.
 = 1.1.0 =
 Critical upgrade: Improved plugin performance.
 
-= 1.0.9 = 
+= 1.0.9 =
 Recommended upgrade: Improved reliability and performance.
 
-= 1.0.8 = 
+= 1.0.8 =
 Recommended upgrade: Improved functionality
 
-= 1.0.7 = 
-Critical upgrade: Fixed major bugs with auto-upgradecess. 
+= 1.0.7 =
+Critical upgrade: Fixed major bugs with auto-upgradecess.
 
-= 1.0.6 = 
-Critical upgrade: Fixed major bugs with auto-upgradecess. 
+= 1.0.6 =
+Critical upgrade: Fixed major bugs with auto-upgradecess.
 
-= 1.0.5 = 
-Critical upgrade: Fixed major bugs with auto-upgradecess. 
+= 1.0.5 =
+Critical upgrade: Fixed major bugs with auto-upgradecess.
 
-= 1.0.4 = 
-Critical upgrade: Fixed major bugs with restorationcess. 
+= 1.0.4 =
+Critical upgrade: Fixed major bugs with restorationcess.
 
 = 1.0.3 =
-Critical upgrade: Patched auto-update engine. 
+Critical upgrade: Patched auto-update engine.
 
-= 1.0.2 = 
+= 1.0.2 =
 Non-critical upgrade: Patched auto-update engine.
 
-= 1.0.1 = 
+= 1.0.1 =
 Recommended upgrade: Added the licensing and auto-update engine.
 
 = 1.0.0 =
