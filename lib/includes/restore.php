@@ -32,6 +32,7 @@ global $table_prefix; //this is from wp-config
 
 global $backup_file_name; //name of the backup file
 global $backup_file_path; //full path to zip file on server
+global $RestorePoint_SQL; //path to restore point
 
 global $status_array,$inactive,$active,$complete,$failure,$warning,$success;
 $inactive=0;
@@ -53,8 +54,12 @@ $status_array = array(
 	'cleanup'=>$inactive
  );
 
+$fileUTCDateTime=current_time( 'timestamp' );
+$localDateTime = date_i18n('Y-m-d-His',$fileUTCDateTime);
+$log_filename = 'restorelog_'.'_' .$localDateTime;
+
 global $logger;
-$logger = new WPBackItUp_Logger(true,null,'restore');
+$logger = new WPBackItUp_Logger(false,null,$log_filename,true);
 
 global $wp_restore; //Eventually everything will be migrated to this class
 $wp_restore = new WPBackItUp_Restore($logger);
@@ -96,39 +101,49 @@ set_status('preparing',$active,true);
 //set path to backup file
 $backup_file_path = $wp_restore->backup_folder_path .$backup_file_name ;
 
-$logger->log('DELETE RESTORE FOLDER');
+$logger->log('**DELETE RESTORE FOLDER**');
 delete_restore_folder();
+$logger->log('** END DELETE RESTORE FOLDER**');
 
-$logger->log('CREATE RESTORE FOLDER');
+$logger->log('**CREATE RESTORE FOLDER**');
 create_restore_folder($wp_restore->restore_folder_path);
 set_status('preparing',$complete,false);
+$logger->log('**END CREATE RESTORE FOLDER**');
 
-$logger->log('UNZIP BACKUP');
+$logger->log('**UNZIP BACKUP**');
 set_status('unzipping',$active,true);
 unzip_backup($backup_file_path,$wp_restore->restore_folder_path);
 set_status('unzipping',$complete,false);
+$logger->log('**END UNZIP BACKUP**');
 
-$logger->log('VALIDATE BACKUP');
+
+$logger->log('**VALIDATE BACKUP**');
 set_status('validation',$active,true);
 $restoration_dir_path=validate_restore_folder($wp_restore->restore_folder_path);
+$logger->log('**END VALIDATE BACKUP**');
 
+
+$logger->log('**VALIDATE SQL FILE EXISTS**');
 $backupSQLFile = $restoration_dir_path . WPBACKITUP__SQL_DBBACKUP_FILENAME;
-
-$logger->log('VALIDATE SQL');
 validate_SQL_exists($backupSQLFile);
+$logger->log('**END VALIDATE SQL FILE EXISTS**');
 
+
+$logger->log('**GET SITE VALUES FROM DB**');
 $siteurl =  get_siteurl();
 $homeurl = get_homeurl();
 $user_login = get_user_login($user_id);
 $user_pass = get_user_pass($user_id);
 $user_email = get_user_email($user_id);
+$logger->log('**END GET SITE VALUES FROM DB**');
 
 //Collect previous backup site url start
-$logger->log('Get backupsiteinfo.txt values...');
+$logger->log('**GET backupsiteinfo.txt VALUES**');
 $import_siteinfo_lines = file($restoration_dir_path .'backupsiteinfo.txt');
-$import_siteurl = trim($import_siteinfo_lines[0]);
+$import_siteurl = str_replace("\n", '',trim($import_siteinfo_lines[0]));
 $current_siteurl = trim($siteurl ,'/');
-$import_table_prefix = $import_siteinfo_lines[1];
+$import_table_prefix = str_replace("\n", '',$import_siteinfo_lines[1]);
+$import_wp_version = str_replace("\n", '',$import_siteinfo_lines[2]);
 $logger->log($import_siteinfo_lines);
 
 //Check table prefix values FATAL
@@ -137,50 +152,74 @@ if($table_prefix !=$import_table_prefix) {
 	write_warning_status('error221');
 }
 
+$logger->log('**END GET backupsiteinfo.txt VALUES**');
 
+$logger->log('**CREATE RESTORE POINT**');
 //Create restore point for DB
 set_status('validation',$complete,false);
 set_status('restore_point',$active,true);
 $RestorePoint_SQL = backup_database($wp_restore->backup_folder_path); //Save in backup folder
-
 set_status('restore_point',$complete,false);
+$logger->log('**END CREATE RESTORE POINT**');
 
+
+$logger->log('**RESTORE DATABASE**');
 //Import the backed up database
 set_status('database',$active,true);
-import_backedup_database($backupSQLFile);
+import_backedup_database($backupSQLFile,$RestorePoint_SQL);
+$logger->log('**END RESTORE DATABASE**');
 
+
+$logger->log('**UPDATE DATABASE VALUES**');
 //FAILURES AFTER THIS POINT SHOULD REQUIRE ROLLBACK OF DB
 update_user_credentials($import_table_prefix, $user_login, $user_pass, $user_email, $user_id);
-
 update_siteurl($import_table_prefix, $current_siteurl);
-
 update_homeurl($import_table_prefix, $homeurl);
+$logger->log('**END UPDATE DATABASE VALUES**');
 
 //Done with DB restore
 set_status('database',$complete,false);
 
+
+
 //***DEAL WITH WPCONTENT NOW ***
 set_status('wpcontent',$active,true);
+$logger->log('**DELETE PLUGINS**');
 delete_plugins_content();
-delete_themes_content();
+$logger->log('**END DELETE PLUGINS**');
 
+$logger->log('**DELETE THEMES**');
+delete_themes_content();
+$logger->log('**END DELETE THEMES**');
+
+$logger->log('**DELETE WPCONTENT**');
 //delete whatever is left
 $wpcontent_folder=WPBACKITUP__CONTENT_PATH;
 delete_wpcontent_content($wpcontent_folder);
+$logger->log('**END DELETE WPCONTENT**');
 
+$logger->log('**RESTORE WPCONTENT**');
 restore_wpcontent($restoration_dir_path);
 set_status('wpcontent',$complete,false);
+$logger->log('**END DELETE WPCONTENT**');
+
+$logger->log('**VALIDATE WPCONTENT**');
 validate_wpcontent($restoration_dir_path,$wpcontent_folder);
+$logger->log('**END VALIDATE WPCONTENT**');
 
+$logger->log('**UPDATE PERMALINKS**');
 update_permalinks();
+$logger->log('**END UPDATE PERMALINKS**');
 
+
+$logger->log('**CLEANUP**');
 set_status('cleanup',$active,true);
 cleanup_restore_folder($restoration_dir_path);
 set_status('cleanup',$complete,false);
+$logger->log('**END CLEANUP**');
+
 set_status_success();
-
 $logger->log('Restore completed successfully');
-
 $logger->log('***END RESTORE***');
 die();
 
@@ -361,7 +400,7 @@ function validate_SQL_exists($backupSQLFile){
 function restore_database(){
     global $logger;
 	global $RestorePoint_SQL;
-	$logger->log('Restore the DB to previous state.' . $RestorePoint_SQL);
+	$logger->log('Restore the DB to previous state:' . $RestorePoint_SQL);
 
     $dbc = new WPBackItUp_SQL($logger);
 	if(!$dbc->run_sql_exec($RestorePoint_SQL)) {
@@ -378,8 +417,9 @@ function restore_database(){
 }
 
 //Run DB restore
-function import_backedup_database($backupSQLFile){
+function import_backedup_database($backupSQLFile,$restorePoint_SQL){
     global $logger;
+
 	$logger->log('Import the backed up database.');
 	//Try SQL Import first
 
@@ -388,8 +428,19 @@ function import_backedup_database($backupSQLFile){
 		//Do it manually if the import doesnt work
 		if(!$dbc->run_sql_manual($backupSQLFile)) {
 			$logger->log('Error: Database import error.');
-			write_fatal_error_status('error212');			
-			delete_restore_folder();
+
+            //Restore to checkpoint
+            if ($dbc->run_sql_manual($restorePoint_SQL)){
+                $logger->log('Database successfully restored to checkpoint.');
+                write_fatal_error_status('error230');
+
+            }
+            else {
+                $logger->log('Database NOT restored to checkpoint.');
+                write_fatal_error_status('error212');
+            }
+
+            delete_restore_folder();
 			die();	
 		}
 	}

@@ -17,10 +17,13 @@ class WPBackItUp_Logger {
 	public 	$logFileName;
 	public 	$logFilePath;
 
-	public function __construct($delete_log, $path=null, $file_name=null) {
+	public function __construct($delete_log, $path=null, $file_name=null, $debugOverride=false) {
 		global $WPBackitup;
 
 		$this->logging = $WPBackitup->logging();
+
+        //If override debug flag then turn logging on.
+        if (true===$debugOverride) $this->logging=true;
 
 		//check for optional parms
 		if (!is_string($path)){

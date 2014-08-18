@@ -459,11 +459,16 @@ class WPBackitup_Admin {
                 $this->set_option('lite_registration_email', $email);
 
                 //register with mail chimp
-                $mailchimp_form_id = '5e70c18c53'; //DEV
+                //$mailchimp_form_id = '5e70c18c53'; //DEV
                 $mailchimp_form_id = '8e8e45c83b'; //PRD
+
+                $url = WPBACKITUP__SECURESITE_URL; //PRD
+                //$url="http://localhost/dev.wpbackitup.com"; //DEV
 
 
                 $form_data =  array(
+//                    '_wpnonce'=>'d0c887e966',
+//                    '_wp_http_referer'=>'/' .$url .'/test-newsletter-signup',
                     'yks-mailchimp-list-ct'=>'0',
                     'yks-mailchimp-list-id'=>$mailchimp_form_id,
                     $mailchimp_form_id .'EMAIL' => $email,
@@ -474,8 +479,7 @@ class WPBackitup_Admin {
 
                 //URL Encode the Form Data
                 $form_data=http_build_query($form_data);
-
-                $post_url=WPBACKITUP__SECURESITE_URL . '/wp-admin/admin-ajax.php';
+                $post_url=$url . '/wp-admin/admin-ajax.php';
 
                 $logger->log('Lite User Registration Post URL: ' .$post_url);
                 $logger->log('Lite User Registration Post Form Data: ' .$form_data);
@@ -488,7 +492,7 @@ class WPBackitup_Admin {
                         'blocking' => true,
                         'headers' => array(),
                         'body' => array(
-                            'action' => 'yks_mailchimp_form'
+                        'action' => 'yks_mailchimp_form'
                         , 'form_action' => 'frontend_submit_form'
                         , 'form_data' => $form_data
                         ),

@@ -4,7 +4,7 @@ Donate link: http://www.wpbackitup.com
 Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin,
 backup buddy,
 Requires at least: 3.8.0
-Tested up to: 3.9.1
+Tested up to: 4.0
 Stable tag: 1.7.5.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -147,6 +147,13 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.8 =
+* Updates: Wordpress 4.0 support
+* Feature: Add support for large database restore.
+* Feature: Add database checkpoint recovery for database restore failures
+* Feature: Add restore logging on all restores
+* Fix: Correct bug on restore when table prefix doesn't match.
+
 = 1.7.5.1 =
 * This is a minor release with some small UI fixes.
 * Feature: Add lite registration

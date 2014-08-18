@@ -260,8 +260,19 @@ function create_SiteInfoFile($path){
 function create_siteinfo($path, $table_prefix) {
 		$siteinfo = $path ."backupsiteinfo.txt"; 
 		$handle = fopen($siteinfo, 'w+');
-		$entry = site_url( '/' ) ."\n$table_prefix";
-		fwrite($handle, $entry); 
+
+        //Write Site URL
+        $entry = site_url( '/' ) ."\n";
+        fwrite($handle, $entry);
+
+        //Write Table Prefix
+        $entry = $table_prefix ."\n" ;
+        fwrite($handle, $entry);
+
+        //write WP version
+        $entry =get_bloginfo( 'version')."\n"  ;
+		fwrite($handle, $entry);
+
 		fclose($handle);
 		return true;
 }

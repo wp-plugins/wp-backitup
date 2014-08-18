@@ -255,7 +255,7 @@ class WPBackItUp_SQL {
         return true;
     }
 
-    public function run_sql_manual($sql_file) {
+    public function run_sql_manual_OLD($sql_file) {
         $this->logger->log('(SQL.run_sql_manual)SQL Execute:' .$sql_file);
 
         //Is the backup sql file empty
@@ -276,15 +276,21 @@ class WPBackItUp_SQL {
                 return false;
             }
 
+            $ctr=1;
+            $this->logger->log('(SQL.run_sql_manual) 0: here ');
             if($mysqli->multi_query($query))
             {
                 do {
+
+                    $this->logger->log('(SQL.run_sql_manual) 1: ' .$ctr++);
                     /* store first result set */
                     if($resultSet = $mysqli->store_result())
                     {
+                        $this->logger->log('(SQL.run_sql_manual) 2: ');
+
                         while($row = $resultSet->fetch_row())
                         {
-
+                            $this->logger->log('(SQL.run_sql_manual) 3: ');
                         }
                         $resultSet->free();
                     }
@@ -293,6 +299,7 @@ class WPBackItUp_SQL {
 
                 } while ($mysqli->next_result());
 
+                $this->logger->log('(SQL.run_sql_manual) 4: ');
                 $mysqli->close();
             }
 
@@ -304,6 +311,98 @@ class WPBackItUp_SQL {
         //Success
         $this->logger->log('(SQL.run_sql_manual)SQL Executed successfully:' .$sql_file);
         return true;
+    }
+
+    function run_sql_manual($sql_file_path, $delimiter = ';')
+    {
+        $this->logger->log('(SQL.run_sql_manual)SQL Execute:' .$sql_file_path);
+        set_time_limit(0);
+
+        //Is the backup sql file empty
+        if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
+            $this->logger->log('(SQL.run_sql_manual) Failure: SQL File was empty:' .$sql_file_path);
+            return false;
+        }
+
+        try {
+            if (is_file($sql_file_path) === true)
+            {
+                $sql_handle = fopen($sql_file_path, 'r');
+
+                if (is_resource($sql_handle) === true)
+                {
+                    $query = array();
+
+                    $mysqli = $this->get_sqlconnection();
+                    $mysqli->set_charset('utf8');
+//                    $mysqli->autocommit(FALSE);
+//                    $mysqli->begin_transaction();
+
+                    if (false===$mysqli) {
+                        return false;
+                    }
+
+                    $error_count=0;
+                    $total_query=0;
+                    while (feof($sql_handle) === false)
+                    {
+                        $query[] = fgets($sql_handle);
+
+                        if (preg_match('~' . preg_quote($delimiter, '~') . '\s*$~iS', end($query)) === 1)
+                        {
+                            $query = trim(implode('', $query));
+
+                            //Execute SQL statement
+                            $total_query++;
+                            if ($mysqli->query($query) === false) {
+                                $error_count++;
+
+                                $this->logger->log('(SQL.run_sql_manual)Total Queries Executed:' .$total_query);
+                                $this->logger->log('(SQL.run_sql_manual)Query Errors:' .$error_count);
+
+                                $this->logger->log('(SQL.run_sql_manual) SQL ERROR: ' . $query);
+
+                                //$mysqli->rollback();
+                                $mysqli->close();
+
+                                fclose($sql_handle);
+                                return false;
+                            }
+//                          else {
+//                              $this->logger->log('(SQL.run_sql_manual) SUCCESS: ' . $query);
+//                          }
+
+                            while (ob_get_level() > 0)
+                            {
+                                ob_end_flush();
+                            }
+
+                            flush();
+                        }
+
+                        if (is_string($query) === true)
+                        {
+                            $query = array();
+                        }
+                    }
+
+                    //$mysqli->commit();
+                    $mysqli->close();
+
+                    $this->logger->log('(SQL.run_sql_manual)SQL Executed successfully:' .$sql_file_path);
+                    $this->logger->log('(SQL.run_sql_manual)Total Queries Executed:' .$total_query);
+                    $this->logger->log('(SQL.run_sql_manual)Query Errors:' .$error_count);
+                    return fclose($sql_handle);
+                }
+            }
+
+        }catch(Exception $e) {
+            $this->logger->log('(SQL.run_sql_manual) Exception: ' .$e);
+            return false;
+        }
+
+        $this->logger->log('(SQL.run_sql_manual)SQL File could not be opened:' .$sql_file_path);
+        return false;
     }
 
 	private function get_sqlconnection() {

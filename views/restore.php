@@ -196,6 +196,7 @@ if (!$restore_folder_exists) {
         <span class='error223'><div class='isa_error'><?php _e('Error 223: An error occurred during the restore.  We attempted to restore the database to its previous state but were unsuccessful.  Please contact WP BackItUp customer support and do not attempt to perform any further restores', $namespace); ?>.</div></span>
         <span class='error224'><div class='isa_error'><?php _e('Error 224: An error occurred during the restore, however, we have successfully restored your database to the previous state', $namespace); ?>.</div></span>
         <span class='error225'><div class='isa_error'><?php _e('Error 225: Restore option is only available to licensed WP BackItUp users', $namespace); ?>.</div></span>
+        <span class="error230"><div class='isa_error'><?php _e('Error 230: WP BackItUp ran into unexpected errors during the database restore.  However, we were able to successfully revert the database back to its original state . This error may require importing the database manually', $namespace); ?>.</div></span>
       </div>
 
       <!--restore success messages-->
