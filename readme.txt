@@ -1,4 +1,4 @@
-=== WP Backitup ===
+﻿=== WP Backitup ===
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin,
@@ -150,7 +150,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 = 1.8 =
 * Updates: Wordpress 4.0 support
 * Feature: Add support for large database restore.
-* Feature: Add database checkpoint recovery for database restore failures
+* Feature: Add database checkpoint recovery for database restore failures.
 * Feature: Add restore logging on all restores
 * Fix: Correct bug on restore when table prefix doesn't match.
 
