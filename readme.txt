@@ -1,8 +1,7 @@
 === WP Backitup ===
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
-Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin,
-backup buddy,
+Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
 Tested up to: 4.0
 Stable tag: 1.7.5.1
