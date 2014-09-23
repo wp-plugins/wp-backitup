@@ -57,18 +57,22 @@ class WPBackItUp_Logger {
    }
 
    function __destruct() {
-   		try {
-	   		//fwrite($this->dfh,"***file closed***" .PHP_EOL);
-	   		if (!is_null($this->dfh) && is_resource($this->dfh)){
-	   			fwrite($this->dfh, "** Close LOG File ** ". PHP_EOL);		
-	   			fclose($this->dfh);	       
-	   		}
-	   	} catch(Exception $e) {
-			//Dont do anything
-			print $e;
-		}
+       $this->close_file();
    }
 
+    public function close_file() {
+        try {
+            if (!is_null($this->dfh) && is_resource($this->dfh)){
+                fwrite($this->dfh, "** Close LOG File ** ". PHP_EOL);
+                fclose($this->dfh);
+            }
+        } catch(Exception $e) {
+            //Dont do anything
+            print $e;
+        }
+
+        $this->dfh=null;
+    }
 
 	function log($message) {
 		try{
@@ -87,6 +91,28 @@ class WPBackItUp_Logger {
 			print $e;
 		}
 	}
+
+    //Log Errors
+    public function log_info($function,$message, $additional_message=null) {
+        $function='(' . $function . ') INFO: ' . $additional_message;
+        if( is_array( $message ) || is_object( $message ) ){
+            $this->log($function);
+            $this->log($message);
+        } else {
+            $this->log($function . $message);
+        }
+    }
+
+    //Log Errors
+    public function log_error($function,$message,$additional_message=null) {
+        $function='(' . $function . ') ERROR: ' . $additional_message;
+        if( is_array( $message ) || is_object( $message ) ){
+            $this->log($function);
+            $this->log($message);
+        } else {
+            $this->log($function .$message);
+        }
+    }
 
 	function logConstants() {
 	global $WPBackitup;

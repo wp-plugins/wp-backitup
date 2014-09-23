@@ -29,9 +29,9 @@ class WPBackItUp_SQL {
        $this->connection->close() ;
    }
 
-   public function mysqldump_export($sql_file_path) {
+   public function mysqldump_export($sql_file_path,$with_mysqlpath=false) {
 
-			$this->logger->log('(SQL.mysqldump_export) SQL Dump: ' .$sql_file_path);
+			$this->logger->log('(SQL.mysqldump_export) Export Database to: ' .$sql_file_path);
 
             $db_name = DB_NAME; 
             $db_user = DB_USER;
@@ -42,9 +42,14 @@ class WPBackItUp_SQL {
 			//This is to ensure that exec() is enabled on the server           
 			if(exec('echo EXEC') == 'EXEC') {
 				try {
-					$process = 'mysqldump';
+                    $mysql_path='';
+                    if ($with_mysqlpath)  {
+                        $mysql_path = $this->get_mysql_path();
+                        if ($mysql_path===false) return false;
+                    }
 
-		             $command = $process
+                    $process = $mysql_path .'mysqldump';
+		            $command = $process
 		        	 . ' --host=' . $db_host;
 					
 					//Check for port
@@ -67,27 +72,28 @@ class WPBackItUp_SQL {
 
 		            //0 is success
 		            if ($rtn_var>0){
+                        $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED return Value:' .$rtn_var);
 		            	return false;
 		            }
 
             		//Did the export work
             		clearstatcache();
 	           		if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
-	           			$this->logger->log('(SQL.mysqldump_export) Failure: Dump was empty or missing.');
+	           			$this->logger->log('(SQL.mysqldump_export) EXPORT FAILED: Dump was empty or missing.');
 	           			return false;
 	           		}	
 	           	} catch(Exception $e) {
-                 	$this->logger->log('(SQL.mysqldump_export) Exception: ' .$e);
+                 	$this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exception: ' .$e);
                  	return false;
                 }
             }
             else
             {
-            	$this->logger->log('(SQL.mysqldump_export) Failure: Exec() disabled.');
+            	$this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exec() disabled.');
             	return false;
             }
 
-            $this->logger->log('(SQL.mysqldump_export) SQL Dump completed.');
+            $this->logger->log('(SQL.mysqldump_export) SQL Dump SUCCESS.');
             return true;
 	}
 
@@ -451,7 +457,6 @@ class WPBackItUp_SQL {
 
     //Get SQL scalar value
     public function get_sql_scalar($sql){
-        global $logger;
         $value='';
         if ($result = mysqli_query($this->connection, $sql)) {
             while ($row = mysqli_fetch_row($result)) {
@@ -464,12 +469,23 @@ class WPBackItUp_SQL {
 
     //Run SQL command
     public function run_sql_command($sql){
-        global $logger;
         if(!mysqli_query($this->connection, $sql) ) {
-            $logger->log('Error:SQL Command Failed:' .$sql);
+            $this->logger->log('Error:SQL Command Failed:' .$sql);
             return false;
         }
         return true;
+    }
+
+    //Get path to MQSQL Bin
+    private function get_mysql_path(){
+        $base_directory = $this->get_sql_scalar('select @@basedir');
+        if (!empty($base_directory)){
+            $base_directory.='/bin/';
+            $this->logger->log('MySQL install path found:' .$base_directory);
+            return $base_directory;
+        }
+        $this->logger->log('MySQL install path NOT found');
+        return false;
     }
 
     //This function is untested

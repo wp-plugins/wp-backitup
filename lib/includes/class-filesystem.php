@@ -121,10 +121,10 @@ class WPBackItUp_FileSystem {
     }
 
     public function recursive_validate($source_path, $target_path, $ignore = array('') ) {
-        $this->logger->log('(FileSystem.recursive_validate) Recursive validate FROM: ' .$source_path);
-        $this->logger->log('(FileSystem.recursive_validate) Recursive validate TO: '.$target_path);
-        $this->logger->log('(FileSystem.recursive_validate) IGNORE:');
-        $this->logger->log($ignore);
+//        $this->logger->log('(FileSystem.recursive_validate) Recursive validate FROM: ' .$source_path);
+//        $this->logger->log('(FileSystem.recursive_validate) Recursive validate TO: '.$target_path);
+//        $this->logger->log('(FileSystem.recursive_validate) IGNORE:');
+//        $this->logger->log($ignore);
 
         $rtnVal=true;
         if( is_dir($source_path) ) { //If the directory exists
@@ -176,7 +176,7 @@ class WPBackItUp_FileSystem {
             }
         }
 
-        $this->logger->log('(FileSystem.recursive_validate) Completed:' . ($rtnVal ? 'true' : 'false'));
+        //$this->logger->log('(FileSystem.recursive_validate) Completed:' . ($rtnVal ? 'true' : 'false'));
         return $rtnVal;
     }
 
@@ -190,7 +190,7 @@ class WPBackItUp_FileSystem {
             ($file == "._" ) ||
             ($file == "cgi-bin" ))  {
 
-            $this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
+            //$this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
             return true;
         }
 
@@ -283,19 +283,19 @@ class WPBackItUp_FileSystem {
 		$this->logger->log('(FileSytem.purge_FilesByDate) Completed.');
 	}
 
-    public function purge_files($path, $file_extension, $days)
+    public function purge_files($path, $file_pattern, $days)
     {
         $this->logger->log('(FileSytem.purge_files) Purge files days:' . $days);
         $this->logger->log('(FileSytem.purge_files) Purge files path:' . $path);
-        $this->logger->log('(FileSytem.purge_files) Purge files extension:' . $file_extension);
+        $this->logger->log('(FileSytem.purge_files) Purge files extension:' . $file_pattern);
 
         //Check Parms
-        if (empty($path) ||  empty($file_extension) || !is_numeric($days)){
+        if (empty($path) ||  empty($file_pattern) || !is_numeric($days)){
             $this->logger->log('(FileSytem.purge_files) Invalid Parm values');
             return false;
         }
 
-        $FileList = glob($path . '*.' . $file_extension);
+        $FileList = glob($path . $file_pattern);
         //Sort by Date Time
         usort($FileList, create_function('$a,$b', 'return filemtime($a) - filemtime($b);'));
 
@@ -326,12 +326,31 @@ class WPBackItUp_FileSystem {
     function get_file_handle($path,$newFile) {
         $this->logger->log('(FileSytem.get_file_handle) Path:' . $path);
 
-        if ($newFile && file_exists($path)){
-            unlink($path);
-            $this->logger->log('(FileSytem.get_file_handle) Deleted:' . $path);
-        }
+        try {
 
-        return fopen($path, 'w');
+            if ($newFile && file_exists($path)){
+                if (unlink($path)){
+                    $this->logger->log('(FileSytem.get_file_handle) Deleted:' . $path);
+                }
+                else{
+                    $this->logger->log('(FileSytem.get_file_handle) File could not be deleted:');
+                    $this->logger->log(error_get_last());
+                }
+            }
+
+            $fh= fopen($path, 'w');
+            if (false===$fh){
+                $this->logger->log('(FileSytem.get_file_handle) File could not be opened:');
+                $this->logger->log(error_get_last());
+                return false;
+            }
+
+            return $fh;
+
+        } catch(Exception $e) {
+            $this->logger->log('(FileSytem.get_file_handle) Exception:' . $e);
+            return false;
+        }
     }
 
 

@@ -1,7 +1,7 @@
-﻿=== WP Backitup ===
+=== WP Backitup ===
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
-Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
+Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin,backup buddy
 Requires at least: 3.8.0
 Tested up to: 4.0
 Stable tag: 1.8
@@ -146,10 +146,19 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 3. When the backup has been created, click the download link to access a zipped backup of your site.
 
 == Changelog ==
+= 1.9 =
+* New Features: Scheduled backups are now available.
+* New Feature:  Allow only a single backup to be run at a time.
+* New feature:  Automated cleanup feature will perform work file and log cleanup once per day.
+* Update: User experience improvements to backup.
+* Update: Logging enhancements.
+* Fix: Add support for windows MySql database exports.  Windows backups always worked but did not take advantage of MySql export tools like other platforms.
+
+
 = 1.8 =
 * Updates: Wordpress 4.0 support
 * Feature: Add support for large database restore.
-* Feature: Add database checkpoint recovery for database restore failures.
+* Feature: Add database checkpoint recovery for database restore failures
 * Feature: Add restore logging on all restores
 * Fix: Correct bug on restore when table prefix doesn't match.
 

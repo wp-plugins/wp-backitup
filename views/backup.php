@@ -1,54 +1,73 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
-      $page_title = $this->friendly_name . ' Backup';
-      $namespace = $this->namespace;
+        $page_title = $this->friendly_name . ' Dashboard';
+        $namespace = $this->namespace;
 
-      //Path Variables
-      $backup_folder_root = WPBACKITUP__BACKUP_PATH;
+        //Path Variables
+        $backup_folder_root = WPBACKITUP__BACKUP_PATH;
+		$logs_folder_root = WPBACKITUP__PLUGIN_PATH .'/logs';
 
-      //Get license info 
-      $version = $this->version;
-      $license_key = $this->license_key();
-      $license_active = $this->license_active();
+        //Get license info
+        $version = $this->version;
+        $license_key = $this->license_key();
+        $license_active = $this->license_active();
 
-      $license_type = $this->license_type();
-      $license_type_description = $this->license_type_description();
-      if (!empty($license_type_description)){
+        $license_type = $this->license_type();
+        $license_type_description = $this->license_type_description();
+        if (!empty($license_type_description)){
         $license_type_description = ucfirst($license_type_description);
-      }
-      
-      $license_status = $this->license_status();
-      $license_status_message = $this->license_status_message();
+        }
 
-      $license_Expires = $this->license_expires();
-      $formatted_expired_date = date('F j, Y',strtotime($license_Expires));      
+        $license_status = $this->license_status();
+        $license_status_message = $this->license_status_message();
 
-      // get retention number set
-      $retain_archives = $this->backup_retained_number();
+        $license_Expires = $this->license_expires();
+        $formatted_expired_date = date('F j, Y',strtotime($license_Expires));
 
-      $lite_registration_email = $this->lite_registration_email();
-      $is_lite_registered = $this->is_lite_registered();
+        // get retention number set
+        $retain_archives = $this->backup_retained_number();
 
-    //Make sure backup folder exists
-    $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
-    $backup_folder_exists=false;
-    if( !is_dir($backup_dir) ) {
-        if (@mkdir($backup_dir, 0755)){
+        $lite_registration_email = $this->lite_registration_email();
+        $is_lite_registered = $this->is_lite_registered();
+
+        $backup_schedule=$this->backup_schedule();
+
+        $schedule_style_disabled='';
+        if (!$license_active || 'expired'== $license_status){
+            $schedule_style_disabled='disabled';
+        }
+
+
+        //Make sure backup folder exists
+        $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
+        $backup_folder_exists=false;
+        if( !is_dir($backup_dir) ) {
+            if (@mkdir($backup_dir, 0755)){
+                $backup_folder_exists=true;
+            }
+        }else{
             $backup_folder_exists=true;
         }
-    }else{
-        $backup_folder_exists=true;
-    }
-
 ?>
 
-<?php
-
-//Fatal Error - no backup folder
+<?php //Add Notification to UI
 if (!$backup_folder_exists) {
-    echo '<div class="error"><p><strong>Error: Backup folder does not exist. Please contact ';
+    echo(
+    '<div style="overflow: hidden;" class="error" id="wp-backitup-notification-parent" class="updated">
+        <div style="float:left;" id="wp-backitup-notification-message" ><p><strong>Error:</strong> Backup folder does not exist. Please contact ');
+
     echo($this->get_anchor_with_utm('support','support','backup+error','no+backup+folder'));
-    echo ' for assistance.</strong></p></div>';
+    echo(' for assistance.</p></div>');
+
+    echo('<div style="float:right;"><p><a id="wp-backitup-notification-close"><i style="float:right" class="fa fa-close"> Close</i></a></p></div>
+    </div>');
+} else{
+    echo(
+    '<div style="overflow: hidden; display:none" id="wp-backitup-notification-parent" class="updated">
+        <div style="float:left;" id="wp-backitup-notification-message" ></div>
+        <div style="float:right;"><p><a id="wp-backitup-notification-close"><i style="float:right" class="fa fa-close"> Close</i></a></p></div>
+    </div>'
+    );
 }
 ?>
 
@@ -56,11 +75,13 @@ if (!$backup_folder_exists) {
 <div class="wrap">
   <h2><?php echo $page_title; ?></h2>
   <div id="content">
+
+    <!--Manual Backups-->
     <div class="widget">
       <h3><i class="fa fa-cogs"></i> <?php _e('Backup', $namespace); ?></h3>
       <p><b>Click the backup button to create a zipped backup file of this site's database, plugins, themes and settings.</b></p>
-      <p>Once your backup file has been created it will appear in the available backups section below. This file can remain on your hosting providers server but we recommend that you download and save it somewhere safe.</p>
-      <p> Licensed WP BackItUp users can use these backup files to perform an automated restore of their site.</p>        
+      <p>Once your backup file has been created it will appear in the available backups section below. This file may remain on your hosting providers server but we recommend that you download and save it somewhere safe.</p>
+      <p> WP BackItUp premium customers can use these backup files to perform an automated restore of their site.</p>
       <p>
           <?php if ($backup_folder_exists) :?>
             <input type="submit" id="backup-button" class="backup-button button-primary" value="<?php _e("Backup", $namespace) ?>"/><img class="backup-icon status-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></p>
@@ -68,9 +89,42 @@ if (!$backup_folder_exists) {
       <?php
       //Display a note for lite customers
       if (!$license_active)
-        echo '<p> * WP BackItUp Lite customers may use these backup files to manually restore their site.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'documentation/restore/how-to-manually-restore-your-wordpress-database','backup','manual+restore') .' for manual restore instructions.</p>';
+        echo '<p> * WP BackItUp lite customers may use these backup files to manually restore their site.  Please visit ' .$this->get_anchor_with_utm('www.wpbackitup.com','documentation/restore/how-to-manually-restore-your-wordpress-database','backup','manual+restore') .' for manual restore instructions.</p>';
       ?>
     </div>
+
+
+      <!--Scheduled Backups-->
+      <div class="widget">
+          <h3><i class="fa fa-clock-o"></i> <?php _e('Backup Schedule', $namespace); ?>
+              <i id="scheduled-backups-accordian" style="float:right" class="fa fa-angle-double-down"></i></h3>
+              <p><b>Select the days of the week you would like your backup to run.</b></p>
+          <div id="scheduled-backups" style="display: none;">
+              <p>Backup your site once per week or every day, it's up to you.  If you have email notifications turned on we'll even send you an email when it's done.
+              Once your backup file has been created it will appear in the available backups section below. This file may remain on your hosting providers server but we recommend that you download and save it somewhere safe.</p>
+              <p>
+                  <b>Please make sure to schedule your backup for at least once per week.</b>
+              <form action="admin-post.php" method="post" id="<?php echo $namespace; ?>-save_schedule_form">
+                  <?php wp_nonce_field($namespace . '-update-schedule',$namespace . '_nonce-update-schedule'); ?>
+
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'1'))? _e('checked') :_e(''); ?> value="1">Monday<br>
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'2'))? _e('checked') :_e(''); ?> value="2">Tuesday<br>
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'3'))? _e('checked') :_e(''); ?> value="3">Wednesday<br>
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'4'))? _e('checked') :_e(''); ?> value="4">Thursday<br>
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'5'))? _e('checked') :_e(''); ?> value="5">Friday<br>
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'6'))? _e('checked') :_e(''); ?> value="6">Saturday<br>
+                  <input <?php _e($schedule_style_disabled); ?> type="checkbox" name="dow" <?php (false!==strpos($backup_schedule,'7'))? _e('checked') :_e(''); ?> value="7">Sunday<br>
+
+                  <br/>
+                  <input <?php _e($schedule_style_disabled); ?>  type="submit" id="schedule-button" class="schedule-button button-primary" value="<?php _e("Save Schedule", $namespace) ?>"/>
+              </form>
+              <?php
+              //Display restore note for lite customers
+              if (!$license_active || 'expired'== $license_status)
+                  echo '<p>* Scheduled backups are only available to WP BackItUp premium customers.  Please visit ' .$this->get_anchor_with_utm('www.wpbackitup.com','pricing-purchase','scheduled+backups','risk+free') . ' to get WP BackItUp risk free for 30 days.</p>';
+              ?>
+          </div>
+      </div>
 
     <!--Available Backups section-->
     <div class="widget">
@@ -87,45 +141,65 @@ if (!$backup_folder_exists) {
         <?php
         
         //Get Zip File List       
-        $zip_filelist = glob($backup_folder_root . "/*.zip");
-        $log_filelist = glob($backup_folder_root . "/*.log");
-    
-        if (glob($backup_folder_root . "/*.zip"))
+        $file_list = glob($backup_folder_root . "/*.zip");
+        $backup_log_filelist = glob($backup_folder_root . "/*.log");
+
+        //$logs_log_filelist = glob($logs_folder_root . "/Backup_*.log");
+        //$file_list = array_merge($zip_filelist,$logs_log_filelist);
+        //print_r($file_list);
+
+        if (count($file_list)>0)
         {
           //Sort by Date Time     
-          usort($zip_filelist, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
+          usort($file_list, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
 
           $i = 0;
-          foreach ($zip_filelist as $zip_file)
+          foreach ($file_list as $file)
           {
-            if( $retain_archives && $retain_archives == $i)
-              break;
+	        if( $retain_archives && $retain_archives == $i)
+	          break;
 
-            $zip_filename = basename($zip_file);
-            //Local Date Time
-            $zip_datetime = get_date_from_gmt(date('Y-m-d H:i:s', filemtime($zip_file)), 'Y-m-d g:i a'); 
+	        $filename = basename($file);
+	        $file_type=  substr($filename, -3);
+	        //Local Date Time
+	        $file_datetime = get_date_from_gmt(date('Y-m-d H:i:s', filemtime($file)), 'Y-m-d g:i a');
 
-            //Check for log
-            $log_file = str_replace('.zip','.log',$zip_file);
-            $log_filename = basename($log_file);
-
-            $logExists=false;
-            if (is_array($log_filelist) && in_array($log_file,$log_filelist)) $logExists=true;
+	        $success_logExists    = false;
+            if ('zip'==$file_type) {
+	            $zip_exists   = true;
+	            $log_file     = str_replace( '.zip', '.log', $file );
+	            $log_filename = basename( $log_file );
+	            if ( is_array( $backup_log_filelist ) && in_array( $log_file, $backup_log_filelist ) ) {
+		            $logExists = true;
+	            }
+            }else{
+	            $zip_exists   = false;
+	            $log_file     = $filename;
+	            $log_filename = $filename;
+	            $logExists    = true;
+            }
+	        //------
 
             $class = $i % 2 == 0 ? 'class="alternate"' : '';
             ?>
 
             <tr <?php echo $class ?> id="row<?php echo $i; ?>">
-              <td><?php echo $zip_datetime ?></td>
-              <td><?php echo $zip_filename ?></td>
-              <td><a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $zip_filename; ?>">Download</a></td>
-              <?php if ($logExists) :?>
+              <td><?php echo $file_datetime ?></td>
+              <td><?php echo $filename ?></td>
+
+	          <?php if ($zip_exists) :?>
+                <td><a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $filename; ?>">Download</a></td>
+              <?php else: ?>
+		        <td>&nbsp;</td>
+	          <?php endif; ?>
+
+              <?php if (($logExists)):?>
                 <td><a class='viewloglink' href="<?php echo basename($log_filename, ".log") ?>">View Log</a></td>
               <?php else: ?>
                 <td>&nbsp;</td>
               <?php endif; ?>
-               <td><a href="#" title="<?php echo $zip_filename; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
 
+               <td><a href="#" title="<?php echo $filename; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
             </tr>
 
             <?php
@@ -142,7 +216,7 @@ if (!$backup_folder_exists) {
       <?php
       //Display restore note for lite customers
       if (!$license_active)
-        echo '<p>* The automated restore feature is only available to licensed WP BackItUp customers.  Please visit ' .$this->get_anchor_with_utm(WPBACKITUP__SITE_URL,'pricing-purchase','available+backups','risk+free') . ' to get WP BackItUp risk free for 30 days.</p>';
+        echo '<p>* The automated restore feature is only available to WP BackItUp premium customers.  Please visit ' .$this->get_anchor_with_utm('www.wpbackitup.com','pricing-purchase','available+backups','risk+free') . ' to get WP BackItUp risk free for 30 days.</p>';
       ?>
     </div>		
 
@@ -173,11 +247,11 @@ if (!$backup_folder_exists) {
         <span class="error104"><div class='isa_error'><?php _e('Error 104: Unable to backup your database. Please try again', $namespace); ?>.</div></span>
         <span class="error105"><div class='isa_error'><?php _e('Error 105: Unable to create site information file. Please try again', $namespace); ?>.</div></span>
         <span class="error106"><div class='isa_warning'><?php _e('Warning 106: Unable to cleanup your backup directory', $namespace); ?>.</div></span>
-        
+        <span class="error107"><div class='isa_error'><?php _e('Error 107: Unable to compress(zip) your backup. Please try again', $namespace); ?>.</div></span>
         <span class="error114"><div class='isa_error'><?php _e('Error 114: Your database was accessible but an export could not be created. Please contact support by clicking the get support link on the right. Please let us know who your host is when you submit the request', $namespace); ?>.</div></span>
       </div>
 
-      <!--Upload status messages-->
+      <!--Error status messages-->
       <ul class="backup-unexpected-error">
           <span class='error999'><div class='isa_error'><?php _e('An unexpected error has occurred. ', $namespace); ?></div></span>
       </ul>

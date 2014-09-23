@@ -33,6 +33,9 @@ class WPBackitup_Admin {
 
     private $backup_count; //getter will load
     private $successful_backup_count;
+
+    public $backup_type;
+
     
     // Default plugin options
     public $defaults = array(
@@ -52,6 +55,9 @@ class WPBackitup_Admin {
         'backup_count'=>0,
         'successful_backup_count'=>0,
         'stats_last_check_date'=> "1970-01-01 00:00:00",
+        'backup_schedule'=>"",
+        'backup_lastrun_date'=>"2147483648",
+        'cleanup_lastrun_date'=>"2147483648",
     );
 
 
@@ -93,7 +99,7 @@ class WPBackitup_Admin {
         add_action( 'admin_menu', array( &$this, 'admin_menu' ) );
 
         // Route requests for form processing
-        add_action( 'admin_init', array( &$this, 'route' ) );        
+        add_action( 'admin_init', array( &$this, 'route' ) );
         
         // Add a settings link next to the "Deactivate" link on the plugin listing page
         add_filter( 'plugin_action_links', array( &$this, 'plugin_action_links' ), 10, 2 );
@@ -124,8 +130,11 @@ class WPBackitup_Admin {
         //List Logs Action
         add_action('admin_post_nopriv_listlogs', array( &$this,'admin_listlogs'));
 
-    }
+        //Create Daily backup action
+        add_action( 'wpbackitup_check_scheduled_tasks',  array( &$this,'wpbackitup_check_scheduled_tasks'));
 
+        add_action( 'wpbackitup_resume_backup',  array( &$this,'wpbackitup_resume_backup'));
+    }
 
     /**
      * 
@@ -179,7 +188,7 @@ class WPBackitup_Admin {
         // Admin Stylesheet
         wp_register_style( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "css/wpbackitup_admin.css", array(), $this->version, 'screen' );
 
-        wp_register_style( 'google-fonts', '//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css');
+        wp_register_style( 'google-fonts', '//netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css');
         wp_enqueue_style( 'google-fonts' );
     }
 
@@ -260,18 +269,37 @@ class WPBackitup_Admin {
         // Check if a nonce was passed in the request
         if( isset( $_REQUEST['_wpnonce'] ) ) {
             $nonce = $_REQUEST['_wpnonce'];
-//            $logger->log('NONCE:' .$nonce);
+
+            $logger = new WPBackItUp_Logger(false);
+            //$logger->log('NONCE:' .$nonce);
 
             // Handle POST requests
             if( $is_post ) {
 
                 if( wp_verify_nonce( $nonce, "{$this->namespace}-update-options" ) ) {
+                    $logger->log('Update Options Form Post');
                     $this->_admin_options_update();
                 }
 
                 if( wp_verify_nonce( $nonce, "{$this->namespace}-register-lite" ) ) {
+                    $logger->log('Register Lite Form Post');
                     $this->_admin_register_lite();
                 }
+
+                if( wp_verify_nonce( $nonce, "{$this->namespace}-update-schedule" ) ) {
+                    $logger->log('Update Schedule Form Post');
+
+                    $jsonResponse = new stdClass();
+                    if ($this->_admin_save_schedule()){
+                        $jsonResponse->message = 'success';
+                    }else{
+                        $jsonResponse->message = 'error';
+                    }
+
+                    exit(json_encode($jsonResponse));
+
+                }
+
             } 
             // Handle GET requests
             else {
@@ -283,8 +311,36 @@ class WPBackitup_Admin {
     public function initialize(){
         $this->check_license();
     }
+
+    public function wpbackitup_check_scheduled_tasks(){
+
+        if( !class_exists( 'WPBackItUp_Scheduler' ) ) {
+            include_once 'class-scheduler.php';
+        }
+
+        $scheduler = new WPBackItUp_Scheduler();
+        if ($scheduler->isTaskScheduled('backup')){
+            $this->backup_type='scheduled';
+            include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/backup.php' );
+            exit(0); //success - don't run anything else after a backup
+        }
+
+        if ($scheduler->isTaskScheduled('cleanup')){
+            $this->backup_type='cleanup';
+            include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/backup.php' );
+        }
+    }
+
+    //Next Release
+    function wpbackitup_resume_backup(){
+
+        exit(0);
+
+    }
+
     //load backup
     public  function ajax_backup() {
+      $this->backup_type='manual';
       include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/backup.php' );
     }
 
@@ -424,6 +480,37 @@ class WPBackitup_Admin {
             wp_safe_redirect( $_REQUEST['_wp_http_referer'] . '&update=1' );
             exit;
         }
+    }
+
+    /**
+     * Save Schedule
+     *
+     */
+    public  function _admin_save_schedule() {
+        // Verify submission for processing using wp_nonce
+        $logger = new WPBackItUp_Logger(false);
+
+        if( wp_verify_nonce( $_REQUEST['_wpnonce'], "{$this->namespace}-update-schedule" ) ) {
+
+            $logger->log("Save Schedule");
+            $logger->log($_POST);
+
+            $val = $_POST['days_selected'];
+            $days_selected = $this->_sanitize($val);
+            $logger->log('Days Selected:' .     $days_selected);
+
+            //save option to DB even if empty
+            $this->set_backup_schedule($days_selected);
+
+            //Add backup scheduled if doesnt exist
+            if(!wp_next_scheduled( 'wpbackitup_check_scheduled_tasks' ) ){
+                wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_check_scheduled_tasks');
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -595,6 +682,19 @@ class WPBackitup_Admin {
       return $logging === 'true'? true: false;
     }
 
+    public function backup_schedule(){
+        return $this->get('backup_schedule');
+    }
+
+    public function backup_lastrun_date(){
+        return $this->get('backup_lastrun_date');
+    }
+
+    public function cleanup_lastrun_date(){
+        return $this->get('cleanup_lastrun_date');
+    }
+
+
     /**
     * Getter - license active - derived property
     */
@@ -749,6 +849,17 @@ class WPBackitup_Admin {
         $this->set('successful_backup_count', $value);
     }
 
+    public function set_backup_schedule($value){
+        $this->set('backup_schedule', $value);
+    }
+
+    public function set_backup_lastrun_date($value){
+        $this->set('backup_lastrun_date', $value);
+    }
+
+    public function set_cleanup_lastrun_date($value){
+        $this->set('cleanup_lastrun_date', $value);
+    }
     /**---------- END SETTERS --------------- **/
 
 
@@ -1002,30 +1113,36 @@ class WPBackitup_Admin {
      * Activation action
      */
     public static function activate() {
-//        $logger = new WPBackItUp_Logger(true);
-
        try{
+	       //add cron task for once per hour starting in 1 hour
+	       if(!wp_next_scheduled( 'wpbackitup_check_scheduled_tasks' ) ){
+		       wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_check_scheduled_tasks');
+	       }
+
             //Check backup folder folders
             $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
              if( !is_dir($backup_dir) ) {
                  @mkdir($backup_dir, 0755);
-//                 $logger->log('Backup Folder Created:' . $backup_dir);
              }
 
              //Check restore folder folders
              $restore_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER;
              if( !is_dir($restore_dir) ) {
                  @mkdir($restore_dir, 0755);
-//                 $logger->log('Restore Folder Created:' . $backup_dir);
              }
 
-           //Make sure they exist now
-           if( !is_dir($backup_dir) || !is_dir($restore_dir)) {
-               exit ('WP BackItUp was not able to create the required backup and restore folders.');
-           }
+             //Check permissions on logs
+             $logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs';
+             if(is_dir($logs_dir) ) {
+	             chmod($logs_dir, 0755);
+             }
+
+			//Make sure they exist now
+			if( !is_dir($backup_dir) || !is_dir($restore_dir)) {
+			   exit ('WP BackItUp was not able to create the required backup and restore folders.');
+			}
 
        } catch (Exception $e) {
-//           $logger->log(' Activation Exception:' . $e->getMessage());
            exit ('WP BackItUp encountered an error during activation.</br>' .$e->getMessage());
        }
     }
@@ -1036,6 +1153,7 @@ class WPBackitup_Admin {
     public static function deactivate() {
         // Do deactivation actions
 
+        wp_clear_scheduled_hook( 'wpbackitup_check_scheduled_tasks');
     }
 
     /* ---------------------     PRIVATES      -----------------------------------------*/

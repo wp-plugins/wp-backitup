@@ -11,6 +11,24 @@
     //Add View Log Click event to backup page
     add_viewlog_onclick();
 
+
+    $( "#scheduled-backups-accordian" ).click(function() {
+
+        scheduled_backups=$("#scheduled-backups");
+        scheduled_backups_button = $( "#scheduled-backups-accordian");
+
+        if ($(this).is(".fa-angle-double-down")){
+            scheduled_backups.fadeIn( "slow" )
+            scheduled_backups_button.toggleClass( "fa-angle-double-down", false);
+            scheduled_backups_button.toggleClass( "fa-angle-double-up", true);
+        } else{
+            scheduled_backups_button.toggleClass( "fa-angle-double-down", true);
+            scheduled_backups_button.toggleClass( "fa-angle-double-up", false);
+            scheduled_backups.fadeOut( "slow" )
+        }
+
+    });
+
     //binds to onchange event of the upload file input field
     $('#wpbackitup-zip').bind('change', function() {
 
@@ -146,20 +164,26 @@
 
                 } else { //Error
                     console.log("JSON error response received.");
-                    status_message='An unexpected error has occurred: &nbsp;' + jsonData.message;
 
-                    //$('.backup-status').hide();
+                    var msg="process unavailable";
+                    if (jsonData.message !== undefined){
+                      msg= jsonData.message;
+                    }
+                    status_message='An unexpected error has occurred during process: &nbsp;' + msg;
 
                     var unexpected_error= $('.backup-unexpected-error');
                     unexpected_error.html(status_message);
                     unexpected_error.addClass("isa_error");
                     unexpected_error.show();
 
+                    //fade out all of the spinners
+                    $('.status-icon').fadeOut(200);
+
                 }
 
             } else { //Didnt get any json back
                 console.log("NON JSON response received.");
-                status_message='An unexpected error has occurred: &nbsp;' + textStatus + ':' + JSON.stringify(errorThrown);
+                status_message='An unexpected error has occurred during process: &nbsp;' + textStatus + ':' + JSON.stringify(errorThrown);
 
                 $('.backup-status').hide();
 
@@ -167,9 +191,69 @@
                 unexpected_error.html(status_message);
                 unexpected_error.addClass("isa_error");
                 unexpected_error.show();
+
+                $('.status-icon').fadeOut(200);
             }
         });
     }
+
+    //Save Schedule CLICK
+    $("#wp-backitup-notification-close").click(function() {
+        dismiss_message();
+    });
+    //Save Schedule CLICK
+    $("#wp-backitup-save_schedule_form").submit(function() {
+
+        var formData = new FormData();
+        formData.append('action', get_action_name('update-schedule'));
+        formData.append('_wpnonce', $('#wp-backitup_nonce-update-schedule').val());
+        formData.append('_wp_http_referer',$("[name='_wp_http_referer']").val());
+
+        var days_selected = [];
+        $.each($("input[name='dow']:checked"), function(){
+            days_selected.push($(this).val());
+        });
+
+        formData.append('days_selected', days_selected);
+
+        jQuery.ajax({
+            url: ajaxurl,
+            type: 'POST',
+            cache: false,
+            contentType: false,
+            processData: false,
+            dataType: "json",
+            data: formData,
+
+            success: function(data, textStatus, jqXHR){
+                response=data.message;
+                console.log("Success:" + response);
+
+                //Turn on the notification bar
+                switch (response)
+                {
+                case 'success':
+                    show_success_message("Scheduled has been saved.");
+                    break;
+                case 'error':
+                    show_error_message("Scheduled was not saved.");
+                    break;
+                default:
+
+                }
+
+            },
+            error: function(jqXHR, textStatus, errorThrown){
+                console.log("Error." + textStatus +':' +errorThrown);
+            },
+            complete: function(jqXHR, textStatus){
+                console.log("Complete");
+            }
+        });
+
+        return false;
+
+    });
 
   /*BACKUP button click */
   $(".backup-button").click(function(e) {
@@ -499,6 +583,35 @@
 
     function get_action_name(action) {
         return namespace + '_' + action;
+    }
+
+    function dismiss_message(){
+        notification_bar = $( "#wp-backitup-notification-parent");
+        notification_bar.fadeOut( "slow" )
+    }
+
+    function show_success_message(message){
+        notification_bar_message = $( "#wp-backitup-notification-message");
+        notification_bar_message.html("<p>" + message + "</p>");
+
+        notification_bar = $( "#wp-backitup-notification-parent");
+        notification_bar.toggleClass("error",false);
+        notification_bar.toggleClass("updated",true);
+
+        notification_bar.show();
+        $('html, body').animate({ scrollTop: 0 }, 'slow');
+    }
+
+    function show_error_message(message){
+        notification_bar_message = $( "#wp-backitup-notification-message");
+        notification_bar_message.html("<p>" + message + "</p>");
+
+        notification_bar = $( "#wp-backitup-notification-parent");
+        notification_bar.toggleClass("updated",false);
+        notification_bar.toggleClass("error",true);
+
+        notification_bar.show();
+        $('html, body').animate({ scrollTop: 0 }, 'slow');
     }
 
 })(jQuery);

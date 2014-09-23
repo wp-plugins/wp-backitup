@@ -12,7 +12,7 @@
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.8
+Version: 1.9
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
-define( 'WPBACKITUP__VERSION', '1.8');
+define( 'WPBACKITUP__VERSION', '1.9');
 define( 'WPBACKITUP__DEBUG', false );
 define( 'WPBACKITUP__MINIMUM_WP_VERSION', '3.0' );
 define( 'WPBACKITUP__ITEM_NAME', 'WP Backitup' ); 
@@ -65,15 +65,26 @@ register_activation_hook( __FILE__, array( 'WPBackitup_Admin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'WPBackitup_Admin', 'deactivate' ) );
 
 
-//Only add hook when admin
-if ( is_admin() && ! class_exists( 'WPBackitup_Admin' )) {
-    //include_once dirname( __FILE__ ) . '/lib/constants.php';
-    require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-wpbackitup-admin.php' );
-    require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-logger.php' );
-
-    global $WPBackitup;
-	$WPBackitup = WPBackitup_Admin::get_instance();
-    $WPBackitup->initialize();
+function wpbackitup_modify_cron_schedules($schedules) {
+    $schedules['weekly'] = array('interval' => 604800, 'display' => 'Once Weekly');
+    $schedules['monthly'] = array('interval' => 2592000, 'display' => 'Once Monthly');
+    $schedules['every4hours'] = array('interval' => 14400, 'display' => sprintf(__('Every %s hours', 'wpbackitup'), 4));
+    $schedules['every8hours'] = array('interval' => 28800, 'display' => sprintf(__('Every %s hours', 'wpbackitup'), 8));
+    return $schedules;
 }
+
+add_filter('cron_schedules', 'wpbackitup_modify_cron_schedules', 30);
+
+
+// The checks here before loading are for performance only - unless one of those conditions is met, then none of the hooks will ever be used
+if (!is_admin() && (!defined('DOING_CRON') || !DOING_CRON) && (!defined('XMLRPC_REQUEST') || !XMLRPC_REQUEST) && empty($_SERVER['SHELL']) && empty($_SERVER['USER'])) return;
+
+require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-wpbackitup-admin.php' );
+require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-logger.php' );
+
+global $WPBackitup;
+$WPBackitup = WPBackitup_Admin::get_instance();
+$WPBackitup->initialize();
+
 
 
