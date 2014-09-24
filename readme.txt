@@ -1,10 +1,10 @@
 === WP Backitup ===
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
-Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin,backup buddy
+Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
 Tested up to: 4.0
-Stable tag: 1.8
+Stable tag: 1.9
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -12,10 +12,10 @@ Simple & complete backups of your WordPress website with this easy to use plugin
 
 == Description ==
 
-= The Simplest Way to Backup Your Wordpress Site =
-Backing up your Wordpress website is easy with WP BackItUp.  Simply install WP BackItUp and within minutes you will have a complete backup of your entire site.  No complex configuration to deal with.  No advanced knowledge of Wordpress required. No FTP, cPanel , MySQL,  or PHPMyAdmin involved.  If you can press a button then you can backup your Wordpress site with WP BackItUp.
+= The Simplest Way to Backup Your WordPress Site =
+Backing up your WordPress website is easy with WP BackItUp.  Simply install WP BackItUp and within minutes you will have a complete backup of your entire site.  No complex configuration to deal with.  No advanced knowledge of WordPress required. No FTP, cPanel, MySQL or PHPMyAdmin involved.  If you can press a button then you can backup your WordPress site with WP BackItUp.
 
-WP BackItUp creates a backup archive (zip) of your entire website (database, plugins, themes, uploads, content) with a single click.  Backup archives can be quickly and easily downloaded so that they can be stored securely and separately from your hosted Wordpress site.
+WP BackItUp creates a backup archive (zip) of your entire website (database, plugins, themes, uploads, content) with a single click.  Backup archives can be quickly and easily downloaded so that they can be stored securely and separately from your hosted WordPress site.
 
 Here are just a few of our incredible features.
 
@@ -25,31 +25,31 @@ Here are just a few of our incredible features.
 * **Easy to setup** because there is no setup required
 * **Simple** & easy to understand interface
 * **Fast** backups
+* Automated backups allow you to **schedule** your backups to run whenever you need them to (premium only)
 * Support if you run into any trouble
-* Status notifications by email
+* Backup status notifications by email
 * Works in low memory & shared hosting environments
-* Works on all Wordpress platforms (Linux & Windows Server)
+* Works on all WordPress platforms (Linux, Windows and even Azure)
 * **Complete backup**, which includes database, plugins, themes, uploads, everything
 * Compresses(zip) your backups to **save** you **space**
 * Stores backups to a folder on your server
 * Download backup archives right from your WordPress dashboard
 * Cleans up all work files to save space
-* Simple **restore** right from your Wordpress dashboard(premium only)
+* Simple **restore** right from your WordPress dashboard(premium only)
 * Debug mode that provides full logging of the backup
 * Tested and supported on all current PHP versions (5.2, 5.3, 5.4, 5.5)
 * Premium version and priority support available
 
-
 = Don't Risk Losing Your Website =
-Does the thought of losing your website keep you up at night? All the time, effort and money you've invested, gone in an instant.  Wordpress is an incredible product but there are many things that can cause you to lose your website.  You could get hacked, your hosting company could go out of business, you could install a bad plugin or theme, the list is endless and without good backups, you could lose everything. If this isn't one of the things keeping you up at night, then it really should be. It was keeping us up at night so we decided to do something about it.
+Does the thought of losing your website keep you up at night? All the time, effort and money you've invested, gone in an instant.  WordPress is an incredible product but there are many things that can cause you to lose your website.  You could get hacked, your hosting company could go out of business, you could install a bad plugin or theme, the list is endless and without good backups, you could lose everything. If this isn't one of the things keeping you up at night, then it really should be. It was keeping us up at night so we decided to do something about it.
 
-In 2012 we created the WP BackItUp plugin and made it freely available to the Wordpress community so that we can all sleep better at night knowing our content is safe.  Since 2012 we have added many incredible features and even created a premium version, but our fundamental goal is still the same.   We want to make Wordpress backups as **simple**, **effective** and **easy** as possible because we don’t want anything to stop you from backing up your Wordpress site regularly.  We offer this plugin to you for free so that you will **BackItUp** and sleep better at night.
+In 2012 we created the WP BackItUp plugin and made it freely available to the WordPress community so that we can all sleep better at night knowing our content is safe.  Since 2012 we have added many incredible features and even created a premium version, but our fundamental goal is still the same.   We want to make WordPress backups as **simple**, **effective** and **easy** as possible because we don’t want anything to stop you from backing up your WordPress site regularly.  We offer this plugin to you for free so that you will **BackItUp** and sleep better at night.
 
 = Automatically Restore/Clone/Migrate your Website? =
-Need to restore, clone or migrate your website to another host, we make that easy too.  The premium version of WP BackItUp will allow you to restore your site from backup with a single click.  All you need to do is select the backup you want to restore and click restore, right from your Wordpress dashboard. That’s it, your site is back up and running in minutes.
+Need to restore, clone or migrate your website to another host, we make that easy too.  The premium version of WP BackItUp will allow you to restore your site from backup with a single click.  All you need to do is select the backup you want to restore and click restore, right from your WordPress dashboard. That’s it, your site is back up and running in minutes.
 
 = Free Support =
-We offer free support via the Wordpress [support forum](http://wordpress.org/support/plugin/wp-backitup) for this plugin but before posting a question please make sure you are running the current version of WP BackItUp. We make frequent releases to add features and fix issues so please make sure you are up to date before posting an issue.   We also ask that you review the [online documentation](http://www.wpbackitup.com/documentation/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+doc) and [FAQ's](https://www.wpbackitup.com/documentation/faqs/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+faq) sections of [www.wpbackitup.com](http://www.wpbackitup.com/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+a) before posting your questions.
+We offer free support via the WordPress [support forum](http://wordpress.org/support/plugin/wp-backitup) for this plugin but before posting a question please make sure you are running the current version of WP BackItUp. We make frequent releases to add features and fix issues so please make sure you are up to date before posting an issue.   We also ask that you review the [online documentation](http://www.wpbackitup.com/documentation/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+doc) and [FAQ's](https://www.wpbackitup.com/documentation/faqs/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+faq) sections of [www.wpbackitup.com](http://www.wpbackitup.com/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=free+support+a) before posting your questions.
 
 = Professional Support =
 WP BackItUp is supported by a team of professional developers.  If you are using WP BackItUp to secure your business website then professional support is available to our premium customers. Please see [www.wpbackitup.com](http://www.wpbackitup.com/?utm_medium=partner&utm_source=wordpress.org&utm_campaign=plugin+directory&utm_content=description&utm_term=professional+support+a) for details.
@@ -117,7 +117,7 @@ Please see [www.wpbackitup.com](https://www.wpbackitup.com/pricing-purchase/?utm
 Yes, the database export contains everything related to the database.
 
 = Can I make a basic WordPress site, with all my desired plugins and settings, make a few pages, setup permalinks, remove all the default junk and then use it as a template for all my new WordPress sites? =
-Yes. WP BackItUp is used by many professional designers & developers just this way.  Once you have your Wordpress site setup the way you want, just BackItUp and use that backup archive as a starting point for all your new sites.
+Yes. WP BackItUp is used by many professional designers & developers just this way.  Once you have your WordPress site setup the way you want, just BackItUp and use that backup archive as a starting point for all your new sites.
 
 = Does WP BackItUp need to be installed? =
 Yes, WP BackItUp is just like any other WordPress plugin. You must install it on any site that you wish to perform a backup or restore. 
@@ -129,7 +129,7 @@ WP Backitup creates a backup of **everything**.  This includes plugins, plugin s
 WP BackItUp can be used to backup very large sites.  We`ve tested up to 5 themes, 20 plugins and more than 100 posts/pages without any issues.
 
 = Do you do regularly update this product to match with WP version updates? =
-Yes. We continually improve WP BackItUp and test it with every new version ow Wordpress.
+Yes. We continually improve WP BackItUp and test it with every new version ow WordPress.
 
 = I am not running the most recent version of WP BackItUp. Should I upgrade? =
 Yes, please make sure you are always running the current version of WP BackItUp. 
@@ -141,9 +141,14 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Screenshots ==
-1. Once activated, the plugin loads a new menu into your toolbar.
+1. Once activated, the plugin loads a new menu into your WordPress dashboard.
 2. Simply click 'Backup' to generate a backup of your site. The plugin will update you on its progress.
-3. When the backup has been created, click the download link to access a zipped backup of your site.
+3. When the backup is complete it will appear in the available backups section where you can download it to store somewhere safe .
+4. Automated backups may be scheduled for any day of the week. (Premium Only)
+5. Restore your site from any backup with the one click restore feature. (Premium Only)
+6. Backups may be uploaded via the upload option.
+7. Email notifications, backup retention and logging settings are available in settings.
+
 
 == Changelog ==
 = 1.9 =
@@ -156,7 +161,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 = 1.8 =
-* Updates: Wordpress 4.0 support
+* Updates: WordPress 4.0 support
 * Feature: Add support for large database restore.
 * Feature: Add database checkpoint recovery for database restore failures
 * Feature: Add restore logging on all restores
@@ -201,11 +206,11 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 * Updates to license activation
 
 = 1.6.7 =
-*	Wordpress 3.9.1 support
+*	WordPress 3.9.1 support
 *	Unicode fix to support utf8 content
 
 = 1.6.6 =
-*	Wordpress 3.9 support
+*	WordPress 3.9 support
 
 = 1.6.5 =
 *	Correct issue with subversion tags
