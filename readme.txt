@@ -21,7 +21,7 @@ Here are just a few of our incredible features.
 
 **Features**
 ------------
-* **Easy to use**,  just one click and your site is backed up
+* **Easy to use**, just one click and your site is backed up
 * **Easy to setup** because there is no setup required
 * **Simple** & easy to understand interface
 * **Fast** backups
