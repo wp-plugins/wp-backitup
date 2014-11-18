@@ -21,7 +21,7 @@ Here are just a few of our incredible features.
 
 **Features**
 ------------
-* **Easy to use**, just one click and your site is backed up
+* **Easy to use**,  just one click and your site is backed up
 * **Easy to setup** because there is no setup required
 * **Simple** & easy to understand interface
 * **Fast** backups
@@ -151,6 +151,17 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.9.1 =
+* New Features: Long running backups are now supported.
+* Update: Extensive Performance improvements
+* Update: User experience improvements to backup.
+* Update: Extensive updates to error handling and messaging
+* Update: Enhancements to backup email notification.
+* Update: Logging enhancements.
+* Update: Automated cleanup uses file retention limits for all logs.
+* Update: Security enhancements to prevent unwanted access to backup, restore and log folders.
+* Fix: IFrame css definition changed to use wp-backitup namespace.
+
 = 1.9 =
 * New Features: Scheduled backups are now available.
 * New Feature:  Allow only a single backup to be run at a time.

@@ -34,7 +34,7 @@ class WPBackitup_Admin {
     private $backup_count; //getter will load
     private $successful_backup_count;
 
-    public $backup_type;
+	public $backup_type;
 
     
     // Default plugin options
@@ -52,12 +52,14 @@ class WPBackitup_Admin {
         'backup_retained_number' => "3",
         'lite_backup_retained_number' => "1",
         'lite_registration_email' => "",
+        'lite_registration_first_name' => "",
         'backup_count'=>0,
         'successful_backup_count'=>0,
         'stats_last_check_date'=> "1970-01-01 00:00:00",
         'backup_schedule'=>"",
-        'backup_lastrun_date'=>"2147483648",
-        'cleanup_lastrun_date'=>"2147483648",
+        'backup_lastrun_date'=>"-2147483648",
+        'cleanup_lastrun_date'=>"-2147483648",
+	    'backup_batch_size'=>"10",
     );
 
 
@@ -66,7 +68,6 @@ class WPBackitup_Admin {
      */
     public static function get_instance() {
         if ( ! self::$instance ) {
-//            echo('new instance');
             self::$instance = new self();
         }
 
@@ -105,10 +106,10 @@ class WPBackitup_Admin {
         add_filter( 'plugin_action_links', array( &$this, 'plugin_action_links' ), 10, 2 );
         
         //Load all the resources
-        add_action( 'admin_enqueue_scripts', array( &$this, 'load_resources' ) );   
+        add_action( 'admin_enqueue_scripts', array( &$this, 'load_resources' ) );
 
         //Load the backup action
-        add_action('wp_ajax_wp-backitup_backup', array( &$this, 'ajax_backup' ));
+        add_action('wp_ajax_wp-backitup_backup', array( &$this, 'ajax_queue_backup' ));
 
         //Load the restore action
         add_action('wp_ajax_wp-backitup_restore', array( &$this, 'ajax_restore' ));
@@ -117,9 +118,11 @@ class WPBackitup_Admin {
         add_action('wp_ajax_wp-backitup_upload', array( &$this, 'ajax_upload' ));
 
 	    //Status reader for UI
-	    add_action('wp_ajax_wp-backitup_status_reader', array( &$this,'ajax_status_reader'));
+	    add_action('wp_ajax_wp-backitup_restore_status_reader', array( &$this,'ajax_get_restore_status'));
 
-        add_action('wp_ajax_wp-backitup_response_reader', array( &$this,'ajax_response_reader'));
+	    add_action('wp_ajax_wp-backitup_backup_status_reader', array( &$this,'ajax_get_backup_status'));
+
+        add_action('wp_ajax_wp-backitup_backup_response_reader', array( &$this,'ajax_backup_response_reader'));
 
         //Delete File Action
         add_action('wp_ajax_wp-backitup_delete_file', array( &$this,'ajax_delete_file'));
@@ -131,9 +134,12 @@ class WPBackitup_Admin {
         add_action('admin_post_nopriv_listlogs', array( &$this,'admin_listlogs'));
 
         //Create Daily backup action
-        add_action( 'wpbackitup_check_scheduled_tasks',  array( &$this,'wpbackitup_check_scheduled_tasks'));
+        add_action( 'wpbackitup_queue_scheduled_jobs',  array( &$this,'wpbackitup_queue_scheduled_jobs'));
 
-        add_action( 'wpbackitup_resume_backup',  array( &$this,'wpbackitup_resume_backup'));
+        add_action( 'wpbackitup_run_backup_tasks',  array( &$this,'wpbackitup_run_backup_tasks'));
+
+	    add_action( 'wpbackitup_run_cleanup_tasks',  array( &$this,'wpbackitup_run_cleanup_tasks'));
+
     }
 
     /**
@@ -163,44 +169,28 @@ class WPBackitup_Admin {
         // remove duplicate submenu page. wp limitations // 
         // http://wordpress.stackexchange.com/questions/16401/remove-duplicate-main-submenu-in-admin
         remove_submenu_page($this->namespace,$this->namespace); 
-        
-        // Add print scripts and styles action based off the option page hook
-        add_action( 'admin_print_scripts', array( &$this, 'admin_print_scripts' ) );
-        add_action( 'admin_print_styles', array( &$this, 'admin_print_styles' ) );
-    }
-
-    /**
-     * Load JavaScript for the admin options page
-     * 
-     * @uses wp_enqueue_script()
-     */
-    public  function admin_print_scripts() {
-        wp_enqueue_script( "{$this->namespace}-admin" );
-        wp_enqueue_script( "{$this->namespace}-admin-viewlog" );
 
     }
 
     public  function load_resources() {
-        // Admin JavaScript
-        wp_register_script( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "js/wpbackitup_admin.js", array( 'jquery' ), $this->version, true );
-        //wp_register_script( "{$this->namespace}-admin-viewlog", WPBACKITUP__PLUGIN_URL . "/js/admin_test.js", array( 'jquery' ), $this->version, true );
 
-        // Admin Stylesheet
-        wp_register_style( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "css/wpbackitup_admin.css", array(), $this->version, 'screen' );
+	    //Only load the JS and CSS when plugin is active
+	    if( !empty($_REQUEST['page']) && substr($_REQUEST['page'], 0, 11) === 'wp-backitup') {
 
-        wp_register_style( 'google-fonts', '//netdna.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.css');
-        wp_enqueue_style( 'google-fonts' );
+		    // Admin JavaScript
+		    wp_register_script( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "js/wpbackitup_admin.js", array( 'jquery' ), $this->version, true );
+		    wp_enqueue_script( "{$this->namespace}-admin" );
+
+		    // Admin Stylesheet
+		    wp_register_style( "{$this->namespace}-admin", WPBACKITUP__PLUGIN_URL . "css/wpbackitup_admin.css", array(), $this->version, 'screen' );
+		    wp_enqueue_style( "{$this->namespace}-admin" );
+
+			//Admin fonts
+		    wp_register_style( 'google-fonts', '//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css' );
+		    wp_enqueue_style( 'google-fonts' );
+	    }
     }
 
-    /**
-     * Load Stylesheet for the admin options page
-     * 
-     * @uses wp_enqueue_style()
-     */
-    public  function admin_print_styles() {
-        wp_enqueue_style( "{$this->namespace}-admin" );
-    }
-    
     /**
      * The admin section backup page rendering method
      * 
@@ -312,41 +302,168 @@ class WPBackitup_Admin {
         $this->check_license();
     }
 
-    public function wpbackitup_check_scheduled_tasks(){
+	public function wpbackitup_queue_scheduled_jobs(){
 
-        if( !class_exists( 'WPBackItUp_Scheduler' ) ) {
-            include_once 'class-scheduler.php';
-        }
+		//Include Scheduler Class
+		if( !class_exists( 'WPBackItUp_Scheduler' ) ) {
+			include_once 'class-scheduler.php';
+		}
 
-        $scheduler = new WPBackItUp_Scheduler();
-        if ($scheduler->isTaskScheduled('backup')){
-            $this->backup_type='scheduled';
-            include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/backup.php' );
-            exit(0); //success - don't run anything else after a backup
-        }
+		//Include Job class
+		if( !class_exists( 'WPBackItUp_Job' ) ) {
+			include_once 'class-job.php';
+		}
 
-        if ($scheduler->isTaskScheduled('cleanup')){
-            $this->backup_type='cleanup';
-            include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/backup.php' );
-        }
-    }
+		//If no backup or cleanup queued already then queue one
+		if (!WPBackItUp_Job::is_job_queued('backup')) {
 
-    //Next Release
-    function wpbackitup_resume_backup(){
+			//Is it time for a backup?
+			//Check scheduler and queue tasks that need to be run
+			$scheduler = new WPBackItUp_Scheduler();
+			if ( $scheduler->isTaskScheduled( 'backup' ) && !WPBackItUp_Job::is_job_queued('cleanup')) {
+				$backup_job = WPBackItUp_Job::queue_job( 'backup' );
+
+				//Setup the job run event
+				wp_schedule_single_event( time(), 'wpbackitup_run_backup_tasks' );
+
+				exit( 0 ); //success - don't schedule anything else
+			}
+		} else {
+			//backup is queued are tasks scheduled
+			if (false===wp_next_scheduled('wpbackitup_run_backup_tasks')){
+				wp_schedule_single_event( time(), 'wpbackitup_run_backup_tasks' );
+			}
+		}
+
+		//If no backup or cleanup queued already then queue one
+		if (!WPBackItUp_Job::is_job_queued('cleanup')) {
+			//Is it time for a cleanup
+			//Check scheduler and queue tasks that need to be run
+			$scheduler = new WPBackItUp_Scheduler();
+			if ( $scheduler->isTaskScheduled( 'cleanup' ) && !WPBackItUp_Job::is_job_queued('backup')  ) {
+				$cleanup_job = WPBackItUp_Job::queue_job( 'cleanup' );
+
+				//Setup the job run event
+				wp_schedule_single_event( time(), 'wpbackitup_run_cleanup_tasks' );
+
+				exit( 0 ); //success - don't schedule anything else
+			}
+		} else{
+			//cleanup is queued are tasks scheduled
+			if (false===wp_next_scheduled('wpbackitup_run_cleanup_tasks')){
+				wp_schedule_single_event( time(), 'wpbackitup_run_cleanup_tasks' );
+			}
+
+		}
+
+		exit(0); //success nothing to schedule
+	}
+
+	//Run queue manual backup
+	public  function ajax_queue_backup() {
+		$logger = new WPBackItUp_Logger(false,null,'debug_events');
+		$logger->log_info(__METHOD__,'Begin');
+
+		//Include Job class
+		if( !class_exists( 'WPBackItUp_Job' ) ) {
+			include_once 'class-job.php';
+		}
+
+		$rtnData = new stdClass();
+		//If no backup queued already then queue one
+		if (!WPBackItUp_Job::is_job_queued('backup')){
+			if (WPBackItUp_Job::queue_job('backup')){
+				$rtnData->message = 'Backup Queued';
+			}else {
+				$rtnData->message = 'Backup could not be queued';
+			}
+		}else{
+			$rtnData->message = 'Backup already in queue';
+		}
+
+		$logger->log_info(__METHOD__,$rtnData->message);
+		$logger->log_info(__METHOD__,'End');
+		echo json_encode($rtnData);
+		exit;
+	}
+
+	//Run scheduled backup tasks
+    function wpbackitup_run_backup_tasks(){
+	    $process_id = uniqid();
+
+	    $event_logger = new WPBackItUp_Logger(false,null,'debug_events');
+	    $event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'Begin');
+
+	    //Try Run Next Backup Tasks
+	    $event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run Backup Task');
+
+	    $this->backup_type='scheduled';
+	    include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_backup.php' );
+
+	    $event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run Backup Task');
 
         exit(0);
-
     }
 
-    //load backup
-    public  function ajax_backup() {
-      $this->backup_type='manual';
-      include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/backup.php' );
-    }
+	//Run scheduled backup tasks
+	function wpbackitup_run_cleanup_tasks(){
+		$process_id = uniqid();
+
+		$event_logger = new WPBackItUp_Logger(false,null,'debug_events');
+		$event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'Begin');
+
+		//Try Run Next Backup Tasks
+		$event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run cleanup Task');
+
+		$this->backup_type='scheduled';
+		include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_cleanup.php' );
+
+		$event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run cleanup Task');
+
+		exit;
+	}
+
+
+	public  function ajax_get_restore_status() {
+		$log = WPBACKITUP__PLUGIN_PATH .'/logs/restore_status.log';
+		if(file_exists($log) ) {
+			readfile($log);
+		}
+		exit;
+	}
+
+
+	/**
+	 * Return the backup status and try run tasks
+	 */
+	public  function ajax_get_backup_status() {
+		$process_id = uniqid();
+
+		$event_logger = new WPBackItUp_Logger(false,null,'debug_events');
+		$event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'Begin');
+
+		//Try Run Next Backup Tasks
+		$event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run Backup Task');
+
+		$this->backup_type='manual';
+		include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_backup.php' );
+
+		$event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run Backup Task');
+
+		//return status
+		$log = WPBACKITUP__PLUGIN_PATH .'/logs/backup_status.log';
+		if(file_exists($log) ) {
+			//Probably should use the database instead now.
+			readfile($log);
+			$event_logger->log_info(__METHOD__.'(' .$process_id .')','Status sent to browser.');
+		}
+
+		exit;
+	}
 
     //load restore
     public  function ajax_restore() {
-        include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/restore.php' );
+        include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_restore.php' );
     }
 
     //load upload
@@ -354,16 +471,10 @@ class WPBackitup_Admin {
         include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/upload.php' );
     }
 
-    public  function ajax_status_reader() {
-		$log = WPBACKITUP__PLUGIN_PATH .'/logs/status.log';
-		if(file_exists($log) ) {
-			readfile($log);
-		}
-		exit;
-	}
 
-    public  function ajax_response_reader() {
-        $log = WPBACKITUP__PLUGIN_PATH .'/logs/response.log';
+
+    public  function ajax_backup_response_reader() {
+        $log = WPBACKITUP__PLUGIN_PATH .'/logs/backup_response.log';
         if(file_exists($log) ) {
             readfile($log);
         }else{
@@ -436,16 +547,20 @@ class WPBackitup_Admin {
             //Could have just been a license update
             if(!empty($data)) {
 
+
+	            //** VALIDATE backup_retained_number **//
                 //Set back to original settings if value not changed
                 if(!empty($data['backup_retained_number']) && !is_numeric($data['backup_retained_number']))
                 {
                   $data['backup_retained_number'] = $this->defaults['backup_retained_number'];
                   set_transient('settings-error-number', __('Please enter a number', $this->namespace), 60);
+
                 }
                 else{ //Empty OR not NUMERIC
 
                     //Empty
                     if ( empty($data['backup_retained_number']) ){
+	                    $data['backup_retained_number'] = $this->defaults['backup_retained_number'];
                         set_transient('settings-error-number', __('Please enter a number', $this->namespace), 60);
                     }
 
@@ -463,11 +578,21 @@ class WPBackitup_Admin {
 
                 }
 
+	            //** VALIDATE notification_email **//
                 if(!empty($data['notification_email']) && !is_email($data['notification_email']))
                 {
                   $data['notification_email'] = $this->defaults['notification_email'];
                   set_transient('settings-error-email', __('Please enter a a valid email', $this->namespace), 60);
                 }
+
+
+	            //** VALIDATE backup_batch_size **//
+	            if(empty($data['backup_batch_size']) || !is_numeric($data['backup_batch_size']))
+	            {
+		            $data['backup_batch_size'] = $this->defaults['backup_batch_size'];
+		            set_transient('batch_size_settings-error-number', __('Please enter a number', $this->namespace), 60);
+	            }
+
 
                 // Update the options value with the data submitted
                 foreach( $data as $key => $val ) {
@@ -503,8 +628,8 @@ class WPBackitup_Admin {
             $this->set_backup_schedule($days_selected);
 
             //Add backup scheduled if doesnt exist
-            if(!wp_next_scheduled( 'wpbackitup_check_scheduled_tasks' ) ){
-                wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_check_scheduled_tasks');
+            if(!wp_next_scheduled( 'wpbackitup_queue_scheduled_jobs' ) ){
+                wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_queue_scheduled_jobs');
             }
 
             return true;
@@ -527,7 +652,7 @@ class WPBackitup_Admin {
              * dealt with directly.
              */
 
-            $logger = new WPBackItUp_Logger(false);
+            $logger = new WPBackItUp_Logger(false,null,'debug_lite_registration');
             $logger->log("Register WP BackItUp Lite");
             $logger->log($_POST);
 
@@ -536,53 +661,35 @@ class WPBackitup_Admin {
             if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)){
                 $urlparts = parse_url(site_url());
                 $domain = $urlparts['host'];
-                $logger->log('Lite Registration Values: ' .$domain .':' .$email);
 
-                //Not capturing these yet
-                $first_name='';
-                $last_name='';
+                $first_name=$_POST['first_name'];
 
-                //save option to DB
+                //save options to DB
                 $this->set_option('lite_registration_email', $email);
-
-                //register with mail chimp
-                //$mailchimp_form_id = '5e70c18c53'; //DEV
-                $mailchimp_form_id = '8e8e45c83b'; //PRD
-
-                $url = WPBACKITUP__SECURESITE_URL; //PRD
-                //$url="http://localhost/dev.wpbackitup.com"; //DEV
-
+	            if(!empty($first_name)){
+	                $this->set_option('lite_registration_first_name', $first_name);
+	            }
 
                 $form_data =  array(
-//                    '_wpnonce'=>'d0c887e966',
-//                    '_wp_http_referer'=>'/' .$url .'/test-newsletter-signup',
-                    'yks-mailchimp-list-ct'=>'0',
-                    'yks-mailchimp-list-id'=>$mailchimp_form_id,
-                    $mailchimp_form_id .'EMAIL' => $email,
-                    $mailchimp_form_id .'WEBSITE' => $domain,
-                    $mailchimp_form_id .'FNAME' => $first_name,
-                    $mailchimp_form_id .'LNAME' => $last_name
+                        'email' => $email,
+                        'site' => $domain,
+                        'first_name' => $first_name,
+	                    'time_zone'=> get_option('timezone_string'),
                 );
 
-                //URL Encode the Form Data
-                $form_data=http_build_query($form_data);
-                $post_url=$url . '/wp-admin/admin-ajax.php';
+	            $url = WPBACKITUP__SECURESITE_URL; //PRD
+	            $post_url=$url . '/api/wpbackitup/register_lite';
 
                 $logger->log('Lite User Registration Post URL: ' .$post_url);
-                $logger->log('Lite User Registration Post Form Data: ' .$form_data);
+                $logger->log('Lite User Registration Post Form Data: ' );
+	            $logger->log($form_data);
 
                 $response = wp_remote_post( $post_url, array(
                         'method' => 'POST',
                         'timeout' => 45,
-                        'redirection' => 5,
-                        'httpversion' => '1.0',
                         'blocking' => true,
                         'headers' => array(),
-                        'body' => array(
-                        'action' => 'yks_mailchimp_form'
-                        , 'form_action' => 'frontend_submit_form'
-                        , 'form_data' => $form_data
-                        ),
+                        'body' => $form_data,
                         'cookies' => array()
                     )
                 );
@@ -693,6 +800,11 @@ class WPBackitup_Admin {
     public function cleanup_lastrun_date(){
         return $this->get('cleanup_lastrun_date');
     }
+
+	public function backup_batch_size(){
+		return $this->get('backup_batch_size');
+	}
+
 
 
     /**
@@ -812,6 +924,10 @@ class WPBackitup_Admin {
         return $this->get('lite_registration_email');
     }
 
+	function lite_registration_first_name(){
+		return $this->get('lite_registration_first_name');
+	}
+
     function is_lite_registered(){
         $lite_email_registration= $this->lite_registration_email();
         if (!empty($lite_email_registration)) {
@@ -860,6 +976,10 @@ class WPBackitup_Admin {
     public function set_cleanup_lastrun_date($value){
         $this->set('cleanup_lastrun_date', $value);
     }
+
+	public function set_backup_batch_size($value){
+		$this->set('backup_batch_size', $value);
+	}
     /**---------- END SETTERS --------------- **/
 
 
@@ -926,10 +1046,20 @@ class WPBackitup_Admin {
             $api_params = array( 
                 'edd_action'=> 'activate_license', 
                 'license'   => $license, 
-                'item_name' => urlencode( WPBACKITUP__ITEM_NAME ) // the name of our product in EDD
+                'item_name' => urlencode( WPBACKITUP__ITEM_NAME ), // the name of product in EDD
+                //'url'        => home_url()
             );
-            
-            $response = wp_remote_get( add_query_arg( $api_params, WPBACKITUP__SECURESITE_URL ), array( 'timeout' => 15, 'sslverify' => true ) );
+
+	        $logger->log('Activate License Request Info:');
+	        $logger->log($api_params);
+
+            $response = wp_remote_get(
+	            add_query_arg( $api_params, WPBACKITUP__SECURESITE_URL ),
+	            array(
+		            'timeout' => 15,
+	                'sslverify' => false
+	            )
+            );
             $logger->log('Validation Response:');
             $logger->log($response);
 
@@ -1114,9 +1244,12 @@ class WPBackitup_Admin {
      */
     public static function activate() {
        try{
+	       //Get rid of old job
+	       wp_clear_scheduled_hook('wpbackitup_check_scheduled_tasks');
+
 	       //add cron task for once per hour starting in 1 hour
-	       if(!wp_next_scheduled( 'wpbackitup_check_scheduled_tasks' ) ){
-		       wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_check_scheduled_tasks');
+	       if(!wp_next_scheduled( 'wpbackitup_queue_scheduled_jobs' ) ){
+		       wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_queue_scheduled_jobs');
 	       }
 
             //Check backup folder folders
@@ -1125,17 +1258,41 @@ class WPBackitup_Admin {
                  @mkdir($backup_dir, 0755);
              }
 
-             //Check restore folder folders
-             $restore_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER;
-             if( !is_dir($restore_dir) ) {
-                 @mkdir($restore_dir, 0755);
-             }
+	       //Check index in backup
+	       $backup_index = $backup_dir .'/index.html';
+	       if( !is_file($backup_index) ) {
+		       //create index.html
+		       $dfh = fopen( $backup_index, 'a' );
+		       fclose( $dfh );
+	       }
+
+           //Check restore folder folders
+           $restore_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER;
+           if( !is_dir($restore_dir) ) {
+               @mkdir($restore_dir, 0755);
+           }
+
+	       //check index in restore
+	       $restore_index = $restore_dir .'/index.html';
+	       if( !is_file($restore_index) ) {
+		       //create index.html
+		       $dfh = fopen( $restore_index, 'a' );
+		       fclose( $dfh );
+	       }
 
              //Check permissions on logs
              $logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs';
              if(is_dir($logs_dir) ) {
 	             chmod($logs_dir, 0755);
              }
+
+	       //check index in logs
+	       $logs_index = $logs_dir .'/index.html';
+	       if( !is_file($logs_index) ) {
+		       //create index.html
+		       $dfh = fopen( $logs_index, 'a' );
+		       fclose( $dfh );
+	       }
 
 			//Make sure they exist now
 			if( !is_dir($backup_dir) || !is_dir($restore_dir)) {
@@ -1153,7 +1310,7 @@ class WPBackitup_Admin {
     public static function deactivate() {
         // Do deactivation actions
 
-        wp_clear_scheduled_hook( 'wpbackitup_check_scheduled_tasks');
+        wp_clear_scheduled_hook( 'wpbackitup_queue_scheduled_jobs');
     }
 
     /* ---------------------     PRIVATES      -----------------------------------------*/

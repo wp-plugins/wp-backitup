@@ -27,6 +27,7 @@
         // get retention number set
         $retain_archives = $this->backup_retained_number();
 
+		$lite_registration_first_name = $this->lite_registration_first_name();
         $lite_registration_email = $this->lite_registration_email();
         $is_lite_registered = $this->is_lite_registered();
 
@@ -164,7 +165,7 @@ if (!$backup_folder_exists) {
 	        //Local Date Time
 	        $file_datetime = get_date_from_gmt(date('Y-m-d H:i:s', filemtime($file)), 'Y-m-d g:i a');
 
-	        $success_logExists    = false;
+	        $logExists    = false;
             if ('zip'==$file_type) {
 	            $zip_exists   = true;
 	            $log_file     = str_replace( '.zip', '.log', $file );
@@ -185,7 +186,6 @@ if (!$backup_folder_exists) {
 
             <tr <?php echo $class ?> id="row<?php echo $i; ?>">
               <td><?php echo $file_datetime ?></td>
-              <td><?php echo $filename ?></td>
 
 	          <?php if ($zip_exists) :?>
                 <td><a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $filename; ?>">Download</a></td>
@@ -231,35 +231,31 @@ if (!$backup_folder_exists) {
 
       <!--backup status messages-->
       <ul class="backup-status">
-        <li class="preparing"><?php _e('Preparing for backup', $namespace); ?>...<span class='status-icon'><img class="preparing-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class='backupdb'><?php _e('Backing-up database', $namespace); ?>...<span class='status-icon'><img class="backupdb-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class='infofile'><?php _e('Creating backup information file', $namespace); ?>...<span class='status-icon'><img class="infofile-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class='backupfiles'><?php _e('Backing up plugins, themes, and uploads', $namespace); ?>...<span class='status-icon'><img class="backupfiles-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class='zipfile'><?php _e('Zipping backup directory', $namespace); ?>...<span class='status-icon'><img class="zipfile-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class='cleanup'><?php _e('Cleaning up', $namespace); ?>...<span class='status-icon'><img class="cleanup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
+        <li class="preparing"><?php _e('Preparing for backup', $namespace); ?>...<span class='status-icon'><img class="preparing-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+        <li class='backupdb'><?php _e('Backing up database', $namespace); ?>...<span class='status-icon'><img class="backupdb-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+        <li class='infofile'><?php _e('Creating backup information file', $namespace); ?>...<span class='status-icon'><img class="infofile-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+	    <li class='backup_themes'><?php _e('Backing up themes', $namespace); ?>...<span class='status-icon'><img class="backup_themes-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+	    <li class='backup_plugins'><?php _e('Backing up plugins', $namespace); ?>...<span class='status-icon'><img class="backup_plugins-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+	    <li class='backup_uploads'><?php _e('Backing up uploads', $namespace); ?>...<span class='status-icon'><img class="backup_uploads-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+	    <li class='backup_other'><?php _e('Backing up everything else', $namespace); ?>...<span class='status-icon'><img class="backup_other-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+        <li class='finalize_backup'><?php _e('Finalizing backup', $namespace); ?>...<span class='status-icon'><img class="finalize_backup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+	    <li class='validate_backup'><?php _e('Validating backup', $namespace); ?>...<span class='status-icon'><img class="validate_backup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+        <li class='cleanup'><?php _e('Cleaning up', $namespace); ?>...<span class='status-icon'><img class="cleanup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
       </ul>
 
-      <!--backup error messages-->
-      <div class="backup-errors">
-        <span class="error101"><div class='isa_error'><?php _e('Error 101: Unable to create a new directory for backup. Please check your CHMOD settings of your wp-backitup backup directory', $namespace); ?>.</div></span>
-        <span class="error102"><div class='isa_error'><?php _e('Error 102: Cannot create backup directory. Please check the CHMOD settings of your wp-backitup plugin directory', $namespace); ?>.</div></span>
-        <span class="error103"><div class='isa_error'><?php _e('Error 103: Unable to backup your files. Please try again', $namespace); ?>.</div></span>
-        <span class="error104"><div class='isa_error'><?php _e('Error 104: Unable to backup your database. Please try again', $namespace); ?>.</div></span>
-        <span class="error105"><div class='isa_error'><?php _e('Error 105: Unable to create site information file. Please try again', $namespace); ?>.</div></span>
-        <span class="error106"><div class='isa_warning'><?php _e('Warning 106: Unable to cleanup your backup directory', $namespace); ?>.</div></span>
-        <span class="error107"><div class='isa_error'><?php _e('Error 107: Unable to compress(zip) your backup. Please try again', $namespace); ?>.</div></span>
-        <span class="error114"><div class='isa_error'><?php _e('Error 114: Your database was accessible but an export could not be created. Please contact support by clicking the get support link on the right. Please let us know who your host is when you submit the request', $namespace); ?>.</div></span>
-      </div>
-
       <!--Error status messages-->
-      <ul class="backup-unexpected-error">
-          <span class='error999'><div class='isa_error'><?php _e('An unexpected error has occurred. ', $namespace); ?></div></span>
+      <ul class="backup-error">
+	      <!--Warning PlaceHolder-->
       </ul>
 
        <!--success messages-->
-      <div class="backup-success">
-        <span class='finalinfo'><div class='isa_success'><?php _e('Backup completed successfully. ', $namespace); ?></div></span>
-      </div>  
+	  <ul class="backup-success">
+		  <li class='isa_success'><?php _e('Backup completed successfully. ', $namespace); ?></li>
+	  </ul>
+
+      <ul class="backup-warning">
+	      <!--Warning PlaceHolder-->
+	  </ul>
 
     </div>   
 
@@ -284,6 +280,7 @@ if (!$backup_folder_exists) {
             <div class="widget">
                 <h3 class="promo"><?php _e('Register WP BackItUp', $namespace); ?></h3>
                 <p><?php _e('Enter your email address to register your version of WP BackItUp.  Registered users will receive <b>special offers</b> and access to our world class <b>support</b> team.', $namespace); ?></p>
+	            <input type="text" name="first_name" id="first_name" placeholder="first name" value="<?php echo($lite_registration_first_name) ?>" /><br/>
                 <input type="text" name="email" id="email" placeholder="email address" value="<?php echo($lite_registration_email) ?>" />
                 <div class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Register", $namespace) ?>" /></div>
             </div>

@@ -48,10 +48,10 @@ class WPBackItUp_FileSystem {
 
         if( is_dir($dir) ){
             //Make sure the folder is not in the ignore array
-            if (!$this->ignore($dir,$ignore)){
+            if (!$this->delete_ignore($dir,$ignore)){
                 if($dh = opendir($dir)) {
                     while( ($file = readdir($dh)) !== false ) {
-                        if (!$this->ignore($file,$ignore)) { //Check the file is not in the ignore array
+                        if (!$this->delete_ignore($file,$ignore)) { //Check the file is not in the ignore array
                             if(!is_dir($dir .'/'. $file)) {
                                 unlink($dir .'/'. $file); //delete the file
                                 $this->logger->log('(FileSytem.recursive_delete) File Deleted:' .$dir .'/'. $file);
@@ -197,6 +197,23 @@ class WPBackItUp_FileSystem {
         return false;
     }
 
+	private function delete_ignore($file, $ignoreList){
+
+		//Exclude these files and folders from the delete
+		if (in_array(basename($file), $ignoreList) ||
+		    //substr($file, 0, 1) == '.'   ||
+		    ($file == "." ) ||
+		    ($file == ".." ))
+		    //($file == "._" )
+		    //($file == "cgi-bin" ))
+		{
+			//$this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
+			return true;
+		}
+
+		return false;
+	}
+
     //Check for backup folders
     private function is_backup_folder($dir){
         if  (
@@ -323,7 +340,7 @@ class WPBackItUp_FileSystem {
         return true;
     }
 
-    function get_file_handle($path,$newFile) {
+    function get_file_handle($path,$newFile=false) {
         $this->logger->log('(FileSytem.get_file_handle) Path:' . $path);
 
         try {
@@ -353,5 +370,72 @@ class WPBackItUp_FileSystem {
         }
     }
 
+	/**
+	 * Copy single file
+	 * @param $from_file
+	 * @param $to_file
+	 *
+	 * @return bool
+	 */
+	function copy_file($from_file,$to_file) {
+		$this->logger->log('(FileSystem.copy_file) FROM Path:' . $from_file);
+		$this->logger->log('(FileSystem.copy_file) TO Path:' . $to_file);
+
+		try {
+			if (file_exists($from_file)){
+				if (copy($from_file,$to_file)){
+					$this->logger->log('(FileSystem.copy_file) File copied successfully.');
+					return true;
+				}
+				else{
+					$this->logger->log('(FileSystem.copy_file) File could not be copied:');
+					$this->logger->log(error_get_last());
+					return false;
+				}
+			}
+			else{
+				$this->logger->log('(FileSystem.copy_file) FROM File doesnt exist');
+				return false;
+			}
+
+		} catch(Exception $e) {
+			$this->logger->log('(FileSystem.copy_file) Exception:' . $e);
+			return false;
+		}
+	}
+
+	/**
+	 * Rename single file
+	 * @param $from_file
+	 * @param $to_file_name
+	 *
+	 * @return bool
+	 */
+	function rename_file($from_file,$to_file_name) {
+		$this->logger->log_info(__METHOD__,' FROM Path:' . $from_file);
+		$this->logger->log_info(__METHOD__,' TO Path:' . $to_file_name);
+
+		try {
+			if (file_exists($from_file)){
+				if (rename($from_file,$to_file_name)){
+					$this->logger->log_info(__METHOD__,'File renamed successfully.');
+					return true;
+				}
+				else{
+					$this->logger->log_error(__METHOD__,'File could not be copied:');
+					$this->logger->log(error_get_last());
+					return false;
+				}
+			}
+			else{
+				$this->logger->log_error(__METHOD__,'FROM File doesnt exist');
+				return false;
+			}
+
+		} catch(Exception $e) {
+			$this->logger->log_error(__METHOD__,' Exception:' . $e);
+			return false;
+		}
+	}
 
  }

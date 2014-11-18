@@ -67,5 +67,12 @@ class WPBackItUp_Utility {
 
         return $date_diff_seconds;
     }
-}	
+
+	function timestamp_diff_seconds($timestamp1,$timestamp2 ){
+		// get a difference represented as an int, number of seconds
+		$timestamp_diff_seconds = abs($timestamp1 - $timestamp2);
+
+		return $timestamp_diff_seconds;
+	}
+}
 

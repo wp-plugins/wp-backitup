@@ -6,6 +6,8 @@
     $license_active = $this->license_active();
     $is_lite_registered = $this->is_lite_registered();
 
+	$backup_batch_size=$this->backup_batch_size();
+
     //Hold off on this for a bit
     $disabled='';
 //    if (!$license_active && !$is_lite_registered){
@@ -72,6 +74,22 @@
         <p><?php _e('This option should only be turned on when troubleshooting issues with WPBackItUp support.', $namespace); ?></p>
         <p class="submit"><input type="submit" name="Save_Logging" class="button-primary" value="<?php _e("Save", $namespace) ?>" /></p>
       </div>
+
+     <div class="widget">
+	    <h3 class="promo"><i class="fa fa-wrench"></i> Advanced Settings</h3>
+		<p><b>These options should only be changed when working with WP BackItUp support.</b></p>
+		<input name="data[backup_batch_size]" id="wpbackitup_batch_size" type="text" size="2" value="<?php echo $backup_batch_size; ?>"/>
+		<label> Backup batch size</label>
+	    <p class="submit"><input type="submit" name="Save_AdvancedSettings" class="button-primary" value="<?php _e("Save", $namespace) ?>" />
+	     <?php
+	     if ( false !== ( $msg = get_transient('batch_size_settings-error-number') ) && $msg)
+	     {
+		     echo '<p class="error">'.$msg.'</p>';
+		     delete_transient('batch_size_settings-error-number');
+	     }
+	     ?>
+	    </p>
+ 	 </div>
 
       <!--Debug Widget-->
       <?php if (WP_DEBUG===true) :?> 

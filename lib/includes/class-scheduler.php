@@ -18,7 +18,7 @@ class WPBackItUp_Scheduler {
      */
     function __construct() {
 
-        $this->logger = new WPBackItUp_Logger(false,null,'task_scheduler');
+        $this->logger = new WPBackItUp_Logger(false,null,'debug_scheduler');
 
     }
 
@@ -86,7 +86,7 @@ class WPBackItUp_Scheduler {
 
             $lastrun_date = date("Ymd",$lastrun_datetime);
             $lastrun_dow =0;//0=none
-            if ($lastrun_datetime!=2147483648){// 1901-12-13:never run
+            if ($lastrun_datetime!=-2147483648){// 1901-12-13:never run
                 $lastrun_dow = date("N",$lastrun_datetime);
             }
 
@@ -138,14 +138,19 @@ class WPBackItUp_Scheduler {
             $lastrun_date = date("Ymd",$lastrun_datetime);
             $this->logger->log('Last Run Date Time:' . date( 'Y-m-d H:i:s',$lastrun_datetime));
 
-            //Did cleanup already run today
-            if ($current_date==$lastrun_date){
-                $this->logger->log('Cleanup already ran today');
-                return false;
+            //Has it been at least an hour since the last cleanup?
+
+	        $next_run_datetime=$lastrun_datetime+3600; //1 hour
+	        $this->logger->log('Next Run Date Time:' . date( 'Y-m-d H:i:s',$next_run_datetime));
+
+	        $this->logger->log('TimeToRun:' . $current_datetime . ':'.$next_run_datetime );
+            if ($current_datetime>=$next_run_datetime){
+	            $this->logger->log('Cleanup should be run now.');
+                return true;
             }
 
-            $this->logger->log('Cleanup should be run now.');
-            return true;
+	        $this->logger->log('Not yet time to run Cleanup.');
+            return false;
 
         }catch(Exception $e) {
             $this->logger->log_error(__METHOD__,'Exception: ' .$e);

@@ -12,7 +12,7 @@
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.9
+Version: 1.9.1
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
-define( 'WPBACKITUP__VERSION', '1.9');
+define( 'WPBACKITUP__VERSION', '1.9.1');
 define( 'WPBACKITUP__DEBUG', false );
 define( 'WPBACKITUP__MINIMUM_WP_VERSION', '3.0' );
 define( 'WPBACKITUP__ITEM_NAME', 'WP Backitup' ); 
@@ -58,8 +58,15 @@ define( 'WPBACKITUP__RESTORE_PATH',WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__
 
 define( 'WPBACKITUP__PLUGINS_ROOT_PATH',WP_PLUGIN_DIR );
 define( 'WPBACKITUP__THEMES_ROOT_PATH',get_theme_root() );
+define( 'WPBACKITUP__THEMES_FOLDER',basename(get_theme_root()));
 
 define( 'WPBACKITUP__SQL_DBBACKUP_FILENAME', 'db-backup.sql');
+
+define( 'WPBACKITUP__BACKUP_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft,wp-clone,backwpup,backupwordpress,cache');
+define( 'WPBACKITUP__TASK_TIMEOUT_SECONDS', 300);//300 = 5 minutes
+define( 'WPBACKITUP__SCRIPT_TIMEOUT_SECONDS', 900);//900 = 15 minutes
+
+define( 'WPBACKITUP__BACKUP_RETAINED_DAYS', 5);//5 days
 
 register_activation_hook( __FILE__, array( 'WPBackitup_Admin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'WPBackitup_Admin', 'deactivate' ) );
@@ -75,6 +82,37 @@ function wpbackitup_modify_cron_schedules($schedules) {
 
 add_filter('cron_schedules', 'wpbackitup_modify_cron_schedules', 30);
 
+function  wpbackitup_custom_post_status(){
+	register_post_status( 'queued', array(
+		'public'                    => false,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => false,
+		'show_in_admin_status_list' => true,
+	));
+
+	register_post_status( 'active', array(
+		'public'                    => false,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => false,
+		'show_in_admin_status_list' => true,
+	));
+
+	register_post_status( 'error', array(
+		'public'                    => false,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => false,
+		'show_in_admin_status_list' => true,
+	));
+
+	register_post_status( 'complete', array(
+		'public'                    => false,
+		'exclude_from_search'       => false,
+		'show_in_admin_all_list'    => false,
+		'show_in_admin_status_list' => true,
+	));
+
+}
+add_action( 'init', 'wpbackitup_custom_post_status' );
 
 // The checks here before loading are for performance only - unless one of those conditions is met, then none of the hooks will ever be used
 if (!is_admin() && (!defined('DOING_CRON') || !DOING_CRON) && (!defined('XMLRPC_REQUEST') || !XMLRPC_REQUEST) && empty($_SERVER['SHELL']) && empty($_SERVER['USER'])) return;
@@ -85,6 +123,3 @@ require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-logger.php' );
 global $WPBackitup;
 $WPBackitup = WPBackitup_Admin::get_instance();
 $WPBackitup->initialize();
-
-
-

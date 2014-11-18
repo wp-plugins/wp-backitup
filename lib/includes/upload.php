@@ -13,7 +13,7 @@
 
     /*** Globals ***/
     global $logger;
-    $logger = new WPBackItUp_Logger(true,null,'upload');
+    $logger = new WPBackItUp_Logger(true,null,'debug_upload');
     $backup_folder_root = WPBACKITUP__BACKUP_PATH .'/';
 
     //*****************//

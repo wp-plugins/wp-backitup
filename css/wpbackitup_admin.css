@@ -9,6 +9,7 @@
 
  .error { color: #ff0000;}
  .warning { color: #FEEFB3;}
+ .wpbackitup-warning { color: #FF8000;}
 
 .isa_info, .isa_success, .isa_warning, .isa_error {
     border: 1px solid;
@@ -51,7 +52,7 @@ h3 {
     border-bottom: 1px solid #eee;
 }
 
-iframe {
+.wp-backitup-iframe {
 	height: 0;
 	margin: 0;
 	padding: 0;
@@ -89,7 +90,10 @@ iframe {
 
  .backup-errors,
  .backup-errors div,
- .backup-unexpected-error,
+ .backup-error,
+
+ .backup-warning,
+ .backup-warning div,
  
  .backup-success,
  .backup-success div,

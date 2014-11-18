@@ -119,7 +119,7 @@ if (!$restore_folder_exists) {
       ?>
       <div class="widget">
         <h3><i class="fa fa-upload"></i> <?php _e('Upload', $namespace); ?></h3>
-        <iframe id="upload_target" name="upload_target" src="">
+        <iframe class="wp-backitup-iframe" id="upload_target" name="upload_target" src="">
         </iframe>
         <p><b><?php _e('Upload a WP BackItUp zip file to add it to your list of available backups.', $namespace); ?></b></p>
         <?php
@@ -164,7 +164,10 @@ if (!$restore_folder_exists) {
         <li class="validation"><?php _e('Validating backup file', $namespace); ?>...<span class='status-icon'><img class="validation-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
         <li class="restore_point"><?php _e('Creating checkpoint', $namespace); ?>...<span class='status-icon'><img class="restore_point-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
         <li class="database"><?php _e('Restoring database', $namespace); ?>...<span class='status-icon'><img class="database-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class="wpcontent"><?php _e('Restoring plugins, themes and uploads', $namespace); ?>...<span class='status-icon'><img class="wpcontent-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
+        <li class="plugins"><?php _e('Restoring plugins', $namespace); ?>...<span class='status-icon'><img class="plugins-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
+	    <li class="themes"><?php _e('Restoring themes', $namespace); ?>...<span class='status-icon'><img class="themes-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
+	    <li class="uploads"><?php _e('Restoring uploads', $namespace); ?>...<span class='status-icon'><img class="uploads-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
+	    <li class="other"><?php _e('Restoring everything else', $namespace); ?>...<span class='status-icon'><img class="other-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
         <li class="cleanup"><?php _e('Cleaning up restore files', $namespace); ?>...<span class='status-icon'><img class="cleanup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
       </ul>
       <p>
@@ -197,6 +200,9 @@ if (!$restore_folder_exists) {
         <span class='error224'><div class='isa_error'><?php _e('Error 224: An error occurred during the restore, however, we have successfully restored your database to the previous state', $namespace); ?>.</div></span>
         <span class='error225'><div class='isa_error'><?php _e('Error 225: Restore option is only available to licensed WP BackItUp users', $namespace); ?>.</div></span>
         <span class="error230"><div class='isa_error'><?php _e('Error 230: WP BackItUp ran into unexpected errors during the database restore.  However, we were able to successfully revert the database back to its original state . This error may require importing the database manually', $namespace); ?>.</div></span>
+	    <span class="error235"><div class='isa_error'><?php _e('Error 235: WP BackItUp is not able to extract the backup because there is no zip utility available.  Please contact support.', $namespace); ?>.</div></span>
+	    <span class="error250"><div class='isa_error'><?php _e('Error 250: WP BackItUp is unable to start the restore because a backup is running.  Please wait for the backup to complete and then try again.', $namespace); ?>.</div></span>
+
       </div>
 
       <!--restore success messages-->
