@@ -18,9 +18,13 @@ class WPBackItUp_FileSystem {
 
 	private $logger;
 
-	function __construct($logger) {
+	function __construct($logger=null) {
 		try {
-			$this->logger = $logger;
+			if (null==$logger){
+				$this->logger = new WPBackItUp_Logger(true,null,'debug_filesystem');
+			} else{
+				$this->logger = $logger;
+			}
 		} catch(Exception $e) {
 			//Dont do anything
 			print $e;
@@ -436,6 +440,30 @@ class WPBackItUp_FileSystem {
 			$this->logger->log_error(__METHOD__,' Exception:' . $e);
 			return false;
 		}
+	}
+
+	/**
+	 * Make sure that htaccess/web.config files exist in folder
+	 * If folder doesnt exist then create it.
+	 * @param $path
+	 */
+	function secure_folder($path){
+		$this->logger->log_info(__METHOD__,'Begin');
+
+		$path = rtrim($path,"/");
+
+		if( !is_dir($path) ) {
+			@mkdir($path, 0755);
+			$this->logger->log_info(__METHOD__,'Folder Created:' .$path);
+		}
+
+		if (!is_file($path.'/index.html')) @file_put_contents($path.'/index.html',"<html><body><a href=\"http://www.wpbackitup.com\">WP BackItUp - The simplest way to backup WordPress</a></body></html>");
+		if (!is_file($path.'/.htaccess')) @file_put_contents($path.'/.htaccess','deny from all');
+		if (!is_file($path.'/web.config')) @file_put_contents($path.'/web.config', "<configuration>\n<system.webServer>\n<authorization>\n<deny users=\"*\" />\n</authorization>\n</system.webServer>\n</configuration>\n");
+		$this->logger->log_info(__METHOD__,'Secure files exist or were created.');
+
+
+		$this->logger->log_info(__METHOD__,'End');
 	}
 
  }

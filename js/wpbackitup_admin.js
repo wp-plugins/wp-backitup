@@ -11,10 +11,8 @@
     //Add View Log Click event to backup page
     wpbackitup_add_viewlog_onclick();
 
-    ///* define logreader variables */
-    //var wpbackitup_backup_response_reader = {
-    //    action: wpbackitup_get_action_name('backup_response_reader')
-    //};
+    //Add download backup Click event to backup page
+    wpbackitup_add_downloadbackup_onclick();
 
     /* define logreader variables */
     var wpbackitup_restore_status_reader = {
@@ -74,6 +72,15 @@
             return false;
         });
    }
+
+    function wpbackitup_add_downloadbackup_onclick(){
+        $(".downloadbackuplink").click(function(){
+            var href = $(this).attr("href");
+            $("#backup_name").val(href);
+            $("#download_backup").submit();
+            return false;
+        });
+    }
 
   /* get restore status */
   function wpbackitup_get_restore_status() {
@@ -645,17 +652,17 @@
     // built id of the row to be inserted dynamically
     if (typeof data !== 'undefined')
     {
-      var restoreColumn = '<td><a href="#" title="' + data.backupFile + '" class="restoreRow" id="restoreRow' + cur_row + '">Restore</a></td>\n';
+      //var restoreColumn = '<td><a href="#" title="' + data.backupFile + '" class="restoreRow" id="restoreRow' + cur_row + '">Restore</a></td>\n';
 
       var viewColumn = '<td>&nbsp;</td>\n';
-      if (typeof data.backupLogLink !== 'undefined') {
-          viewColumn = '<td><a class="viewloglink" href="' + data.backupLogLink + '">View Log</a></td>\n';
+      if (typeof data.logFileExists !== 'undefined' && data.logFileExists==true) {
+          viewColumn = '<td><a class="viewloglink" href="' + data.backupFile + '">View Log</a></td>\n';
       }
 
       var newRow =
         '<tr ' + css_class + ' id="row' + cur_row + '">\n\
           <td>New Backup!</td>\n\
-          <td><a href="' + data.backupZipLink + '">Download</a></td>\n';
+          <td><a class="downloadbackuplink" href="' + data.backupFile + '">Download</a></td>\n';
         newRow +=viewColumn;
         newRow +='<td><a href="#" title="' + data.backupFile + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n';
         newRow +='</tr>';
@@ -671,6 +678,8 @@
         $('#datatable tr:last').hide();
 
         wpbackitup_add_viewlog_onclick();
+
+        wpbackitup_add_downloadbackup_onclick();
 
     }
   }

@@ -215,6 +215,9 @@ class WPBackItUp_Backup {
 	    //Purge cleanup logs in logs older than 5 days
 	    $fileSystem->purge_files($logs_path,'*cleanup*.log',$this->backup_retained_days);
 
+	    //Purge Zipped logs in logs older than 5 days
+	    $fileSystem->purge_files($logs_path,'logs_*.zip',$this->backup_retained_days);
+
 	    //Purge restore logs in logs older than 5 days
 	    $fileSystem->purge_files($logs_path,'*restore*.log',$this->backup_retained_days);
 
@@ -231,12 +234,12 @@ class WPBackItUp_Backup {
             return false;
         }
 
-	    //create index.html
-	    $backup_index = $this->backup_folder_root .'/index.html';
-	    if( !is_file($backup_index) ) {
-		    $dfh = fopen( $backup_index, 'a' );
-		    fclose( $dfh );
-	    }
+	    $fileSystem->secure_folder($this->backup_folder_root);
+
+	    //Make sure logs folder is secured
+	    $logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs/';
+	    $fileSystem->secure_folder( $logs_dir);
+
 
         $this->logger->log_info(__METHOD__,'End');
         return true;

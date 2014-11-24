@@ -25,7 +25,7 @@ class WPBackItUp_Utility {
    }
    
 
-	function send_email($to,$subject,$message)
+	function send_email($to,$subject,$message,$attachments=array())
 	{
 		try {
 			//global $WPBackitup;
@@ -34,7 +34,7 @@ class WPBackItUp_Utility {
                 $headers[] = 'Content-type: text/html';
 				$headers[] = 'From: WP BackItUp '. '<'. $from_email .'>';
 
-				wp_mail($to, $subject, $message, $headers);
+				wp_mail($to, $subject, $message, $headers,$attachments);
                 $this->logger->log('(send_email)EMail Sent from:' .$from_email);
                 $this->logger->log('(send_email)EMail Sent to:' .$to);
 			}

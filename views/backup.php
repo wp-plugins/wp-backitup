@@ -138,6 +138,12 @@ if (!$backup_folder_exists) {
         <?php wp_nonce_field($this->namespace . "-viewlog"); ?>
     </form>
 
+    <form id = "download_backup" name = "download_backup" action="admin-post.php" method="post">
+	    <input type="hidden" name="action" value="download_backup">
+	    <input type="hidden" id="backup_name" name="backup_name" value="test">
+	    <?php wp_nonce_field($this->namespace . "-download_backup"); ?>
+    </form>
+
       <table class="widefat" id="datatable">
         <?php
         
@@ -188,7 +194,9 @@ if (!$backup_folder_exists) {
               <td><?php echo $file_datetime ?></td>
 
 	          <?php if ($zip_exists) :?>
-                <td><a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $filename; ?>">Download</a></td>
+                <td><a class='downloadbackuplink' href="<?php echo basename($filename, ".zip") ?>">Download</a>
+	                <!--<a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $filename; ?>">Download</a>-->
+                </td>
               <?php else: ?>
 		        <td>&nbsp;</td>
 	          <?php endif; ?>

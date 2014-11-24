@@ -155,6 +155,23 @@ if ('scheduled_cleanup'==$current_task) {
 	$wp_backup->purge_old_files();
 	$logger->log( '**END PURGE OLD FILES**' );
 
+	$logger->log( '**SECURE FOLDERS**' );
+	//Make sure backup folder is secured
+	$file_system = new WPBackItUp_FileSystem();
+
+	//Make sure backup folder is secured
+	$backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
+	$file_system->secure_folder( $backup_dir);
+
+	//--Check restore folder folders
+	$restore_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER;
+	$file_system->secure_folder( $restore_dir);
+
+	//Make sure logs folder is secured
+	$logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs/';
+	$file_system->secure_folder( $logs_dir);
+	$logger->log( '**END SECURE FOLDERS**' );
+
 	$backup_job->set_task_complete();
 
 }

@@ -375,12 +375,12 @@ function create_restore_folder($path) {
 		die();
 	}
 
-	//create index.html
-	$restore_index = $path .'/index.html';
-	if( !is_file($restore_index) ) {
-		$dfh = fopen( $restore_index, 'a' );
-		fclose( $dfh );
-	}
+	//Secure restore folder
+	$fileSystem->secure_folder( $path);
+
+	//Check logs folder too
+	$logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs/';
+	$fileSystem->secure_folder( $logs_dir);
 
 	$logger->log('Restore folder created:' .$path);
 }

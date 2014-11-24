@@ -3,7 +3,7 @@ Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
-Tested up to: 4.0
+Tested up to: 4.0.1
 Stable tag: 1.9.1
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -151,6 +151,13 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.9.2=
+* New Features: Added WordPress 4.0.1 support
+* New Features: Major Security Enhancements
+* New Features: Added log attachment to backup notification email
+* Update: Moved zip threshold to constant.
+* Update: Added additional logging to archive process
+
 = 1.9.1 =
 * New Features: Long running backups are now supported.
 * Update: Extensive Performance improvements

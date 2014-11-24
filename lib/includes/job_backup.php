@@ -585,6 +585,22 @@ function end_backup($err=null, $success=null){
     global $WPBackitup,$wp_backup, $logger, $backup_job;
     $logger->log_info(__METHOD__,"Begin");
 
+	$logger->log('Zip up all the logs.');
+	//Zip up all the logs in the log folder
+	$logs_path = WPBACKITUP__PLUGIN_PATH .'logs';
+	$zip_file_path = $logs_path . '/logs_' .$backup_job->backup_id . '.zip';
+
+	//copy/replsce WP debug file
+	$wpdebug_file_path = WPBACKITUP__CONTENT_PATH . '/debug.log';
+	$logger->log_info(__METHOD__,"Copy WP Debug: " .$wpdebug_file_path);
+	if (file_exists($wpdebug_file_path)) {
+		copy( $wpdebug_file_path, $logs_path .'/wpdebug.log' );
+	}
+
+	$zip = new WPBackItUp_Zip($logger,$zip_file_path);
+	$zip->zip_files_in_folder($logs_path,$backup_job->backup_id,'*.log');
+	$zip->close();
+
 	WPBackItUp_Backup::end(); //Release the lock
 	$current_datetime = current_time( 'timestamp' );
 	$WPBackitup->set_backup_lastrun_date($current_datetime);
@@ -597,13 +613,15 @@ function end_backup($err=null, $success=null){
 
     $logger->log('Script Processing Time:' .$processing_minutes .' Minutes ' .$processing_seconds .' Seconds');
 
-	//Send Notification email
-    send_backup_notification_email($err, $success);
-
-
     if (true===$success) $logger->log("Backup completed: SUCCESS");
 	if (false===$success) $logger->log("Backup completed: ERROR");
-    $logger->log("*** END BACKUP ***");
+
+	$logger->log("*** END BACKUP ***");
+
+	//Send Notification email
+	$logger->log('Send Email notification');
+	$logs_attachment = array( $zip_file_path  );
+	send_backup_notification_email($err, $success,$logs_attachment);
 
     $logFileName = $logger->logFileName;
     $logFilePath = $logger->logFilePath;
@@ -620,7 +638,7 @@ function end_backup($err=null, $success=null){
     exit(0);
 }
 
-function send_backup_notification_email($err, $success) {
+function send_backup_notification_email($err, $success,$logs=array()) {
 	global $WPBackitup, $wp_backup, $logger,$status_array,$backup_job;
     $logger->log_info(__METHOD__,"Begin");
 
@@ -647,6 +665,11 @@ function send_backup_notification_email($err, $success) {
 
 	if($success)
 	{
+		//Don't send logs on success unless debug is on.
+		if (WPBACKITUP__DEBUG!==true){
+			$logs=array();
+		}
+
         $subject = get_bloginfo() . ' - Backup completed successfully.';
         $message = '<b>Your backup completed successfully.</b><br/><br/>';
 
@@ -663,8 +686,6 @@ function send_backup_notification_email($err, $success) {
 
 	$message .= 'Completion Code: ' . $backup_job->backup_id .'-'. $processing_minutes .'-' .$processing_seconds .'<br/>';
 	$message .= 'WP BackItUp Version: '  . WPBACKITUP__VERSION . '<br/>';
-
-
     $message .= '<br/>';
 
 
@@ -693,9 +714,10 @@ function send_backup_notification_email($err, $success) {
     if(!$success)$term='error';
       $message .='<br/><br/>Checkout '. $WPBackitup->get_anchor_with_utm('www.wpbackitup.com', '', 'notification+email', $term) .' for info about WP BackItUp and our other products.<br/>';
 
+
 	$notification_email = $WPBackitup->get_option('notification_email');
 	if($notification_email)
-		$utility->send_email($notification_email,$subject,$message);
+		$utility->send_email($notification_email,$subject,$message,$logs);
 
     $logger->log_info(__function__,"End");
 }
@@ -825,14 +847,11 @@ function write_response_file_success() {
     $jsonResponse = new stdClass();
 	$jsonResponse->backupStatus = 'success';
     $jsonResponse->backupMessage = 'success';
-    $jsonResponse->backupFile = $wp_backup->backup_filename;
-    $jsonResponse->backupZipLink = WPBACKITUP__BACKUP_URL . '/' . $wp_backup->backup_filename;
+    $jsonResponse->backupFile = basename($wp_backup->backup_filename,'.zip');
     $jsonResponse->backupLicense = $WPBackitup->license_active();
     $jsonResponse->backupRetained = $wp_backup->backup_retained_number;
 
-    if (file_exists($logger->logFilePath)) {
-        $jsonResponse->backupLogLink = basename($logger->logFileName,'.log');
-    }
+	$jsonResponse->logFileExists = file_exists($logger->logFilePath);
 
 	write_response_file($jsonResponse);
 }

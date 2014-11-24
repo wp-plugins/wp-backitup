@@ -12,7 +12,7 @@
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.9.1
+Version: 1.9.2
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
-define( 'WPBACKITUP__VERSION', '1.9.1');
+define( 'WPBACKITUP__VERSION', '1.9.2');
 define( 'WPBACKITUP__DEBUG', false );
 define( 'WPBACKITUP__MINIMUM_WP_VERSION', '3.0' );
 define( 'WPBACKITUP__ITEM_NAME', 'WP Backitup' ); 
@@ -67,6 +67,8 @@ define( 'WPBACKITUP__TASK_TIMEOUT_SECONDS', 300);//300 = 5 minutes
 define( 'WPBACKITUP__SCRIPT_TIMEOUT_SECONDS', 900);//900 = 15 minutes
 
 define( 'WPBACKITUP__BACKUP_RETAINED_DAYS', 5);//5 days
+
+define( 'WPBACKITUP__ZIP_MAX_FILE_COUNT', 1000);
 
 register_activation_hook( __FILE__, array( 'WPBackitup_Admin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'WPBackitup_Admin', 'deactivate' ) );
@@ -114,8 +116,15 @@ function  wpbackitup_custom_post_status(){
 }
 add_action( 'init', 'wpbackitup_custom_post_status' );
 
-// The checks here before loading are for performance only - unless one of those conditions is met, then none of the hooks will ever be used
-if (!is_admin() && (!defined('DOING_CRON') || !DOING_CRON) && (!defined('XMLRPC_REQUEST') || !XMLRPC_REQUEST) && empty($_SERVER['SHELL']) && empty($_SERVER['USER'])) return;
+// Admin class will not be instantiate if any of these conditions are met
+if (!is_admin()
+    && (!defined('DOING_CRON') || !DOING_CRON)
+    && (!defined('XMLRPC_REQUEST') || !XMLRPC_REQUEST)
+    && empty($_SERVER['SHELL'])
+    && empty($_SERVER['USER'])) {
+
+	return;  //END HERE
+}
 
 require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-wpbackitup-admin.php' );
 require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-logger.php' );

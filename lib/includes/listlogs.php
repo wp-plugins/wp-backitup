@@ -1,12 +1,10 @@
-<?php
+<?php if (!defined ('ABSPATH')) die('No direct access allowed.');
+
     //http://localhost/wp-390/wp-admin/admin-post.php?action=listlogs
     //http://localhost/wp-390/wp-admin/admin-post.php?action=listlogs&log=test
 
     $backup_folder_root = WPBACKITUP__BACKUP_PATH .'/';
     $plugin_log_folder = WPBACKITUP__PLUGIN_PATH .'/logs/';
-
-?>
-<?php
 
     //List the log files
     if (!isset($_REQUEST['viewlog_log']) && empty($_REQUEST['log']) ){

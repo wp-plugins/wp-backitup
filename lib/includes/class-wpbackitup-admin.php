@@ -130,6 +130,9 @@ class WPBackitup_Admin {
         //View Log Action
         add_action('admin_post_viewlog', array( &$this,'admin_viewlog'));
 
+	    //Download Backup
+	    add_action('admin_post_download_backup', array( &$this,'admin_download_backup'));
+
         //List Logs Action
         add_action('admin_post_nopriv_listlogs', array( &$this,'admin_listlogs'));
 
@@ -304,6 +307,9 @@ class WPBackitup_Admin {
 
 	public function wpbackitup_queue_scheduled_jobs(){
 
+		// Check permissions
+		if (! self::is_authorized()) exit('Access denied.');
+
 		//Include Scheduler Class
 		if( !class_exists( 'WPBackItUp_Scheduler' ) ) {
 			include_once 'class-scheduler.php';
@@ -361,6 +367,9 @@ class WPBackitup_Admin {
 
 	//Run queue manual backup
 	public  function ajax_queue_backup() {
+		// Check permissions
+		if (! self::is_authorized()) exit('Access denied.');
+
 		$logger = new WPBackItUp_Logger(false,null,'debug_events');
 		$logger->log_info(__METHOD__,'Begin');
 
@@ -389,6 +398,10 @@ class WPBackitup_Admin {
 
 	//Run scheduled backup tasks
     function wpbackitup_run_backup_tasks(){
+
+	    // Check permissions
+	    if (! self::is_authorized()) exit('Access denied.');
+
 	    $process_id = uniqid();
 
 	    $event_logger = new WPBackItUp_Logger(false,null,'debug_events');
@@ -407,6 +420,9 @@ class WPBackitup_Admin {
 
 	//Run scheduled backup tasks
 	function wpbackitup_run_cleanup_tasks(){
+		// Check permissions
+		if (! self::is_authorized()) exit('Access denied.');
+
 		$process_id = uniqid();
 
 		$event_logger = new WPBackItUp_Logger(false,null,'debug_events');
@@ -425,6 +441,9 @@ class WPBackitup_Admin {
 
 
 	public  function ajax_get_restore_status() {
+		// Check permissions
+		if (! self::is_authorized()) exit('Access denied.');
+
 		$log = WPBACKITUP__PLUGIN_PATH .'/logs/restore_status.log';
 		if(file_exists($log) ) {
 			readfile($log);
@@ -437,25 +456,37 @@ class WPBackitup_Admin {
 	 * Return the backup status and try run tasks
 	 */
 	public  function ajax_get_backup_status() {
-		$process_id = uniqid();
+		// Check permissions
+		if (! self::is_authorized()) exit('Access denied.');
 
 		$event_logger = new WPBackItUp_Logger(false,null,'debug_events');
-		$event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'Begin');
 
-		//Try Run Next Backup Tasks
-		$event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run Backup Task');
+		$event_logger->log_info(__METHOD__ ,'User Permissions: ' .current_user_can( 'manage_options' ));
 
-		$this->backup_type='manual';
-		include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_backup.php' );
+		//Check permissions
+		if ( current_user_can( 'manage_options' ) ) {
+			//echo('RUNNING BACKUP');
 
-		$event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run Backup Task');
+			$process_id = uniqid();
 
-		//return status
-		$log = WPBACKITUP__PLUGIN_PATH .'/logs/backup_status.log';
-		if(file_exists($log) ) {
-			//Probably should use the database instead now.
-			readfile($log);
-			$event_logger->log_info(__METHOD__.'(' .$process_id .')','Status sent to browser.');
+
+			$event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'Begin');
+
+			//Try Run Next Backup Tasks
+			$event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run Backup Task');
+
+			$this->backup_type='manual';
+			include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_backup.php' );
+
+			$event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run Backup Task');
+
+			//return status
+			$log = WPBACKITUP__PLUGIN_PATH .'/logs/backup_status.log';
+			if(file_exists($log) ) {
+				//Probably should use the database instead now.
+				readfile($log);
+				$event_logger->log_info(__METHOD__.'(' .$process_id .')','Status sent to browser.');
+			}
 		}
 
 		exit;
@@ -463,17 +494,26 @@ class WPBackitup_Admin {
 
     //load restore
     public  function ajax_restore() {
+	    // Check permissions
+	    if (! self::is_authorized()) exit('Access denied.');
+
         include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_restore.php' );
     }
 
     //load upload
     public  function ajax_upload() {
+	    // Check permissions
+	    if (! self::is_authorized()) exit('Access denied.');
+
         include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/upload.php' );
     }
 
 
 
     public  function ajax_backup_response_reader() {
+	    // Check permissions
+	    if (! self::is_authorized()) exit('Access denied.');
+
         $log = WPBACKITUP__PLUGIN_PATH .'/logs/backup_response.log';
         if(file_exists($log) ) {
             readfile($log);
@@ -487,6 +527,9 @@ class WPBackitup_Admin {
 
     public  function ajax_delete_file()
     {
+	    // Check permissions
+	    if (! self::is_authorized()) exit('Access denied.');
+
         $backup_file_name = str_replace('deleteRow', '', $_POST['filed']);
         $backup_file_path =  WPBACKITUP__BACKUP_PATH .'/' . $backup_file_name;
         $log_file_path = str_replace('.zip','.log',$backup_file_path);
@@ -503,11 +546,21 @@ class WPBackitup_Admin {
     }
 
     function admin_viewlog(){
+	    if (! self::is_authorized()) exit('Access denied.');
+
         include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/viewlog.php' );
     }
 
+	function admin_download_backup(){
+		if (! self::is_authorized()) exit('Access denied.');
+
+		include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/download_backup.php' );
+	}
+
     function admin_listlogs(){
-        include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/listlogs.php' );
+	   if (! self::is_authorized()) exit('Access denied.');
+
+       include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/listlogs.php' );
     }
 
 
@@ -1230,6 +1283,36 @@ class WPBackitup_Admin {
 
     /**STATIC FUNCTIONS**/
 
+	public static function is_authorized(){
+
+		$permission_logger = new WPBackItUp_Logger(false,null,'debug_permissions');
+		$permission_logger->log_info(__METHOD__ ,'Begin');
+
+		$permission_logger->log_info(__METHOD__ ,'User Permissions: ' .current_user_can( 'manage_options' ));
+
+		if (defined('DOING_CRON')) {
+			$permission_logger->log_info( __METHOD__, 'Doing CRON Constant: ' . DOING_CRON );
+ 		} else {
+			$permission_logger->log_info(__METHOD__ ,'DOING_CRON - NOT defined');
+		}
+
+		if (defined('XMLRPC_REQUEST')) {
+			$permission_logger->log_info(__METHOD__ ,'XMLRPC_REQUEST Constant: ' .XMLRPC_REQUEST );
+		} else {
+			$permission_logger->log_info(__METHOD__ ,'XMLRPC_REQUEST  - NOT defined ');
+		}
+
+		//Check User Permissions or CRON
+		if (!current_user_can( 'manage_options' )
+		    && (!defined('DOING_CRON') || !DOING_CRON)){
+			$permission_logger->log_info(__METHOD__ ,'End - NOT AUTHORIZED');
+			return false;
+		}
+
+		$permission_logger->log_info(__METHOD__ ,'End - SUCCESS');
+		return true;
+	}
+
     private static function get_settings_page_url( $page = 'config' ) {
 
         $args = array( 'page' => 'wp-backitup-settings' );
@@ -1252,47 +1335,20 @@ class WPBackitup_Admin {
 		       wp_schedule_event( time()+3600, 'hourly', 'wpbackitup_queue_scheduled_jobs');
 	       }
 
-            //Check backup folder folders
-            $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
-             if( !is_dir($backup_dir) ) {
-                 @mkdir($backup_dir, 0755);
-             }
+	       require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-filesystem.php' );
+	       $file_system = new WPBackItUp_FileSystem();
 
-	       //Check index in backup
-	       $backup_index = $backup_dir .'/index.html';
-	       if( !is_file($backup_index) ) {
-		       //create index.html
-		       $dfh = fopen( $backup_index, 'a' );
-		       fclose( $dfh );
-	       }
+	       //Check backup folder folders
+	       $backup_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__BACKUP_FOLDER;
+	       $file_system->secure_folder( $backup_dir);
 
-           //Check restore folder folders
+
+           //--Check restore folder folders
            $restore_dir = WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER;
-           if( !is_dir($restore_dir) ) {
-               @mkdir($restore_dir, 0755);
-           }
+	       $file_system->secure_folder( $restore_dir);
 
-	       //check index in restore
-	       $restore_index = $restore_dir .'/index.html';
-	       if( !is_file($restore_index) ) {
-		       //create index.html
-		       $dfh = fopen( $restore_index, 'a' );
-		       fclose( $dfh );
-	       }
-
-             //Check permissions on logs
-             $logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs';
-             if(is_dir($logs_dir) ) {
-	             chmod($logs_dir, 0755);
-             }
-
-	       //check index in logs
-	       $logs_index = $logs_dir .'/index.html';
-	       if( !is_file($logs_index) ) {
-		       //create index.html
-		       $dfh = fopen( $logs_index, 'a' );
-		       fclose( $dfh );
-	       }
+	       $logs_dir = WPBACKITUP__PLUGIN_PATH .'/logs/';
+	       $file_system->secure_folder( $logs_dir);
 
 			//Make sure they exist now
 			if( !is_dir($backup_dir) || !is_dir($restore_dir)) {

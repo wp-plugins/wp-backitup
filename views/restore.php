@@ -76,7 +76,7 @@ if (!$restore_folder_exists) {
             ?>
             <tr <?php echo $class ?> id="row<?php echo $i; ?>">
               <td><?php echo $filename ?></td>
-              <td><a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $filename; ?>">Download</a></td>
+              <td>&nbsp;</td>
               <td><a href="#" title="<?php echo $filename; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
               <?php
               if ($this->license_active())
