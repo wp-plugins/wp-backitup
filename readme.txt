@@ -151,7 +151,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
-= 1.9.10 =
+= 1.10.0 =
 * New Feature: Add support request to plugin
 * New Feature: Add large backup support
 * New Feature: Add drag and drop uploads
