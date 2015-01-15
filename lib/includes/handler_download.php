@@ -2,7 +2,7 @@
 @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
 
 // required for IE, otherwise Content-disposition is ignored
-@apache_setenv('no-gzip', 1);
+//@apache_setenv('no-gzip', 1); Causes failure on siteground...research
 @ini_set('zlib.output_compression', 'Off');
 
 global $logger;
