@@ -30,6 +30,10 @@ if( !class_exists( 'WPBackItUp_Backup' ) ) {
 	include_once 'class-backup.php';
 }
 
+if( !class_exists( 'WPBackItUp_Restore' ) ) {
+	include_once 'class-restore.php';
+}
+
 // include logger class
 if( !class_exists( 'WPBackItUp_Zip' ) ) {
 	include_once 'class-zip.php';
@@ -78,25 +82,24 @@ if (!WPBackItUp_Backup::start()) {
 }
 //**************************//
 
-
 //**************************//
 //     Task Handling        //
 //**************************//
-global $backup_job;
-$backup_job=null;
+global $cleanup_job;
+$cleanup_job=null;
 $current_task= null;
 
 $backup_error=false;
 
 
-$backup_job = WPBackItUp_Job::get_job('cleanup');
+$cleanup_job = WPBackItUp_Job::get_job('cleanup');
 $logger_tasks->log_info(__METHOD__.'(' .$backup_process_id .')','Check for available job');
-if ($backup_job){
+if ($cleanup_job){
 
 	//Get the next task in the stack
-	$next_task = $backup_job->get_next_task();
+	$next_task = $cleanup_job->get_next_task();
 	if (false!==$next_task){
-		$backup_id=$backup_job->backup_id;
+		$backup_id=$cleanup_job->backup_id;
 		$current_task=$next_task;
 
 		//If task contains error then timeout has occurred
@@ -127,7 +130,7 @@ $logger_tasks->log_info(__METHOD__.'(' .$backup_process_id .')','Run Backup task
 //*************************//
 
 //Get the backup ID
-$job_name =  get_job_name($backup_job->backup_id);
+$job_name =  get_job_name($cleanup_job->backup_id);
 
 global $logger;
 $logger = new WPBackItUp_Logger(false,null,$job_name);
@@ -139,7 +142,7 @@ $wp_backup = new WPBackItUp_Backup($logger,$job_name,$WPBackitup->backup_type);
 //***   SCHEDULED TASKS   ***//
 
 //Run cleanup task
-if ('scheduled_cleanup'==$current_task) {
+if ('task_scheduled_cleanup'==$current_task) {
 
 	//Init
 	$logger->log('***BEGIN JOB***');
@@ -148,8 +151,25 @@ if ('scheduled_cleanup'==$current_task) {
 	$logger->log('Scheduled Cleanup requested');
 
 	$logger->log( '**CLEAN UNFINISHED BACKUPS**' );
-	$wp_backup->cleanup_unfinished_backups();
+	//cleanup any folders that have the TMP_ prefix
+	$wp_backup->cleanup_backups_by_prefix('TMP_');
 	$logger->log( '**END CLEAN UNFINISHED BACKUPS**' );
+
+	$logger->log( '**CLEAN DELETED BACKUPS**' );
+	//cleanup any folders that have the DLT_ prefix
+	$wp_backup->cleanup_backups_by_prefix('DLT_');
+	$logger->log( '**END CLEAN DELETED BACKUPS**' );
+
+	$logger->log( '**CLEAN OLD BACKUPS**' );
+	//Cleanup any folders that exceed retention limit
+	$wp_backup->cleanup_old_backups();
+	$logger->log( '**END CLEAN OLD BACKUPS**' );
+
+	$logger->log( '**CLEAN OLD RESTORES**' );
+	//Cleanup any folders that exceed retention limit
+	$wp_restore = new WPBackItUp_Restore($logger,$job_name,null);
+	$wp_restore->delete_restore_folder();
+	$logger->log( '**END CLEAN OLD RESTORES**' );
 
 	$logger->log( '**PURGE OLD FILES**' );
 	$wp_backup->purge_old_files();
@@ -172,7 +192,7 @@ if ('scheduled_cleanup'==$current_task) {
 	$file_system->secure_folder( $logs_dir);
 	$logger->log( '**END SECURE FOLDERS**' );
 
-	$backup_job->set_task_complete();
+	$cleanup_job->set_task_complete();
 
 }
 
@@ -194,7 +214,7 @@ function get_job_name($timestamp){
 }
 
 function end_job($err=null, $success=null){
-	global $WPBackitup, $logger, $backup_job;
+	global $WPBackitup, $logger, $cleanup_job;
 	$logger->log_info(__METHOD__,"Begin");
 
 	WPBackItUp_Backup::end(); //Release the lock
@@ -202,7 +222,7 @@ function end_job($err=null, $success=null){
 	$WPBackitup->set_cleanup_lastrun_date($current_datetime);
 
 	$util = new WPBackItUp_Utility($logger);
-	$seconds = $util->timestamp_diff_seconds($backup_job->get_job_start_time(),$backup_job->get_job_end_time());
+	$seconds = $util->timestamp_diff_seconds($cleanup_job->get_job_start_time(),$cleanup_job->get_job_end_time());
 
 	$processing_minutes = round($seconds / 60);
 	$processing_seconds = $seconds % 60;

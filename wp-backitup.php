@@ -12,7 +12,7 @@
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.9.2
+Version: 1.10.0
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -34,7 +34,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
-define( 'WPBACKITUP__VERSION', '1.9.2');
+define( 'WPBACKITUP__VERSION', '1.10.0');
 define( 'WPBACKITUP__DEBUG', false );
 define( 'WPBACKITUP__MINIMUM_WP_VERSION', '3.0' );
 define( 'WPBACKITUP__ITEM_NAME', 'WP Backitup' ); 
@@ -52,6 +52,8 @@ define( 'WPBACKITUP__PLUGIN_FOLDER',basename(dirname(__FILE__)));
 define( 'WPBACKITUP__BACKUP_FOLDER', 'wpbackitup_backups' );
 define( 'WPBACKITUP__BACKUP_URL', content_url() . "/" .WPBACKITUP__BACKUP_FOLDER);
 define( 'WPBACKITUP__BACKUP_PATH',WPBACKITUP__CONTENT_PATH  . '/' . WPBACKITUP__BACKUP_FOLDER);
+define( 'WPBACKITUP__UPLOAD_FOLDER','TMP_Uploads');
+define( 'WPBACKITUP__UPLOAD_PATH',WPBACKITUP__BACKUP_PATH . '/' .WPBACKITUP__UPLOAD_FOLDER);
 
 define( 'WPBACKITUP__RESTORE_FOLDER', 'wpbackitup_restore' );
 define( 'WPBACKITUP__RESTORE_PATH',WPBACKITUP__CONTENT_PATH . '/' . WPBACKITUP__RESTORE_FOLDER);
@@ -62,13 +64,18 @@ define( 'WPBACKITUP__THEMES_FOLDER',basename(get_theme_root()));
 
 define( 'WPBACKITUP__SQL_DBBACKUP_FILENAME', 'db-backup.sql');
 
-define( 'WPBACKITUP__BACKUP_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft,wp-clone,backwpup,backupwordpress,cache');
+define( 'WPBACKITUP__BACKUP_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft*,wp-clone*,backwpup*,backupwordpress*,cache,backupcreator*,backupbuddy*');
 define( 'WPBACKITUP__TASK_TIMEOUT_SECONDS', 300);//300 = 5 minutes
 define( 'WPBACKITUP__SCRIPT_TIMEOUT_SECONDS', 900);//900 = 15 minutes
 
 define( 'WPBACKITUP__BACKUP_RETAINED_DAYS', 5);//5 days
+define( 'WPBACKITUP__SUPPORT_EMAIL', 'support@wpbackitup.com');
 
-define( 'WPBACKITUP__ZIP_MAX_FILE_COUNT', 1000);
+define( 'WPBACKITUP__ZIP_MAX_FILE_SIZE', 524288000); //524288000; # 500Mb
+define( 'WPBACKITUP__THEMES_BATCH_SIZE', 5000); //~100kb each = 5000*100 = 500000 kb = 500 mb
+define( 'WPBACKITUP__PLUGINS_BATCH_SIZE', 5000); //~100kb each = 5000*100 = 500000 kb = 500 mb
+define( 'WPBACKITUP__OTHERS_BATCH_SIZE', 500); //~100kb each = 5000*100 = 500000 kb = 500 mb
+define( 'WPBACKITUP__UPLOADS_BATCH_SIZE', 500); //anyones guess here
 
 register_activation_hook( __FILE__, array( 'WPBackitup_Admin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'WPBackitup_Admin', 'deactivate' ) );

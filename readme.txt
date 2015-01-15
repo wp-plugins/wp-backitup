@@ -1,14 +1,14 @@
 === WP Backitup ===
 Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
-Tags:backup,back up,backups,backup wordpress,backup database,backup plugin,backup and restore,database backup,database restore,db backup,db restore,download database,full backup,restore,restore database,restore wordpress,restore wordpress backup,restoring wordpress,website backup,wordpress backup,wordpress restore
+Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
-Tested up to: 4.1
+Tested up to: 4.0.1
 Stable tag: 1.9.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
-Simple & complete backup of your WordPress website with this easy to use plugin.
+Simple & complete backups of your WordPress website with this easy to use plugin.
 
 == Description ==
 
@@ -151,6 +151,16 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.9.10 =
+* New Feature: Add support request to plugin
+* New Feature: Add large backup support
+* New Feature: Add drag and drop uploads
+* New Feature: Split backup into separate archives(database,plugins,themes,uploads)
+* New Feature: Add download popup to allow user to selectively download backup archives
+* Updates: Security Enhancements
+* Updates: Miscellaneous User Experience Improvements
+* Updates: Significant Performance Improvements
+
 = 1.9.2 =
 * New Features: Added WordPress 4.0.1 support
 * New Features: Major Security Enhancements

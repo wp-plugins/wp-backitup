@@ -25,16 +25,21 @@ class WPBackItUp_Utility {
    }
    
 
-	function send_email($to,$subject,$message,$attachments=array())
+	function send_email($to,$subject,$message,$attachments=array(),$reply_email=null)
 	{
 		try {
 			//global $WPBackitup;
 			if($to) {
-                $from_email = get_bloginfo('admin_email');
-                $headers[] = 'Content-type: text/html';
-				$headers[] = 'From: WP BackItUp '. '<'. $from_email .'>';
 
-				wp_mail($to, $subject, $message, $headers,$attachments);
+				$from_email = get_bloginfo( 'admin_email' );
+				$headers[] = 'Content-type: text/html';
+				$headers[] = 'From: WP BackItUp <'. $from_email .'>';
+
+				if (null!=$reply_email) {
+					$headers[] = 'Reply-To: <'. $reply_email .'>';
+				}
+
+				wp_mail($to, $subject, nl2br($message), $headers,$attachments);
                 $this->logger->log('(send_email)EMail Sent from:' .$from_email);
                 $this->logger->log('(send_email)EMail Sent to:' .$to);
 			}

@@ -287,6 +287,9 @@ class WPBackItUp_FileSystem {
 			$i = 1;
 			foreach ($FileList as $key => $val)
 			{
+                $this->logger->log_info(__METHOD__,' File:'.$val);
+                $this->logger->log_info(__METHOD__,' File Date Time:'.filemtime($val));
+
 			  if($i <= $number_Files_Allowed)
 			  {
 			    $i++;
@@ -317,11 +320,15 @@ class WPBackItUp_FileSystem {
         }
 
         $FileList = glob($path . $file_pattern);
-        //Sort by Date Time
+
+        //Sort by Date Time oldest first so can break when all old files are deleted
         usort($FileList, create_function('$a,$b', 'return filemtime($a) - filemtime($b);'));
 
         foreach ($FileList as $key => $file)
         {
+            $this->logger->log_info(__METHOD__,' File:'.$file);
+            $this->logger->log_info(__METHOD__,' File Date Time:'.filemtime($file));
+
             $current_date = new DateTime('now');
             $file_mod_date = new DateTime(date('Y-m-d',filemtime($file)));
 
@@ -344,7 +351,66 @@ class WPBackItUp_FileSystem {
         return true;
     }
 
-    function get_file_handle($path,$newFile=false) {
+
+	/**
+     * Purge the backups that exceed the retained number setting
+     *
+     * @param $path
+     * @param $pattern
+     * @param $retention_limit
+     *
+     * @return bool
+     */
+    public function purge_folders($path, $pattern, $retention_limit)
+    {
+        $this->logger->log_info(__METHOD__,' Purge folders retained number:' . $retention_limit);
+        $this->logger->log_info(__METHOD__,' Purge folder path:' . $path);
+        $this->logger->log_info(__METHOD__,' Purge pattern:' . $pattern);
+
+        //Check Parms
+        if (empty($path) ||  empty($pattern) || !is_numeric($retention_limit)){
+            $this->logger->log_error(__METHOD__,' Invalid Parm values');
+            return false;
+        }
+
+        $folder_list = glob($path . $pattern, GLOB_ONLYDIR);
+        //Sort by Date Time so oldest is deleted first
+        usort($folder_list, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
+
+        $backup_count=0;
+        foreach ($folder_list as $key => $folder)
+        {
+            $this->logger->log_info(__METHOD__,' Folder:'.$folder);
+            $this->logger->log_info(__METHOD__,' Folder Date Time:'.filemtime($folder));
+
+            ++$backup_count;
+            if($backup_count>$retention_limit){
+                if (file_exists($folder)) {
+                    $this->recursive_delete($folder);
+                }
+            }
+        }
+        $this->logger->log_info(__METHOD__,'End');
+        return true;
+    }
+
+	public function delete_files($file_list)
+	{
+		$this->logger->log_info(__METHOD__,'Begin');
+
+		foreach ($file_list as $key => $file)
+		{
+			if (file_exists($file)){
+				unlink($file);
+				$this->logger->log('Deleted:' . $file);
+			}
+		}
+		$this->logger->log_info(__METHOD__,'End');
+		return true;
+	}
+
+
+	function get_file_handle($path,$newFile=false) {
         $this->logger->log('(FileSytem.get_file_handle) Path:' . $path);
 
         try {
@@ -426,7 +492,7 @@ class WPBackItUp_FileSystem {
 					return true;
 				}
 				else{
-					$this->logger->log_error(__METHOD__,'File could not be copied:');
+					$this->logger->log_error(__METHOD__,'File could not be renamed:');
 					$this->logger->log(error_get_last());
 					return false;
 				}
@@ -466,4 +532,22 @@ class WPBackItUp_FileSystem {
 		$this->logger->log_info(__METHOD__,'End');
 	}
 
+
+	public function get_recursive_file_list($pattern) {
+		$this->logger->log_info( __METHOD__, 'Begin: ' .$pattern );
+
+		return $this->glob_recursive($pattern);
+	}
+
+	private function glob_recursive($pattern, $flags = 0)
+	{
+		//The order here is important because the folders must be in the list before the files.
+		$files = glob($pattern, $flags);
+		foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR) as $dir)
+		{
+			$files = array_merge($files, $this->glob_recursive($dir.'/'.basename($pattern), $flags));
+		}
+
+		return $files;
+	}
  }

@@ -57,7 +57,7 @@ class WPBackItUp_Backup {
 			$this->backup_name=$backup_name;
 			$this->backup_filename=$backup_name . '.tmp';
 
-			$backup_project_path = WPBACKITUP__BACKUP_PATH .'/'. $backup_name .'/';
+			$backup_project_path = WPBACKITUP__BACKUP_PATH .'/TMP_'. $backup_name .'/';
 
 			$backup_folder_root =WPBACKITUP__BACKUP_PATH  .'/';
 			$restore_folder_root = WPBACKITUP__RESTORE_FOLDER;
@@ -147,7 +147,36 @@ class WPBackItUp_Backup {
         return true;
     }
 
-    public function cleanup_unfinished_backups(){
+    public function cleanup_backups_by_prefix($prefix) {
+        $this->logger->log_info( __METHOD__, 'Begin' );
+        $backup_root_path=$this->backup_folder_root;
+
+        //get a list of all the temps
+        $work_folder_list = glob($backup_root_path. $prefix .'*', GLOB_ONLYDIR);
+        $file_system = new WPBackItUp_FileSystem($this->logger);
+        foreach($work_folder_list as $folder) {
+            $file_system->recursive_delete($folder);
+        }
+
+        $this->logger->log_info( __METHOD__, 'End' );
+    }
+
+    public function cleanup_old_backups() {
+        $this->logger->log_info( __METHOD__, 'Begin' );
+
+        //  --PURGE BACKUP FOLDER
+        //Purge logs in backup older than N days
+        $backup_root_path=$this->backup_folder_root;
+        $file_system = new WPBackItUp_FileSystem($this->logger);
+
+        //check retention limits
+        $file_system->purge_folders($backup_root_path,'*',$this->backup_retained_number);
+
+        $this->logger->log_info( __METHOD__, 'End' );
+    }
+
+
+    public function cleanup_unfinished_backups_OLD(){
         $dir=$this->backup_folder_root;
         $this->logger->log_info(__METHOD__,'Begin:'.$dir);
         $ignore = array('cgi-bin','.','..','._');
@@ -176,14 +205,33 @@ class WPBackItUp_Backup {
         $this->logger->log_info(__METHOD__, 'Begin - Cleanup Backup Folder:' . $path);
 
         $fileSystem = new WPBackItUp_FileSystem($this->logger);
-        if(!$fileSystem ->recursive_delete($path)) {
-            $this->logger->log_error(__METHOD__,'Backup Folder could not be deleted');
+        $work_files = array_filter(glob($this->backup_project_path. '*.{txt,sql}',GLOB_BRACE), 'is_file');
+
+        if(!$fileSystem ->delete_files($work_files)) {
+            $this->logger->log_error(__METHOD__,'Work files could not be deleted');
             return false;
         }
 
-        $this->logger->log_info(__METHOD__,'End - Backup Folder Deleted');
+        $this->logger->log_info(__METHOD__,'End - Work Files Deleted');
         return true;
     }
+
+    public function delete_site_data_files(){
+        $path = $this->backup_project_path;
+        $this->logger->log_info(__METHOD__, 'Begin - Cleanup Backup Folder:' . $path);
+
+        $fileSystem = new WPBackItUp_FileSystem($this->logger);
+        $work_files = array_filter(glob($this->backup_project_path. '*.{txt,sql}',GLOB_BRACE), 'is_file');
+
+        if(!$fileSystem ->delete_files($work_files)) {
+            $this->logger->log_error(__METHOD__,'Work files could not be deleted');
+            return false;
+        }
+
+        $this->logger->log_info(__METHOD__,'End - Work Files Deleted');
+        return true;
+    }
+
 
     public function purge_old_files(){
         $this->logger->log_info(__METHOD__,'Begin');
@@ -204,22 +252,28 @@ class WPBackItUp_Backup {
 	    $logs_path = WPBACKITUP__PLUGIN_PATH .'/logs/';
 
 	    //Purge logs in logs older than 5 days
-	    $fileSystem->purge_files($logs_path,'Backup_*.log',$this->backup_retained_days);
+	    $fileSystem->purge_files($logs_path,'*.log',$this->backup_retained_days);
 
-	    //Purge debug logs in logs older than 5 days
-	    $fileSystem->purge_files($logs_path,'*debug*.log',$this->backup_retained_days);
+        //Purge Zipped logs in logs older than 5 days
+	    $fileSystem->purge_files($logs_path,'*.zip',$this->backup_retained_days);
 
-	    //Purge upload logs in logs older than 5 days
-	    $fileSystem->purge_files($logs_path,'*upload*.log',$this->backup_retained_days);
+        //Purge logs in logs older than 5 days
+//        $fileSystem->purge_files($logs_path,'Backup_*.log',$this->backup_retained_days);
 
-	    //Purge cleanup logs in logs older than 5 days
-	    $fileSystem->purge_files($logs_path,'*cleanup*.log',$this->backup_retained_days);
-
-	    //Purge Zipped logs in logs older than 5 days
-	    $fileSystem->purge_files($logs_path,'logs_*.zip',$this->backup_retained_days);
-
-	    //Purge restore logs in logs older than 5 days
-	    $fileSystem->purge_files($logs_path,'*restore*.log',$this->backup_retained_days);
+//	    //Purge debug logs in logs older than 5 days
+//	    $fileSystem->purge_files($logs_path,'*debug*.log',$this->backup_retained_days);
+//
+//	    //Purge upload logs in logs older than 5 days
+//	    $fileSystem->purge_files($logs_path,'*upload*.log',$this->backup_retained_days);
+//
+//	    //Purge cleanup logs in logs older than 5 days
+//	    $fileSystem->purge_files($logs_path,'*cleanup*.log',$this->backup_retained_days);
+//
+//	    //Purge Zipped logs in logs older than 5 days
+//	    $fileSystem->purge_files($logs_path,'logs_*.zip',$this->backup_retained_days);
+//
+//	    //Purge restore logs in logs older than 5 days
+//	    $fileSystem->purge_files($logs_path,'*restore*.log',$this->backup_retained_days);
 
         $this->logger->log_info(__METHOD__,'End');
 
@@ -317,6 +371,8 @@ class WPBackItUp_Backup {
                 return false;
             }
 
+            //Probably should change to json format
+
             //Write Site URL
             $entry = site_url( '/' ) ."\n";
             fwrite($handle, $entry);
@@ -328,7 +384,13 @@ class WPBackItUp_Backup {
             //write WP version
             $entry =get_bloginfo( 'version')."\n"  ;
             fwrite($handle, $entry);
+
+            //write WP BackItUp
+            $entry =WPBACKITUP__VERSION."\n"  ;
+            fwrite($handle, $entry);
+
             fclose($handle);
+
 
             if (file_exists($siteinfo)){
                 $this->logger->log_info(__METHOD__,'File created successfully.');
@@ -343,350 +405,214 @@ class WPBackItUp_Backup {
         return false;
     }
 
-	//BackUp plugins
-	public function backup_plugins(){
-		$this->logger->log_info(__METHOD__,'Begin');
+	public function get_plugins_file_list() {
+		$this->logger->log_info( __METHOD__, 'Begin' );
 
-		$plugins_root_path = WPBACKITUP__PLUGINS_ROOT_PATH .'/';
-		$target_plugin_root = 'wp-content-plugins';
-		$zip_file_path = $this->backup_folder_root . $this->backup_filename;
+		$file_system = new WPBackItUp_FileSystem($this->logger);
+		$plugins_file_list = $file_system->get_recursive_file_list(WPBACKITUP__PLUGINS_ROOT_PATH. '/*' );
+		$this->logger->log_info( __METHOD__, 'Plugin File Count: ' .count($plugins_file_list));
+
+		return $plugins_file_list;
+	}
+
+	public function get_themes_file_list() {
+		$this->logger->log_info( __METHOD__, 'Begin' );
+
+		$file_system = new WPBackItUp_FileSystem($this->logger);
+		$themes_root_path = WPBACKITUP__THEMES_ROOT_PATH;
+		$themes_file_list = $file_system->get_recursive_file_list($themes_root_path. '/*' );
+		$this->logger->log_info( __METHOD__, 'Themes File Count: ' .count($themes_file_list));
+
+		return $themes_file_list;
+	}
+
+    public function get_uploads_file_list() {
+        $this->logger->log_info( __METHOD__, 'Begin' );
+
+        $upload_array = wp_upload_dir();
+        $uploads_root_path = $upload_array['basedir'];
+
+        //ignore these folders under uploads
+        $ignore = explode(',',WPBACKITUP__BACKUP_IGNORE_LIST);
+
+        $uploads_folderlist = glob($uploads_root_path. '/*',GLOB_ONLYDIR|GLOB_NOSORT);
+        $uploads_file_list=array();
+
+        $file_system = new WPBackItUp_FileSystem($this->logger);
+        foreach ( $uploads_folderlist as $folder ) {
+            if (! $this->strposa(basename($folder), $ignore)){
+                array_push($uploads_file_list,$folder);
+                $file_list = $file_system->get_recursive_file_list($folder. '/*' );
+                $uploads_file_list = array_merge($uploads_file_list,$file_list);
+            }
+        }
+
+        //Need to grab the files in the root also
+        $files_only = array_filter(glob($uploads_root_path. '/*'), 'is_file');
+        if (count($files_only)>0){
+            $uploads_file_list = array_merge($uploads_file_list,$files_only);
+        }
+
+        $this->logger->log_info( __METHOD__, 'Themes File Count: ' .count($uploads_file_list));
+
+        return $uploads_file_list;
+    }
+
+    public function get_other_file_list() {
+        $this->logger->log_info( __METHOD__, 'Begin' );
+
+        $wpcontent_path = WPBACKITUP__CONTENT_PATH;
+
+        $upload_array = wp_upload_dir();
+        $uploads_folder = basename ($upload_array['basedir']);
+        $themes_folder = basename (WPBACKITUP__THEMES_ROOT_PATH);
+        $plugins_folder = basename (WPBACKITUP__PLUGINS_ROOT_PATH);
+
+        //ignore these folders
+        $wpback_ignore = explode(',',WPBACKITUP__BACKUP_IGNORE_LIST);
+        $wpcontent_ignore=array($uploads_folder, $themes_folder, $plugins_folder);
+        $ignore = array_merge($wpback_ignore,$wpcontent_ignore);
+
+        $wpcontent_folderlist = glob($wpcontent_path. '/*',GLOB_ONLYDIR|GLOB_NOSORT);
+
+        $other_file_list=array();
+        $file_system = new WPBackItUp_FileSystem($this->logger);
+        foreach ( $wpcontent_folderlist as $folder ) {
+            if (!$this->strposa(basename($folder), $ignore)){
+                array_push($other_file_list,$folder);
+                $file_list = $file_system->get_recursive_file_list($folder. '/*' );
+                $other_file_list = array_merge($other_file_list,$file_list);
+            }
+        }
+
+        //Need to grab the files in the root also
+        $files_only = array_filter(glob($wpcontent_path. '/*'), 'is_file');
+        if (count($files_only)>0){
+
+            //Get rid of the debug.log file - dont want to restore it
+            $debug_log_index = $this->search_array('debug.log', $files_only);
+            if (false!==$debug_log_index) {
+                unset($files_only[$debug_log_index]);
+            }
+
+            $other_file_list = array_merge($other_file_list,$files_only);
+        }
+
+        $this->logger->log_info( __METHOD__, 'Other File Count: ' .count($other_file_list));
+
+        return $other_file_list;
+    }
+
+
+    //BackUp
+	public function backup_file_list($source_root,$target_root,$suffix,$file_list,$batch_size,$ignore=''){
+		$this->logger->log_info(__METHOD__,'Begin - Item Count: '. count($file_list));
+
+		$zip_file_path = $this->backup_project_path . $this->backup_name .'-'.$suffix .'.tmp';
 		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
 
-		//Get a list of files/folders in the plugins root
-		$plugin_copied=false;
-		$backup_item_count=0;
-		foreach(glob($plugins_root_path. '*',GLOB_ONLYDIR ) as $dir){
-			$source_plugin_folder=$dir .'/';
-			//This is the root target - needs to be hardcoded because we need to know where to find it on the restore.
-			$target_plugin_folder =$target_plugin_root . '/' .basename($dir);
+		foreach($file_list as $item) {
 
-			//If target plugin doesnt exist backitup
-			if (!$zip->folder_exists($target_plugin_folder)) {
-				//If a plugin has already been backed up then this means there is more
-				if ($plugin_copied && ($backup_item_count>=$this->backup_batch_size))	return 'continue';
+            //skip it if in ignore
+            if ( !empty($ignore) && false!== strpos($item,$ignore)) {
+                $this->logger->log_info( __METHOD__, 'Skip File:' . $item );
+                array_shift($file_list); //remove from list
+                continue;
+            }
 
-				$this->logger->log_info(__METHOD__,'Backing up plugin:' .$target_plugin_folder);
-
-				//Backup the plugin folder
-				if (!$zip->compress_folder($source_plugin_folder,$target_plugin_folder)) {
-					$this->logger->log_error(__METHOD__,'Plugin NOT backed up successfully.');
-					return 'error';
-				}else{
-					$backup_item_count++;
-					$this->logger->log_info(__METHOD__,'Plugin backed up successfully:' .$backup_item_count);
-					$plugin_copied=true;
-				}
-			}
-		}
+            //skip it if folder
+            if ( is_dir( $item ) ) {
+                $this->logger->log_info( __METHOD__, 'Skip folder:' . $item );
+                array_shift( $file_list ); //remove from list
+                continue;
+            }
 
 
-		//If we get here then there are no more folders left to backup
-		$this->logger->log_info(__METHOD__,'Backup all files in plugin root');
-		$files = array_filter(glob($plugins_root_path. '*'), 'is_file');
-		foreach ($files as $file){
-			$this->logger->log_info(__METHOD__,'Backup file:' . $file);
-			if (!$zip->zip_file($file,$target_plugin_root)){
-				$this->logger->log_error(__METHOD__,'Plugin NOT backed up successfully.');
+			//replace the source path with the target
+			$target_item_path = str_replace(rtrim($source_root, '/'),rtrim($target_root,'/'),$item);
+            if ( $zip->add_file($item,$target_item_path)) {
+                array_shift($file_list);
+                $this->logger->log_info( __METHOD__, 'File Added:' . $target_item_path );
+                $this->logger->log_info( __METHOD__, 'Zip file count:' . $zip->get_zip_file_count() . '>=' . $batch_size);
+
+                //If we have added X# of files or hit the size limit then lets close the zip and finish on the next pass
+                if( $zip->get_zip_file_count()>=$batch_size){
+
+                    $zip->close();//close the zip
+
+                    //check the compressed file size
+                    $compressed_zip_file_size = $zip->get_zip_actual_size();
+                    $this->logger->log_info( __METHOD__, 'Zip Actual Size after close:' . $zip->get_zip_actual_size());
+
+                    //if the zip is too big we need to rename it
+                    $threshold = $zip->get_max_zip_size(.8);
+                    if ($compressed_zip_file_size >= $threshold) {
+                        $this->logger->log_info(__METHOD__,'Zip hit max size threshold:'.$compressed_zip_file_size .'>' .$threshold );
+                        if (! $this->add_zip_suffix($zip_file_path)){
+                            return 'error';
+                        }
+                    }
+
+                    $this->logger->log_info(__METHOD__,'End - Item Count:' . count($file_list));
+                    return $file_list;
+                }
+            } else {
+                $this->logger->log_error( __METHOD__, 'File NOT added:' . $target_item_path );
+                return 'error';
+            }
+        }
+
+
+        //if we get here then close the zip
+        $zip->close();//close the zip
+
+		//if there are no more files to add then rename the zip
+        //Check to see if the file exists, it is possible that it does not if only empty folders were contained
+		if(count($file_list)==0 && file_exists($zip_file_path) ){
+            $this->logger->log_info( __METHOD__, 'Zip Actual Size after close:' . $zip->get_zip_actual_size());
+			if (! $this->add_zip_suffix($zip_file_path)){
 				return 'error';
 			}
 		}
 
-		$this->logger->log_info(__METHOD__,'All Plugins backed up successfully.');
-		return 'complete';
+		$this->logger->log_info(__METHOD__,'End - Item Count:' . count($file_list));
+		return $file_list;
 	}
 
-	//BackUp Themes
-	public function backup_themes(){
+
+    private function strposa($haystack, $needle) {
+        if(!is_array($needle)) $needle = array($needle);
+
+        foreach($needle as $query) {
+            //If wildcard on end then compare
+            if ('*' == substr($query, -1) && strpos( $haystack, rtrim($query,"*")) !== false) {
+                return true;
+            } else {
+                if ( $haystack==$query ) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+	private function add_zip_suffix($zip_file_path){
 		$this->logger->log_info(__METHOD__,'Begin');
 
-		$themes_root_path = WPBACKITUP__THEMES_ROOT_PATH .'/';
-		$target_theme_root = 'wp-content-themes';
-
-		$zip_file_path = $this->backup_folder_root . $this->backup_filename;
-		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
-
-		//Get a list of files/folders in the themes root
-		$theme_copied=false;
-		$backup_item_count=0;
-		foreach(glob($themes_root_path. '*',GLOB_ONLYDIR ) as $dir){
-			$source_theme_folder=$dir .'/';
-			$target_theme_folder = $target_theme_root . '/' .basename($dir);
-
-			//If target theme doesnt exist backitup
-			if (!$zip->folder_exists($target_theme_folder)){
-				//If a theme has already been backed up then this means there is more
-				if ($theme_copied && ($backup_item_count>=$this->backup_batch_size)) return 'continue';
-
-				$this->logger->log_info(__METHOD__,'Backing up theme:' .$target_theme_folder);
-
-				if (!$zip->compress_folder($source_theme_folder,$target_theme_folder))  {
-					$this->logger->log_error(__METHOD__,'Theme NOT backed up successfully.');
-					return 'error';
-				}else{
-					$backup_item_count++;
-					$this->logger->log_info(__METHOD__,'Theme backed up successfully:' .$backup_item_count);
-					$theme_copied=true;
-				}
-			}
-		}
-
-
-		//If we get here then there are no more folders left to backup
-		$this->logger->log_info(__METHOD__,'Backup all files in theme root');
-		$files = array_filter(glob($themes_root_path. '*'), 'is_file');
-		foreach ($files as $file){
-			$this->logger->log_info(__METHOD__,'Backup file:' . $file);
-			if (!$zip->zip_file($file,$target_theme_root)) {
-				$this->logger->log_error(__METHOD__,'Theme NOT backed up successfully.');
-				return 'error';
-			}
-		}
-
-
-		$this->logger->log_info(__METHOD__,'All Themes backed up successfuly.');
-		return 'complete';
-	}
-
-
-	//BackUp Uploads
-	public function backup_uploads(){
-		$this->logger->log_info(__METHOD__,'Begin');
-
-		$upload_array = wp_upload_dir();
-		$uploads_root_path = $upload_array['basedir'] .'/';
-
-		$target_uploads_root = 'wp-content-uploads';
-		$zip_file_path = $this->backup_folder_root . $this->backup_filename;
-		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
-
-		//Get a list of files/folders in the uploads root
-		$upload_copied=false;
-		$backup_item_count=0;
-		$this->logger->log_info(__METHOD__,'GLOB:' .$uploads_root_path);
-		foreach(glob($uploads_root_path. '*',GLOB_ONLYDIR ) as $dir){
-			$source_upload_folder=$dir .'/';
-			$target_upload_folder = $target_uploads_root .'/' .basename($dir);
-
-			//If target upload doesnt exist backitup
-			if (!$zip->folder_exists($target_upload_folder)) {
-				//If an upload has already been backed up then this means there is more
-				if ($upload_copied && ($backup_item_count>=$this->backup_batch_size)) 	return 'continue';
-
-				$this->logger->log_info(__METHOD__,'Backing up upload:' .$target_upload_folder);
-
-				if (!$zip->compress_folder($source_upload_folder,$target_upload_folder)) {
-					$this->logger->log_error(__METHOD__,'Upload NOT backed up successfully.');
-					return 'error';
-				}else{
-					$backup_item_count++;
-					$this->logger->log_info(__METHOD__,'Upload backed up successfully:'.$backup_item_count);
-					$upload_copied=true;
-				}
-			}
-		}
-
-
-		//If we get here then there are no more folders left to backup
-		$this->logger->log_info(__METHOD__,'Backup all files in upload root');
-		$files = array_filter(glob($uploads_root_path. '*'), 'is_file');
-		foreach ($files as $file){
-			$this->logger->log_info(__METHOD__,'Backup file:' . $file);
-			if (!$zip->zip_file($file,$target_uploads_root)){
-				$this->logger->log_error(__METHOD__,'Upload NOT backed up successfully.');
-				return 'error';
-			}
-		}
-
-
-		$this->logger->log_info(__METHOD__,'All Uploads backed up successfully.');
-		return 'complete';
-	}
-
-
-	//Backup everything else
-	public function backup_other(){
-		$this->logger->log_info(__METHOD__,'Begin');
-
-		$wpcontent_path = WPBACKITUP__CONTENT_PATH .'/';
-		$upload_array = wp_upload_dir();
-		$uploads_folder = basename ($upload_array['basedir']);
-		$themes_folder = basename (WPBACKITUP__THEMES_ROOT_PATH);
-		$plugins_folder = basename (WPBACKITUP__PLUGINS_ROOT_PATH);
-
-		$target_other_root = 'wp-content-other';
-
-		$wpback_ignore = explode(',',WPBACKITUP__BACKUP_IGNORE_LIST);
-		$wpcontent_ignore=array($uploads_folder, $themes_folder, $plugins_folder);
-		$ignore = array_merge($wpback_ignore,$wpcontent_ignore);
-
-		$this->logger->log_info(__METHOD__,'Ignore:');
-		$this->logger->log($ignore);
-
-		$zip_file_path = $this->backup_folder_root . $this->backup_filename;
-		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
-
-		$other_copied=false;
-		$backup_item_count=0;
-		$this->logger->log_info(__METHOD__,'Content Root Path:' .$wpcontent_path);
-		foreach(glob($wpcontent_path. '*',GLOB_ONLYDIR ) as $dir){
-			$source_other_folder=$dir .'/';
-			$target_other_folder = $target_other_root .'/' .basename($dir);
-
-			//If target other doesnt exist backitup
-			if( !$zip->folder_exists($target_other_folder) && !in_array(basename($dir), $ignore) ) {
-				//If a other has already been backed up then this means there is more
-				if ($other_copied && ($backup_item_count>=$this->backup_batch_size)) 	return 'continue';
-
-				$this->logger->log_info(__METHOD__,'Backing up other:' .$target_other_folder);
-
-				if (!$zip->compress_folder($source_other_folder,$target_other_folder)) {
-					$this->logger->log_error(__METHOD__,'Other NOT backed up successfully.');
-					return 'error';
-				}else{
-					$backup_item_count++;
-					$this->logger->log_info(__METHOD__,'Other backed up successfully:' .$backup_item_count);
-					$other_copied=true;
-				}
-			}
-		}
-
-		//If we get here then there are no more folders left to backup
-		$this->logger->log_info(__METHOD__,'Backup all files in wpcontent root');
-		$files = array_filter(glob($wpcontent_path. '*'), 'is_file');
-		foreach ($files as $file){
-			$this->logger->log_info(__METHOD__,'Backup file:' . $file);
-			if (!$zip->zip_file($file,$target_other_root)) {
-				$this->logger->log_error(__METHOD__,'Other NOT backed up successfully.');
-				return 'error';
-			}
-		}
-
-		$this->logger->log_info(__METHOD__,'All Others backed up successfully.');
-		return 'complete';
-	}
-
-	//backup all files in the site-data folder
-	public function backup_site_data(){
-		$this->logger->log_info(__METHOD__, 'Begin - Compress backup folder items:'.$this->backup_project_path);
-
-		$target_other_root = 'site-data';
-
-		$zip_file_path = $this->backup_folder_root . $this->backup_filename;
-		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
-
-		$this->logger->log_info(__METHOD__,'Backup all files in root of backup folder.');
-		$files = array_filter(glob($this->backup_project_path. '*'), 'is_file');
-		foreach ($files as $file){
-			$this->logger->log_info(__METHOD__,'Backup file:' . $file);
-			if (!$zip->zip_file($file,$target_other_root)){
+		$file_extension = pathinfo($zip_file_path, PATHINFO_EXTENSION);
+		$this->logger->log_info(__METHOD__,'File Extension:'.$file_extension);
+		if ($file_extension!='zip'){
+			$file_system = new WPBackItUp_FileSystem($this->logger);
+			$new_zip_name = str_replace('.' . $file_extension,'-'.time() .'.zip',$zip_file_path);
+			if ( !$file_system->rename_file($zip_file_path,$new_zip_name)){
+				$this->logger->log_error(__METHOD__,'Zip could not be renamed.');
 				return false;
 			}
 		}
 
-
-		$this->logger->log_info(__METHOD__, 'End - Compress backup folder items.');
+		//if we get here the file was renamed or was .zip already
 		return true;
 	}
-
-
-    public function validate_backup(){
-        $this->logger->log_info(__METHOD__,'Begin - Validate backup');
-
-        $source_dir_path = WPBACKITUP__CONTENT_PATH ;
-        $target_dir_path = $this->backup_project_path;
-
-        $this->logger->log_info(__METHOD__,'Validate content folder FROM:' .$target_dir_path);
-	    $this->logger->log_info(__METHOD__,'Validate content folder TO:' .$source_dir_path);
-
-
-
-	    $zip_file_path = $this->backup_folder_root . $this->backup_filename;
-	    $zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
-
-	    //Validate plugins
-	    //Check the plugins folder
-	    $plugins_root_path = WPBACKITUP__PLUGINS_ROOT_PATH;
-	    $target_plugin_root = 'wp-content-plugins';
-        if(! $zip->validate_folder($plugins_root_path, $target_plugin_root)) {
-            $this->logger->log_error(__METHOD__,'Plugins Validation:FAIL');
-        }else{
-	        $this->logger->log_info(__METHOD__,'Plugins Validation:SUCCESS');
-        }
-
-	    //Validate Themes
-	    $themes_root_path = WPBACKITUP__THEMES_ROOT_PATH .'/';
-	    $target_theme_root = 'wp-content-themes';
-	    if(! $zip->validate_folder($themes_root_path, $target_theme_root)) {
-		    $this->logger->log_error(__METHOD__,'Themes Validation:FAIL');
-	    }else{
-		    $this->logger->log_info(__METHOD__,'Themes Validation:SUCCESS');
-	    }
-
-	    //Validate Uploads
-	    $upload_array = wp_upload_dir();
-	    $uploads_root_path = $upload_array['basedir'] .'/';
-	    $target_uploads_root = 'wp-content-uploads';
-	    if(! $zip->validate_folder($uploads_root_path, $target_uploads_root)) {
-		    $this->logger->log_error(__METHOD__,'Uploads Validation:FAIL');
-	    }else{
-		    $this->logger->log_info(__METHOD__,'Uploads Validation:SUCCESS');
-	    }
-
-		//Validate everything on the that was in the backup temp folder
-	    $site_data_root_path = $this->backup_project_path .'/';
-	    $target_site_data_root = 'site-data';
-	    if(! $zip->validate_folder($site_data_root_path, $target_site_data_root)) {
-		    $this->logger->log_error(__METHOD__,'Site Data Validation:FAIL');
-	    }else{
-		    $this->logger->log_info(__METHOD__,'Site Data Validation:SUCCESS');
-	    }
-
-		//Validate Other
-	    $wpback_ignore = explode(',',WPBACKITUP__BACKUP_IGNORE_LIST);
-	    $wpcontent_ignore=array(basename($uploads_root_path), basename($themes_root_path), basename($plugins_root_path));
-	    $ignore = array_merge($wpback_ignore,$wpcontent_ignore);
-
-	    $wpcontent_path = WPBACKITUP__CONTENT_PATH .'/';
-	    $target_other_root = 'wp-content-other';
-
-	    $this->logger->log_info(__METHOD__,'IGNORE:');
-	    $this->logger->log($ignore);
-
-	    //Validate the other folders
-	    foreach(glob($wpcontent_path. '*',GLOB_ONLYDIR ) as $dir){
-		    if( ! in_array(basename($dir), $ignore)){
-			    $source_other_folder = $dir . '/';
-		        $target_other_folder = $target_other_root . '/' . basename( $dir );
-
-			    if(! $zip->validate_folder($source_other_folder, $target_other_folder)) {
-			        $this->logger->log_error(__METHOD__,'Other Validation:FAIL - ' .basename( $dir ));
-			    }else{
-				    $this->logger->log_info(__METHOD__,'Other Validation:SUCCESS - '.basename( $dir ));
-			    }
-	        }
-	    }
-
-	    //Validate the other files
-	    $files = array_filter(glob($wpcontent_path. '*'), 'is_file');
-	    $file_validation=true;
-	    foreach ($files as $file){
-		    $target_other_file = $target_other_root . '/' . basename( $file );
-		    if (false===$zip->validate_file($target_other_file)){
-			    $this->logger->log_error(__METHOD__,'DIFF File:' .$target_other_file);
-			    $file_validation=false;
-		    };
-	    }
-
-	    // Write the other file validation results
-	    if(! $file_validation) {
-		    $this->logger->log_error(__METHOD__,'Other File Validation:FAIL');
-	    }else{
-		    $this->logger->log_info(__METHOD__,'Other File Validation:SUCCESS');
-	    }
-
-        $this->logger->log_info(__METHOD__,'End - Validate backup');
-	    return true;
-    }
 
 	public function finalize_zip_file() {
 		$this->logger->log_info(__METHOD__,'Begin - Finalize the zip.');
@@ -718,5 +644,81 @@ class WPBackItUp_Backup {
 
 	}
 
+	//Create manifest file
+	public function create_backup_manifest(){
+        $this->logger->log_info(__METHOD__,'Begin');
+
+		//get a list of all the zips
+		$backup_files_path = array_filter(glob($this->backup_project_path. '*.zip'), 'is_file');
+		if (count($backup_files_path)>0){
+			//get rid of the path.
+			$backup_files = str_replace($this->backup_project_path,'',$backup_files_path);
+			$manifest_file=$this->backup_project_path . 'backupmanifest.txt';
+			file_put_contents($manifest_file,json_encode($backup_files));
+
+            //Find the main zip in the array to get the path
+            $main_zip_index = $this->search_array('-main-', $backup_files_path);
+
+            //add it to the main zip file
+            if ($main_zip_index!==false){
+                $zip_file_path = $backup_files_path[$main_zip_index];
+                $zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
+                $target_item_path = str_replace(rtrim($this->backup_project_path, '/'),rtrim('site-data','/'),$manifest_file);
+                if ( $zip->add_file($manifest_file,$target_item_path)) {
+                    $zip->close();//close the zip
+                    $this->logger->log_info(__METHOD__,'End -  Manifest created.');
+                    return true;
+                }
+             }
+		}
+
+        $this->logger->log_error(__METHOD__,'End -  Manifest not created.');
+		return false;
+	}
+
+    private function search_array($search, $array)
+    {
+        foreach($array as $key => $value)
+        {
+            if (stristr($value, $search))
+            {
+                return $key;
+            }
+        }
+        return false;
+    }
+
+
+    public function rename_backup_folder() {
+        $this->logger->log_info(__METHOD__,'Begin');
+
+        $backup_project_path = $this->backup_project_path;
+        //remove the 4 character prefix
+        $new_backup_path = str_replace('TMP_','',$backup_project_path);
+
+        $file_system = new WPBackItUp_FileSystem($this->logger);
+        if (! $file_system->rename_file($backup_project_path,$new_backup_path)){
+            $this->logger->log_error(__METHOD__,'Folder could not be renamed');
+            return false;
+        }
+
+        $this->set_final_backup_path();
+
+        $this->logger->log_info(__METHOD__,'End');
+        return true;
+    }
+
+    //this is needed because it is set to TMP until finalization then needed a way to know where the current path is
+    public function set_final_backup_path(){
+        $this->logger->log_info(__METHOD__,'Begin');
+
+        $backup_project_path = $this->backup_project_path;
+        $new_backup_path = str_replace('TMP_','',$backup_project_path);
+
+        //set the path to the new path
+        $this->backup_project_path=$new_backup_path;
+
+        $this->logger->log_info(__METHOD__,'End');
+    }
 
 }

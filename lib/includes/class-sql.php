@@ -63,7 +63,9 @@ class WPBackItUp_SQL {
 		        	 .=' ' . $db_name		        	 
 		        	 . ' > "' . $sql_file_path .'"';
 
-					//$this->logger->log('(SQL.db_SQLDump)Execute command:' . $command);
+                    if (WPBACKITUP__DEBUG) {
+                        $this->logger->log('(SQL.db_SQLDump)Execute command:' . $command);
+                    }
 
             		exec($command,$output,$rtn_var);
 		            $this->logger->log('(SQL.mysqldump_export)Execute output:');
@@ -207,7 +209,7 @@ class WPBackItUp_SQL {
 	    return true;
 	}
 
-    public function run_sql_exec($sql_file) {
+    public function run_sql_exec($sql_file,$with_mysqlpath=false) {
         $this->logger->log('(SQL.run_sql_exec)SQL Execute:' .$sql_file);
 
         //Is the backup sql file empty
@@ -224,21 +226,36 @@ class WPBackItUp_SQL {
 
         try {
 
+            $mysql_path='';
+            if ($with_mysqlpath)  {
+                $mysql_path = $this->get_mysql_path();
+                if ($mysql_path===false) return false;
+            }
+
             $db_name = DB_NAME;
             $db_user = DB_USER;
             $db_pass = DB_PASSWORD;
             $db_host = $this->get_hostonly(DB_HOST);
             $db_port = $this->get_portonly(DB_HOST);
 
-            $process = 'mysql';
+            $process = $mysql_path .'mysql';
             $command = $process
-                . ' --host=' . $db_host
-                . ' --user=' . $db_user
+                . ' --host=' . $db_host;
+
+            //Check for port
+            if (false!==$db_port){
+                $command .=' --port=' . $db_port;
+            }
+
+            $command .=
+                ' --user=' . $db_user
                 . ' --password=' . $db_pass
                 . ' --database=' . $db_name
                 . ' --execute="SOURCE ' . $sql_file .'"';
 
-            //$this->logger->log('(SQL.db_run_sql)Execute command:' . $command);
+            if (WPBACKITUP__DEBUG) {
+                $this->logger->log( '(SQL.db_run_sql)Execute command:' . $command );
+            }
 
             //$output = shell_exec($command);
             exec($command,$output,$rtn_var);
@@ -248,6 +265,7 @@ class WPBackItUp_SQL {
 
             //0 is success
             if ($rtn_var!=0){
+                $this->logger->log('(SQL.run_sql_exec) An Error has occurred RTNVAL: ' .$rtn_var);
                 return false;
             }
 
@@ -257,7 +275,7 @@ class WPBackItUp_SQL {
         }
 
         //Success
-        $this->logger->log('(SQL.run_sql_exec)SQL Executed successfully:' .$sql_file);
+        $this->logger->log('(SQL.run_sql_exec)SQL Executed successfully');
         return true;
     }
 

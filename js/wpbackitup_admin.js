@@ -23,6 +23,13 @@
         action: wpbackitup_get_action_name('backup_status_reader')
     };
 
+    //UPLOADS
+    try {
+        plupload_init(wpbackitup_plupload_config);
+    } catch (err) {
+        console.log(err);
+    }
+
     $( "#scheduled-backups-accordian" ).click(function() {
 
         scheduled_backups=$("#scheduled-backups");
@@ -36,6 +43,23 @@
             scheduled_backups_button.toggleClass( "fa-angle-double-down", true);
             scheduled_backups_button.toggleClass( "fa-angle-double-up", false);
             scheduled_backups.fadeOut( "slow" )
+        }
+
+    });
+
+    $( "#upload-backups-accordian" ).click(function() {
+
+        upload_backups=$("#wpbackitup-plupload-modal");
+        upload_backups_button = $( "#upload-backups-accordian");
+
+        if ($(this).is(".fa-angle-double-down")){
+            upload_backups.fadeIn( "slow" )
+            upload_backups_button.toggleClass( "fa-angle-double-down", false);
+            upload_backups_button.toggleClass( "fa-angle-double-up", true);
+        } else{
+            upload_backups_button.toggleClass( "fa-angle-double-down", true);
+            upload_backups_button.toggleClass( "fa-angle-double-up", false);
+            upload_backups.fadeOut( "slow" )
         }
 
     });
@@ -67,7 +91,7 @@
   function wpbackitup_add_viewlog_onclick(){
         $(".viewloglink").click(function(){
             var href = $(this).attr("href");
-            $("#viewlog_log").val(href);
+            $("#backup_name").val(href);
             $("#viewlog").submit();
             return false;
         });
@@ -76,7 +100,7 @@
     function wpbackitup_add_downloadbackup_onclick(){
         $(".downloadbackuplink").click(function(){
             var href = $(this).attr("href");
-            $("#backup_name").val(href);
+            $("#backup_file").val(href);
             $("#download_backup").submit();
             return false;
         });
@@ -508,101 +532,215 @@
     }
 
     /*Upload form button*/
-    $("#upload-form").submit(function() {
-
-        //e.preventDefault();
-
-        //CHECK ERRORS ON USER SIDE, IF TRUE, END OPERATIONS.
-        if (wpbackitup_upload_errors()){
-            return false;
-        }
-
-        var formData = new FormData();
-        jQuery.each($('#wpbackitup-zip')[0].files, function(i, file) {
-            formData.append('uploadFile-'+i, file);
-        });
-        formData.append('action', wpbackitup_get_action_name('upload'));
-        formData.append('_wpnonce', $('#_wpnonce').val());
-        formData.append('_wp_http_referer',$("[name='_wp_http_referer']").val());
-
-        jQuery.ajax({
-            url: ajaxurl,
-            type: 'POST',
-            cache: false,
-            contentType: false,
-            processData: false,
-            dataType: "json",
-
-            //MODIFIED - From ajaxData to formData
-            data: formData,
-
-            beforeSend: function(jqXHR, settings){
-                //console.log("Haven't entered server side yet.");
-                /* display processing icon */
-                $('.upload-icon').css('visibility', 'visible');
-
-                /* hide default message, backup status and backup errors */
-                $('.default-status, .restore-status, .restore-errors').hide();
-                $("ul.restore-status").children().children().hide();
-                $(".restore-errors").children().children().hide();
-                $(".restore-success").children().children().hide();
-
-                /* show restore status messages */
-                $('.upload-status').toggle();
-
-                $("#wpbackitup-zip").attr("disabled", "disabled"); //Disable upload
-                $("#upload-button").attr("disabled", "disabled"); //Disable upload
-
-            },
-            dataFilter: function(data, type){
-                //Check the response before sending to success
-                //Possible that is isnt json so just forward it to success in a json object
-                try {
-                    $("#php").html(data);
-                    var response = $.parseJSON(data);
-                    console.log("JSON string echoed back from server side:" + response);
-                    return data;
-                } catch (e) {
-                    console.log("NON JSON string echoed back from server side:" +  type + ':' + data);
-                    var rtnData = new Object();
-                    rtnData.success = "";
-                    rtnData.error = data;
-                    return JSON.stringify(rtnData)
-                }
-
-
-            },
-            success: function(data, textStatus, jqXHR){
-                console.log("Back from server-side:" + data);
-                //Checking errors that may have been caught on the server side that
-                // normally wouldn't display in the error Ajax function.
-
-                if (data.msg == 'success')
-                {
-                    status_message=data.file + ' file was uploaded successfully...';
-                    wpbackitup_processRow_restore(data);
-                    $('.upload-status').addClass("isa_success");
-                }else{
-                    status_message='Error: &nbsp;' + data.error;
-                    $('.upload-status').addClass("isa_error");
-                }
-
-                $('.upload-icon').fadeOut(1000);
-                $('.upload-status').show();
-                $('.upload-status').html(status_message);
-
-            },
-            error: function(jqXHR, textStatus, errorThrown){
-                console.log("A JS error has occurred." + textStatus +':' +errorThrown);
-            },
-            complete: function(jqXHR, textStatus){
-                console.log("Ajax is finished.");
-            }
-        });
-
-        return false;
-    });
-
+    //$("#upload-form").submit(function(e) {
+    //
+    //    e.preventDefault();
+    //
+    //    //CHECK ERRORS ON USER SIDE, IF TRUE, END OPERATIONS.
+    //    if (wpbackitup_upload_errors()){
+    //        return false;
+    //    }
+    //
+    //    var formData = new FormData();
+    //    formData.append('action', wpbackitup_get_action_name('upload'));
+    //    formData.append('_wpnonce', $('#_wpnonce').val());
+    //    formData.append('_wp_http_referer',$("[name='_wp_http_referer']").val());
+    //    formData.append('upload_ids',$('#upload_ids').val());
+    //
+    //    jQuery.ajax({
+    //        url: ajaxurl,
+    //        type: 'POST',
+    //        cache: false,
+    //        contentType: false,
+    //        processData: false,
+    //        dataType: "json",
+    //
+    //        //MODIFIED - From ajaxData to formData
+    //        data: formData,
+    //
+    //        beforeSend: function(jqXHR, settings){
+    //            //console.log("Haven't entered server side yet.");
+    //            /* display processing icon */
+    //            $('.upload-icon').css('visibility', 'visible');
+    //
+    //            /* hide default message, backup status and backup errors */
+    //            $('.default-status, .restore-status, .restore-errors').hide();
+    //            $("ul.restore-status").children().children().hide();
+    //            $(".restore-errors").children().children().hide();
+    //            $(".restore-success").children().children().hide();
+    //
+    //            /* show restore status messages */
+    //            $('.upload-status').toggle();
+    //
+    //            $("#wpbackitup-zip").attr("disabled", "disabled"); //Disable upload
+    //            $("#upload-button").attr("disabled", "disabled"); //Disable upload
+    //
+    //        },
+    //        dataFilter: function(data, type){
+    //            //Check the response before sending to success
+    //            //Possible that is isnt json so just forward it to success in a json object
+    //            try {
+    //                $("#php").html(data);
+    //                var response = $.parseJSON(data);
+    //                console.log("JSON string echoed back from server side:" + response);
+    //                return data;
+    //            } catch (e) {
+    //                console.log("NON JSON string echoed back from server side:" +  type + ':' + data);
+    //                var rtnData = new Object();
+    //                rtnData.success = "";
+    //                rtnData.error = data;
+    //                return JSON.stringify(rtnData)
+    //            }
+    //
+    //
+    //        },
+    //        success: function(data, textStatus, jqXHR){
+    //            console.log("Back from server-side:" + data);
+    //            //Checking errors that may have been caught on the server side that
+    //            // normally wouldn't display in the error Ajax function.
+    //
+    //            if (data.msg == 'success')
+    //            {
+    //                status_message=data.file + ' file was uploaded successfully...';
+    //                wpbackitup_processRow_restore(data);
+    //                $('.upload-status').addClass("isa_success");
+    //            }else{
+    //                status_message='Error: &nbsp;' + data.error;
+    //                $('.upload-status').addClass("isa_error");
+    //            }
+    //
+    //            $('.upload-icon').fadeOut(1000);
+    //            $('.upload-status').show();
+    //            $('.upload-status').html(status_message);
+    //
+    //        },
+    //        error: function(jqXHR, textStatus, errorThrown){
+    //            console.log("A JS error has occurred." + textStatus +':' +errorThrown);
+    //        },
+    //        complete: function(jqXHR, textStatus){
+    //            console.log("Ajax is finished.");
+    //        }
+    //    });
+    //
+    //    return false;
+    //});
+    //
+    //function wpbackitup_upload_errors()
+    //{
+    //    var selected_files = $('#upload_ids').val();
+    //    if (selected_files == '')
+    //    {
+    //        alert('No file(s) selected. Please choose a backup file.');
+    //        return true;
+    //    }
+    //
+    //    //if ($('#upload_files').val() != '')
+    //    //{
+    //    //    var ext = $('#upload_files').val().split('.').pop().toLowerCase();
+    //    //    if($.inArray(ext, ['zip']) == -1)
+    //    //    {
+    //    //        alert('Invalid file type. Please choose a ZIP file to upload.');
+    //    //        return true;
+    //    //    }
+    //    //}
+    //    return false;
+    //}
+    //
+    ///*Upload form button*/
+    //$("#upload-form_OLD").submit(function() {
+    //
+    //    //e.preventDefault();
+    //
+    //    //CHECK ERRORS ON USER SIDE, IF TRUE, END OPERATIONS.
+    //    if (wpbackitup_upload_errors()){
+    //        return false;
+    //    }
+    //
+    //    var formData = new FormData();
+    //    jQuery.each($('#wpbackitup-zip')[0].files, function(i, file) {
+    //        formData.append('uploadFile-'+i, file);
+    //    });
+    //    formData.append('action', wpbackitup_get_action_name('upload'));
+    //    formData.append('_wpnonce', $('#_wpnonce').val());
+    //    formData.append('_wp_http_referer',$("[name='_wp_http_referer']").val());
+    //
+    //    jQuery.ajax({
+    //        url: ajaxurl,
+    //        type: 'POST',
+    //        cache: false,
+    //        contentType: false,
+    //        processData: false,
+    //        dataType: "json",
+    //
+    //        //MODIFIED - From ajaxData to formData
+    //        data: formData,
+    //
+    //        beforeSend: function(jqXHR, settings){
+    //            //console.log("Haven't entered server side yet.");
+    //            /* display processing icon */
+    //            $('.upload-icon').css('visibility', 'visible');
+    //
+    //            /* hide default message, backup status and backup errors */
+    //            $('.default-status, .restore-status, .restore-errors').hide();
+    //            $("ul.restore-status").children().children().hide();
+    //            $(".restore-errors").children().children().hide();
+    //            $(".restore-success").children().children().hide();
+    //
+    //            /* show restore status messages */
+    //            $('.upload-status').toggle();
+    //
+    //            $("#wpbackitup-zip").attr("disabled", "disabled"); //Disable upload
+    //            $("#upload-button").attr("disabled", "disabled"); //Disable upload
+    //
+    //        },
+    //        dataFilter: function(data, type){
+    //            //Check the response before sending to success
+    //            //Possible that is isnt json so just forward it to success in a json object
+    //            try {
+    //                $("#php").html(data);
+    //                var response = $.parseJSON(data);
+    //                console.log("JSON string echoed back from server side:" + response);
+    //                return data;
+    //            } catch (e) {
+    //                console.log("NON JSON string echoed back from server side:" +  type + ':' + data);
+    //                var rtnData = new Object();
+    //                rtnData.success = "";
+    //                rtnData.error = data;
+    //                return JSON.stringify(rtnData)
+    //            }
+    //
+    //
+    //        },
+    //        success: function(data, textStatus, jqXHR){
+    //            console.log("Back from server-side:" + data);
+    //            //Checking errors that may have been caught on the server side that
+    //            // normally wouldn't display in the error Ajax function.
+    //
+    //            if (data.msg == 'success')
+    //            {
+    //                status_message=data.file + ' file was uploaded successfully...';
+    //                wpbackitup_processRow_restore(data);
+    //                $('.upload-status').addClass("isa_success");
+    //            }else{
+    //                status_message='Error: &nbsp;' + data.error;
+    //                $('.upload-status').addClass("isa_error");
+    //            }
+    //
+    //            $('.upload-icon').fadeOut(1000);
+    //            $('.upload-status').show();
+    //            $('.upload-status').html(status_message);
+    //
+    //        },
+    //        error: function(jqXHR, textStatus, errorThrown){
+    //            console.log("A JS error has occurred." + textStatus +':' +errorThrown);
+    //        },
+    //        complete: function(jqXHR, textStatus){
+    //            console.log("Ajax is finished.");
+    //        }
+    //    });
+    //
+    //    return false;
+    //});
 
   // DELETE file action
   $('#datatable').on('click', 'a.deleteRow', function(e) {
@@ -634,6 +772,123 @@
     }
   });
 
+  //UPLOADS
+  //http://www.plupload.com/example_events.php
+  function plupload_init(plupload_config) {
+
+        var uploader = new plupload.Uploader(plupload_config);
+        uploader.init();
+
+        //File Added event
+        uploader.bind('FilesAdded', function(up, files){
+            plupload.each(files, function(file){
+                //add some file name validation here?
+                $('#filelist').append(
+                    '<div id="media-item-' + file.id + '" class="media-item child-of-0">' +
+                    '<img class="pinkynail" alt="" src="' + site_url + '/wp-includes/images/media/archive.png">' +
+                    '<div class="filename new" id="' + file.id + '">' +
+                    file.name + ' (<span>' + plupload.formatSize(0) + '</span> of ' + plupload.formatSize(file.size) + ') ' +
+                    '<div class="progress" style="width: 0%;"></div></div></div>');
+            });
+
+            up.refresh();
+            up.start();
+        });
+
+        //File Progress Event
+        uploader.bind('UploadProgress', function(up, file) {
+            $('#' + file.id + " .progress").width((file.percent *.15 )+ "%");
+            $('#' + file.id + " span").html(plupload.formatSize(parseInt(file.size * file.percent / 100)));
+        });
+
+      //Chunked upload
+      uploader.bind(' ChunkUploaded', function(up, file,info) {
+          console.log('Chunk Uploaded:');
+          console.log(info);
+
+          if (is_plupload_error(info,up,file)){
+              console.log('chunk error');
+          }
+
+      });
+
+        //Error Event
+        uploader.bind('Error', function(up, error) {
+            console.log('PlUpload Error:');
+            console.log(error);
+
+            var error_div = "error-item-"+ error.file.id;
+
+            //If error div NOT exists then add it
+            //Chunk and file uploaded both will call this routine
+            if (! $('#'+ error_div).length){
+                $('#filelist').append(
+                    '<div class="error-div error" id="' + error_div + '" >' +
+                    '<strong>' + error.file.name + ' has failed to upload due to error:&nbsp;</strong> <span>' + error.message + '</span> ' +
+                    '</div>'
+                );
+            }
+
+
+        });
+
+
+        // a file was uploaded
+        uploader.bind('FileUploaded', function(up, file, response) {
+            console.log('File Uploaded');
+            console.log(response);
+
+
+            if (is_plupload_error(response,up,file)){
+                console.log('uploaded error')
+            }else{
+                console.log('uploaded success')
+                $('#' + file.id + " .progress").css("background-color", "green");
+            }
+
+    });
+  }
+
+  function is_plupload_error(response,uploader,file){
+      if (response.status == '200') {
+          try {
+              response_json = jQuery.parseJSON(response.response);
+
+              if (response_json.error) {
+                  plupload_error (uploader,file, 100, response_json.error)
+                  return true;
+              }
+
+              //success
+              return false;
+
+
+          } catch (err) {
+              console.log('Unexpected JSON Error' + err);
+              plupload_error (uploader,file, 998, response.response)
+              return true;
+          }
+
+      } else {
+          alert('Unknown server response status: '+response.code);
+          console.log(response);
+          plupload_error (uploader,file, 999, response.response)
+          return true;
+      }
+
+  }
+  function plupload_error (uploader,file, code, error_message){
+
+          file.status = plupload.FAILED;
+          uploader.trigger("Error", {
+              code: code,
+              message: error_message,
+              file: file
+          });
+
+          //remove upload from list
+          $('#media-item-' + file.id).hide();
+  }
 
   function wpbackitup_processRow_backup(data)
   {
@@ -656,15 +911,15 @@
 
       var viewColumn = '<td>&nbsp;</td>\n';
       if (typeof data.logFileExists !== 'undefined' && data.logFileExists==true) {
-          viewColumn = '<td><a class="viewloglink" href="' + data.backupFile + '">View Log</a></td>\n';
+          viewColumn = '<td><a class="viewloglink" href="' + data.backupName + '">View Log</a></td>\n';
       }
 
       var newRow =
         '<tr ' + css_class + ' id="row' + cur_row + '">\n\
           <td>New Backup!</td>\n\
-          <td><a class="downloadbackuplink" href="' + data.backupFile + '">Download</a></td>\n';
+          <td><a href="#TB_inline?width=600&height=550&inlineId=new_backup" class="thickbox" title="' + data.backupName + '">Download</a></td>\n';
         newRow +=viewColumn;
-        newRow +='<td><a href="#" title="' + data.backupFile + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n';
+        newRow +='<td><a href="#" title="' + data.backupName + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n';
         newRow +='</tr>';
 
       if ($('#nofiles'))
@@ -722,24 +977,6 @@
         }
     }
 
-    function wpbackitup_upload_errors()
-    {
-        if ($('#wpbackitup-zip').val() == '')
-        {
-            alert('No file(s) selected. Please choose a backup file to upload.');
-            return true;
-        }
-        if ($('#wpbackitup-zip').val() != '')
-        {
-            var ext = $('#wpbackitup-zip').val().split('.').pop().toLowerCase();
-            if($.inArray(ext, ['zip']) == -1)
-            {
-                alert('Invalid file type. Please choose a ZIP file to upload.');
-                return true;
-            }
-        }
-        return false;
-    }
 
     function wpbackitup_get_action_name(action) {
         return namespace + '_' + action;
@@ -774,6 +1011,71 @@
         $('html, body').animate({ scrollTop: 0 }, 'slow');
     }
 
+
+
+
+    // Uploading files
+    //jQuery(document).ready(function($){
+    //    var custom_uploader;
+    //    $('#upload_backup_button').click(function(e) {
+    //
+    //        e.preventDefault();
+    //
+    //        //If the uploader object has already been created, reopen the dialog
+    //        if (custom_uploader) {
+    //            custom_uploader.open();
+    //            return;
+    //        }
+    //
+    //        //Extend the wp.media object  (wp-includes/js/media-views.js)
+    //        custom_uploader = wp.media.frames.file_frame = wp.media({
+    //            //id:'wpbackitup-library',
+    //            library: {
+    //                type:  "application/zip"
+    //            },
+    //            title: 'Select Backup Files',
+    //            button: {
+    //                text: 'Select Backup Files'
+    //            },
+    //            //searchable:false,
+    //            //editing:false,
+    //            //frame:    'post',
+    //            multiple: true
+    //        });
+    //
+    //        //When a file is selected, grab the URL and set it as the text field's value
+    //        custom_uploader.on('select', function() {
+    //
+    //            //attachment = custom_uploader.state().get('selection').first().toJSON();
+    //            //$('#upload_backup').val(attachment.filename);
+    //
+    //            var attachments_string='';
+    //            var selected_file_ids=[];
+    //            var selection = custom_uploader.state().get('selection');
+    //            selection.map( function( attachment ) {
+    //                attachment = attachment.toJSON();
+    //
+    //                //Probably need to add this to a hidden form field
+    //                selected_file_ids.push(attachment.id);
+    //                attachments_string+=attachment.filename +",";
+    //                // Do something with attachment.id and/or attachment.url here
+    //            });
+    //
+    //            var ids_json = JSON.stringify(selected_file_ids);
+    //            $('#upload_ids').val(ids_json);
+    //            $('#upload_files').val(attachments_string);
+    //            $('#upload_backup').val(attachments_string);
+    //
+    //        });
+    //
+    //
+    //        //Open the uploader dialog
+    //        custom_uploader.open();
+    //
+    //    });
+    //
+    //
+    //});
 
     //**TEST METHODS**//
 

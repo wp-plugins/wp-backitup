@@ -114,6 +114,17 @@ class WPBackItUp_Logger {
         }
     }
 
+	//Log warning
+	public function log_warning($function,$message,$additional_message=null) {
+		$function='(' . $function . ') WARNING: ' . $additional_message;
+		if( is_array( $message ) || is_object( $message ) ){
+			$this->log($function);
+			$this->log($message);
+		} else {
+			$this->log($function .$message);
+		}
+	}
+
 	function log_sysinfo() {
 	global $wpdb,$WPBackitup;
 		try{

@@ -17,20 +17,29 @@ class WPBackItUp_Job {
 	private  $job_end_time;
 
 	static private $backup_tasks = array(
-			1=>'cleanup_prev',
-			2=>'backup_db' ,
-			3=>'backup_siteinfo',
-			4=>'backup_themes',
-			5=>'backup_plugins',
-			6=>'backup_uploads',
-			7=>'backup_other',
-			8=>'finalize_backup',
-			9=>'validate_backup',
-			10=>'cleanup_current'
+			1=>'task_preparing',
+			2=>'task_backup_db' ,
+			3=>'task_backup_siteinfo',
+			4=>'task_backup_themes',
+			5=>'task_backup_plugins',
+			6=>'task_backup_uploads',
+			7=>'task_backup_other',
+			8=>'task_validate_backup',
+			9=>'task_finalize_backup',
+	);
+
+	static private $restore_tasks = array(
+		1=>'task_preparing',
+		2=>'task_unzip_backup_set',
+		3=>'task_validate_backup',
+		4=>'task_create_checkpoint',
+		5=>'task_stage_wpcontent',
+		6=>'task_restore_wpcontent',
+		8=>'task_restore_database',
 	);
 
 	static private $cleanup_tasks = array(
-		1=>'scheduled_cleanup'
+		1=>'task_scheduled_cleanup'
 	);
 
 	function __construct($job) {
@@ -65,6 +74,8 @@ class WPBackItUp_Job {
 
 		$tasks = get_post_meta( $this->job_id);
 		foreach($tasks as $key=>$value) {
+			//Is this a task of job meta data
+			if (substr($key, 0, 4)!='task')  continue;
 
 			$task = get_post_meta($this->job_id,$key);
 
@@ -96,6 +107,10 @@ class WPBackItUp_Job {
 
 		//Enumerate the tasks
 		foreach ($tasks as $key => $value) {
+
+			//Is this a task of job meta data
+			if (substr($key, 0, 4)!='task')  continue;
+
 			$task = get_post_meta($this->job_id,$key);
 
 			//Get Task Properties
@@ -104,7 +119,7 @@ class WPBackItUp_Job {
 			$task_allocated_id = $task[0]['task_allocated_id'];
 			$task_last_updated = $task[0]['task_last_updated'];
 
-			//if next job in stack is queued then its time to get to work
+			//if next task in stack is queued then its time to get to work
 			switch ($task_status) {
 				case "queued":
 					//Try allocate task
@@ -250,6 +265,33 @@ class WPBackItUp_Job {
 		return update_post_meta( $job_id, $task_name, $meta_value );
 	}
 
+
+	public function update_job_meta($meta_name,$meta_value){
+		$this->logger->log_info(__METHOD__,'Begin - Update job meta:' .$this->job_id .'-'. $meta_name);
+
+		return update_post_meta( $this->job_id, $meta_name, $meta_value );
+	}
+
+//	public function update_task_file_list($task_name,$file_list){
+//		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $task_name);
+//
+//		return update_post_meta( $this->job_id, $task_name, wp_slash($file_list) );
+//	}
+
+//	public function get_task_file_list($task_name){
+//		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $task_name);
+//
+//		$file_list = get_post_meta($this->job_id,$task_name,true);
+//
+//		return $file_list;
+//	}
+
+	public function get_job_meta($meta_name){
+		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $meta_name);
+
+		return  get_post_meta($this->job_id,$meta_name,true);
+
+	}
 
 	/**
 	 * Set job status to active
@@ -544,11 +586,20 @@ class WPBackItUp_Job {
 		$job_id = wp_insert_post($new_job );
 		$logger->log_info(__METHOD__,'Job Created:' .$job_id);
 
-
 		switch ($job_name) {
+			case "restore":
+				//add the tasks
+				if ( false === self::create_tasks( $job_id,self::$restore_tasks ) ) {
+					$logger->log_info( __METHOD__, 'Restore tasks not Created - deleting job:' . $job_id );
+					wp_delete_post( $job_id, true );
+					return false;
+				}
+
+				break;
+
 			case "backup":
 				//add the tasks
-				if ( false === self::create_backup_tasks( $job_id ) ) {
+				if ( false === self::create_tasks( $job_id,self::$backup_tasks ) ) {
 					$logger->log_info( __METHOD__, 'Backup tasks not Created - deleting job:' . $job_id );
 					wp_delete_post( $job_id, true );
 					return false;
@@ -558,7 +609,7 @@ class WPBackItUp_Job {
 
 			case "cleanup":
 				//add the tasks
-				if ( false === self::create_cleanup_tasks( $job_id ) ) {
+				if ( false === self::create_tasks( $job_id,self::$cleanup_tasks ) ) {
 					$logger->log_info( __METHOD__, 'Cleanup tasks not Created - deleting job:' . $job_id );
 					wp_delete_post( $job_id, true );
 					return false;
@@ -577,17 +628,20 @@ class WPBackItUp_Job {
 
 	/**
 	 * Create all the tasks for a job
+	 *
 	 * @param $job_id
+	 *
+	 * @param $tasks
 	 *
 	 * @return bool
 	 */
-	private static function create_backup_tasks($job_id){
+	private static function create_tasks($job_id,  $tasks){
 		$logger = new WPBackItUp_Logger(false,null,'debug_job');
 		$logger->log_info(__METHOD__,'Begin');
 
 		//Create the job tasks
 		$last_updated_time=time();
-		foreach (self::$backup_tasks as $key => $value){
+		foreach ($tasks as $key => $value){
 			$task_name = $value;
 			$task_data = array(
 				'task_id'     => $task_name,
@@ -601,7 +655,7 @@ class WPBackItUp_Job {
 				$logger->log_error( __METHOD__, 'Tasks NOT created');
 				return false;
 			}
-			$logger->log_info( __METHOD__, 'task created:' . $task_created );
+			$logger->log_info( __METHOD__, 'task created:' . $task_created .':'. $task_name);
 		}
 
 		$logger->log_info(__METHOD__,'End');
@@ -609,39 +663,73 @@ class WPBackItUp_Job {
 
 	}
 
-	/**
-	 * Create all the tasks for a job
-	 * @param $job_id
-	 *
-	 * @return bool
-	 */
-	private static function create_cleanup_tasks($job_id){
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin');
+//	/**
+//	 * Create all the tasks for a job
+//	 * @param $job_id
+//	 *
+//	 * @return bool
+//	 */
+//	private static function create_backup_tasks($job_id){
+//		$logger = new WPBackItUp_Logger(false,null,'debug_job');
+//		$logger->log_info(__METHOD__,'Begin');
+//
+//		//Create the job tasks
+//		$last_updated_time=time();
+//		foreach (self::$backup_tasks as $key => $value){
+//			$task_name = $value;
+//			$task_data = array(
+//				'task_id'     => $task_name,
+//				'task_status' => 'queued',
+//				'task_allocated_id'=>'',
+//				'task_last_updated'=>$last_updated_time
+//			);
+//			$task_created = update_post_meta( $job_id, $task_name, $task_data );
+//
+//			if (false===$task_created){
+//				$logger->log_error( __METHOD__, 'Tasks NOT created');
+//				return false;
+//			}
+//			$logger->log_info( __METHOD__, 'task created:' . $task_created .':'. $task_name);
+//		}
+//
+//		$logger->log_info(__METHOD__,'End');
+//		return true;
+//
+//	}
 
-		//Create the job tasks
-		$last_updated_time=time();
-		foreach (self::$cleanup_tasks as $key => $value){
-			$task_name = $value;
-			$task_data = array(
-				'task_id'     => $task_name,
-				'task_status' => 'queued',
-				'task_allocated_id'=>'',
-				'task_last_updated'=>$last_updated_time
-			);
-			$task_created = update_post_meta( $job_id, $task_name, $task_data );
-
-			if (false===$task_created){
-				$logger->log_error( __METHOD__, 'Tasks NOT created');
-				return false;
-			}
-			$logger->log_info( __METHOD__, 'task created:' . $task_created );
-		}
-
-		$logger->log_info(__METHOD__,'End');
-		return true;
-
-	}
+//	/**
+//	 * Create all the tasks for a job
+//	 * @param $job_id
+//	 *
+//	 * @return bool
+//	 */
+//	private static function create_cleanup_tasks($job_id){
+//		$logger = new WPBackItUp_Logger(false,null,'debug_job');
+//		$logger->log_info(__METHOD__,'Begin');
+//
+//		//Create the job tasks
+//		$last_updated_time=time();
+//		foreach (self::$cleanup_tasks as $key => $value){
+//			$task_name = $value;
+//			$task_data = array(
+//				'task_id'     => $task_name,
+//				'task_status' => 'queued',
+//				'task_allocated_id'=>'',
+//				'task_last_updated'=>$last_updated_time
+//			);
+//			$task_created = update_post_meta( $job_id, $task_name, $task_data );
+//
+//			if (false===$task_created){
+//				$logger->log_error( __METHOD__, 'Tasks NOT created');
+//				return false;
+//			}
+//			$logger->log_info( __METHOD__, 'task created:' . $task_created );
+//		}
+//
+//		$logger->log_info(__METHOD__,'End');
+//		return true;
+//
+//	}
 
 	/**
 	 * @return mixed
@@ -655,6 +743,14 @@ class WPBackItUp_Job {
 	 */
 	public function get_job_end_time() {
 		return $this->job_end_time;
+	}
+
+	/**
+	 * Get Job status
+	 * @return mixed
+	 */
+	public function get_job_status() {
+		return $this->job_status;
 	}
 }
 

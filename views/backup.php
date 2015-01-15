@@ -25,7 +25,7 @@
         $formatted_expired_date = date('F j, Y',strtotime($license_Expires));
 
         // get retention number set
-        $retain_archives = $this->backup_retained_number();
+        $number_retained_archives = $this->backup_retained_number();
 
 		$lite_registration_first_name = $this->lite_registration_first_name();
         $lite_registration_email = $this->lite_registration_email();
@@ -49,6 +49,71 @@
         }else{
             $backup_folder_exists=true;
         }
+
+		//Cleanup old backups - this can be removed in a few months.
+		//Get Zip File List
+		$file_list = glob($backup_folder_root . "/*.{zip,log}",GLOB_BRACE);
+		//If there are zip files then move them into their own folders
+		foreach($file_list as $file) {
+
+			//remove the suffix
+			$file_name = substr(basename($file),0,-4);
+
+			//strip off the suffix IF one exists
+			$folder_name = $file_name;
+			if ( ( $str_pos = strpos( $folder_name, '-main-' ) ) !== false ) {
+				$suffix      = substr( $folder_name, $str_pos );
+				$folder_name = str_replace( $suffix, '', $folder_name );
+			}
+
+			if ( ( $str_pos = strpos( $folder_name, '-others-' ) ) !== false ) {
+				$suffix      = substr( $folder_name, $str_pos );
+				$folder_name = str_replace( $suffix, '', $folder_name );
+			}
+
+			if ( ( $str_pos = strpos( $folder_name, '-plugins-' ) ) !== false ) {
+				$suffix      = substr( $folder_name, $str_pos );
+				$folder_name = str_replace( $suffix, '', $folder_name );
+			}
+
+			if ( ( $str_pos = strpos( $folder_name, '-themes-' ) ) !== false ) {
+				$suffix      = substr( $folder_name, $str_pos );
+				$folder_name = str_replace( $suffix, '', $folder_name );
+			}
+
+			if ( ( $str_pos = strpos( $folder_name, '-uploads-' ) ) !== false ) {
+				$suffix      = substr( $folder_name, $str_pos );
+				$folder_name = str_replace( $suffix, '', $folder_name );
+			}
+
+			//Does folder exist
+			$backup_archive_folder = $backup_dir . '/' . $folder_name;
+			if ( ! is_dir( $backup_archive_folder ) ) {
+				if (mkdir( $backup_archive_folder, 0755 )){
+					//print_r( "Folder Create.." );
+				}else{
+					//print_r( "Create Failed.." );
+				}
+			}
+
+			//make sure it exists before you move it
+			if ( is_dir( $backup_archive_folder ) ) {
+				//move the file to the archive folder
+				$target_file = $backup_archive_folder ."/" . basename($file);
+				if (rename ($file,$target_file)){
+					//print_r( "File Moved.." );
+				} else{
+					//print_r( "Move Failed.." );
+				}
+
+			} else {
+				//print_r( "NO FOLDER" );
+			}
+
+		}
+
+        $backup_list = $this->get_backup_list();
+
 ?>
 
 <?php //Add Notification to UI
@@ -75,8 +140,10 @@ if (!$backup_folder_exists) {
 <script type="text/javascript">var __namespace = "<?php echo($namespace); ?>";</script>
 <div class="wrap">
   <h2><?php echo $page_title; ?></h2>
+
   <div id="content">
 
+    <!--Manual Backups-->
     <!--Manual Backups-->
     <div class="widget">
       <h3><i class="fa fa-cogs"></i> <?php _e('Backup', $namespace); ?></h3>
@@ -134,58 +201,28 @@ if (!$backup_folder_exists) {
     <!--View Log Form-->
     <form id = "viewlog" name = "viewlog" action="admin-post.php" method="post">
         <input type="hidden" name="action" value="viewlog">
-        <input type="hidden" id="viewlog_log" name="viewlog_log" value="test">
+        <input type="hidden" id="backup_name" name="backup_name" value="">
         <?php wp_nonce_field($this->namespace . "-viewlog"); ?>
     </form>
 
     <form id = "download_backup" name = "download_backup" action="admin-post.php" method="post">
 	    <input type="hidden" name="action" value="download_backup">
-	    <input type="hidden" id="backup_name" name="backup_name" value="test">
+	    <input type="hidden" id="backup_file" name="backup_file" value="">
 	    <?php wp_nonce_field($this->namespace . "-download_backup"); ?>
     </form>
 
       <table class="widefat" id="datatable">
         <?php
-        
-        //Get Zip File List       
-        $file_list = glob($backup_folder_root . "/*.zip");
-        $backup_log_filelist = glob($backup_folder_root . "/*.log");
 
-        //$logs_log_filelist = glob($logs_folder_root . "/Backup_*.log");
-        //$file_list = array_merge($zip_filelist,$logs_log_filelist);
-        //print_r($file_list);
-
-        if (count($file_list)>0)
+        if ($backup_list!=false)
         {
-          //Sort by Date Time     
-          usort($file_list, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
-
           $i = 0;
-          foreach ($file_list as $file)
+          foreach ($backup_list as $file)
           {
-	        if( $retain_archives && $retain_archives == $i)
-	          break;
 
-	        $filename = basename($file);
-	        $file_type=  substr($filename, -3);
-	        //Local Date Time
-	        $file_datetime = get_date_from_gmt(date('Y-m-d H:i:s', filemtime($file)), 'Y-m-d g:i a');
-
-	        $logExists    = false;
-            if ('zip'==$file_type) {
-	            $zip_exists   = true;
-	            $log_file     = str_replace( '.zip', '.log', $file );
-	            $log_filename = basename( $log_file );
-	            if ( is_array( $backup_log_filelist ) && in_array( $log_file, $backup_log_filelist ) ) {
-		            $logExists = true;
-	            }
-            }else{
-	            $zip_exists   = false;
-	            $log_file     = $filename;
-	            $log_filename = $filename;
-	            $logExists    = true;
-            }
-	        //------
+	        $backup_name = $file["backup_name"];
+	        $file_datetime = get_date_from_gmt(date('Y-m-d H:i:s', $file["date_time"]), 'Y-m-d g:i a');
+	        $log_exists    = $file["log_exists"];
 
             $class = $i % 2 == 0 ? 'class="alternate"' : '';
             ?>
@@ -193,21 +230,18 @@ if (!$backup_folder_exists) {
             <tr <?php echo $class ?> id="row<?php echo $i; ?>">
               <td><?php echo $file_datetime ?></td>
 
-	          <?php if ($zip_exists) :?>
-                <td><a class='downloadbackuplink' href="<?php echo basename($filename, ".zip") ?>">Download</a>
-	                <!--<a href="<?php echo WPBACKITUP__BACKUP_URL ?>/<?php echo $filename; ?>">Download</a>-->
-                </td>
-              <?php else: ?>
-		        <td>&nbsp;</td>
-	          <?php endif; ?>
+                <!--Download Link-->
+              <td>
+                  <a href="#TB_inline?width=600&height=550&inlineId=<?php echo preg_replace('/[^A-Za-z0-9\-]/', '', $backup_name) ?>" class="thickbox" title="<?php echo $backup_name ?>">Download</a>
+              </td>
 
-              <?php if (($logExists)):?>
-                <td><a class='viewloglink' href="<?php echo basename($log_filename, ".log") ?>">View Log</a></td>
+              <?php if (($log_exists)):?>
+                <td><a class='viewloglink' href="<?php echo $backup_name ?>">View Log</a></td>
               <?php else: ?>
                 <td>&nbsp;</td>
               <?php endif; ?>
 
-               <td><a href="#" title="<?php echo $filename; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
+               <td><a href="#" title="<?php echo $backup_name; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
             </tr>
 
             <?php
@@ -216,7 +250,7 @@ if (!$backup_folder_exists) {
         }
         else
         {
-          echo '<tr id="nofiles"><td colspan="3">No backup archives available for download.</td></tr>';
+          echo '<tr id="nofiles"><td colspan="3">No backup archives found.</td></tr>';
         }
         ?>
       </table>  
@@ -236,7 +270,6 @@ if (!$backup_folder_exists) {
         <li><?php _e('Nothing to report', $namespace); ?></li>
       </ul>
 
-
       <!--backup status messages-->
       <ul class="backup-status">
         <li class="preparing"><?php _e('Preparing for backup', $namespace); ?>...<span class='status-icon'><img class="preparing-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
@@ -246,9 +279,8 @@ if (!$backup_folder_exists) {
 	    <li class='backup_plugins'><?php _e('Backing up plugins', $namespace); ?>...<span class='status-icon'><img class="backup_plugins-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
 	    <li class='backup_uploads'><?php _e('Backing up uploads', $namespace); ?>...<span class='status-icon'><img class="backup_uploads-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
 	    <li class='backup_other'><?php _e('Backing up everything else', $namespace); ?>...<span class='status-icon'><img class="backup_other-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
-        <li class='finalize_backup'><?php _e('Finalizing backup', $namespace); ?>...<span class='status-icon'><img class="finalize_backup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
 	    <li class='validate_backup'><?php _e('Validating backup', $namespace); ?>...<span class='status-icon'><img class="validate_backup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
-        <li class='cleanup'><?php _e('Cleaning up', $namespace); ?>...<span class='status-icon'><img class="cleanup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
+        <li class='finalize_backup'><?php _e('Finalizing backup', $namespace); ?>...<span class='status-icon'><img class="finalize_backup-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span><span class='wpbackitup-warning'><?php _e('Warning', $namespace); ?></span></li>
       </ul>
 
       <!--Error status messages-->
@@ -265,34 +297,25 @@ if (!$backup_folder_exists) {
 	      <!--Warning PlaceHolder-->
 	  </ul>
 
-    </div>   
+    </div>
 
-    <!--Debug Widget-->
-     <?php if (WP_DEBUG===true) :?>  
-        <div class="widget">
-              <h3><i class="fa fa-wrench"></i> <?php _e('Debug', $namespace); ?></h3>
-              <div id="php"><p>Debugging is turned on in your wp-config.php file and should only be used when troubleshooting issues on your site.</p></div>
-        </div>   
-    <?php endif; ?>
-
-  </div>
-
-
+  </div> <!--content-->
 
   <div id="sidebar">
+
     <!-- Display opt-in form if the user is unregistered -->
     <?php if (!$license_active) : ?>
         <?php if (!$is_lite_registered) : ?>
-            <form action="" method="post" id="<?php echo $namespace; ?>-form">
-              <?php wp_nonce_field($namespace . "-register-lite"); ?>
             <div class="widget">
-                <h3 class="promo"><?php _e('Register WP BackItUp', $namespace); ?></h3>
-                <p><?php _e('Enter your email address to register your version of WP BackItUp.  Registered users will receive <b>special offers</b> and access to our world class <b>support</b> team.', $namespace); ?></p>
+                <h3 class="promo"><?php _e('Register WP BackItUp Lite', $namespace); ?></h3>
+                <form action="" method="post" id="<?php echo $namespace; ?>-form">
+                <?php wp_nonce_field($namespace . "-register-lite"); ?>
+                <p><?php _e('Enter your email address to register WP BackItUp Lite.  Registered users will receive <b>special offers</b> and access to our world class <b>support</b> team.  <br /> <br />Premium customers only need to enter their license key in the section below.  Registration is not required.', $namespace); ?></p>
 	            <input type="text" name="first_name" id="first_name" placeholder="first name" value="<?php echo($lite_registration_first_name) ?>" /><br/>
                 <input type="text" name="email" id="email" placeholder="email address" value="<?php echo($lite_registration_email) ?>" />
                 <div class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Register", $namespace) ?>" /></div>
+                </form>
             </div>
-           </form>
        <?php else : ?>
           <div class="widget">
             <h3 class="promo"><?php _e('Get a license', $namespace); ?></h3>
@@ -302,12 +325,11 @@ if (!$backup_folder_exists) {
       <?php endif ?>
     <?php endif; ?>
 
-
-    <!-- Display license key widget -->
-    <form action="" method="post" id="<?php echo $namespace; ?>-form">
-      <?php wp_nonce_field($namespace . "-update-options"); ?>
+      <!-- Display license key widget -->
       <div class="widget">
         <h3 class="promo"><?php _e('License v ' . $version, $namespace); ?></h3>
+        <form action="" method="post" id="<?php echo $namespace; ?>-form">
+        <?php wp_nonce_field($namespace . "-update-options"); ?>
         <?php
 
         $fontColor='green';
@@ -324,13 +346,13 @@ if (!$backup_folder_exists) {
         if (!empty($license_status)) {
             $license_message=' License Status: ' . $license_status;
         }
-       
+
         if($license_active)
             echo '<p>' . $license_type_description .' License Key</p>';
         else
             echo '<p>Enter your license key to activate features.</p>';
-        ?> 
-       
+        ?>
+
         <input type="text" name="data[license_key]" id="license_key" value="<?php _e($license_key, $namespace); ?>" />
         <div style="color:<?php _e($fontColor); ?>"><?php _e($license_message, $namespace); ?></div>
         <div style="color:<?php _e($fontColor); ?>"><?php _e($license_status_message, $namespace); ?></div>
@@ -355,30 +377,65 @@ if (!$backup_folder_exists) {
           <div>License expired? <?php echo($this->get_anchor_with_utm('Renew Now ','documentation/faqs/expired-license','license','license+expired'))?> and save 20%.</div>
           <div>* Offer valid for a limited time!</div>
         <?php endif; ?>
-        
-
-      </div>             
-
-      <!-- Display links widget -->
-      <div class="widget">
-        <h3 class="promo"><?php _e('Useful Links', $namespace); ?></h3>
-        <ul>
-          <?php if ($license_active) : ?>
-            <li><?php echo($this->get_anchor_with_utm('Your account','your-account','useful+links','your+account'))?></li>
-            <li><?php echo($this->get_anchor_with_utm('Upgrade your license','pricing-purchase','useful+links','upgrade+license'))?></li>
-          <?php endif; ?>
-            <li><?php echo($this->get_anchor_with_utm('Documentation','documentation','useful+links','help'))?></li>
-
-            <?php if ($license_active || $is_lite_registered) : ?>
-                <li><?php echo($this->get_anchor_with_utm('Get support','support' ,'useful+links','get+support'))?></li>
-            <?php endif; ?>
-
-            <li><?php echo($this->get_anchor_with_utm('Feature request','feature-request' ,'useful+links','feature+request'))?></li>
-          <li>Have a suggestion? Why not submit a feature request.</li>
-        </ul>
+        </form>
       </div>
-    </form>
 
-  </div>
-</div>
+    <!-- Display links widget -->
+    <div class="widget">
+          <h3 class="promo"><?php _e('Useful Links', $namespace); ?></h3>
+          <ul>
+              <?php if ($license_active) : ?>
+                  <li><?php echo($this->get_anchor_with_utm('Your account','your-account','useful+links','your+account'))?></li>
+                  <li><?php echo($this->get_anchor_with_utm('Upgrade your license','pricing-purchase','useful+links','upgrade+license'))?></li>
+              <?php endif; ?>
+              <li><?php echo($this->get_anchor_with_utm('Documentation','documentation','useful+links','help'))?></li>
 
+              <?php if ($license_active || $is_lite_registered) : ?>
+                  <li><?php echo($this->get_anchor_with_utm('Get support','support' ,'useful+links','get+support'))?></li>
+              <?php endif; ?>
+
+              <li><?php echo($this->get_anchor_with_utm('Feature request','feature-request' ,'useful+links','feature+request'))?></li>
+              <li>Have a suggestion? Why not submit a feature request.</li>
+          </ul>
+    </div>
+
+  </div><!--Sidebar-->
+
+</div> <!--wrap-->
+
+<!--File download lists-->
+<span class="hidden">
+    <?php  add_thickbox(); ?>
+    <!--File download lists-->
+    <?php if ($backup_list!=false) : ?>
+	    <?php foreach ($backup_list as $folder) :
+	    $backup_name = $folder["backup_name"];
+	    $zip_files = $folder["zip_files"];
+	    $count=0;
+	    ?>
+	    <div id="<?php echo preg_replace('/[^A-Za-z0-9\-]/', '', $backup_name) ?>" style="display:none;">
+	        <h2>WP BackItUp Backup Set</h2>
+	        <p>Below are the archive files included in this backup set. Click the link to download.</p>
+	        <table id="datatable" class="widefat">
+	            <tbody>
+	            <?php foreach ($zip_files as $file) :
+	                ++$count;
+	                $class = $count % 2 == 0 ? '' : 'alternate';
+	                $row_id="row".$count;
+	                $zip_file = basename($file);
+	                ?>
+	                <tr id="<?php echo $row_id ?>" class="<?php echo $class ?>">
+	                    <td><a href="<?php echo $zip_file  ?>" class="downloadbackuplink"><?php echo $zip_file ?></a></td>
+	                </tr>
+	            <?php endforeach; ?>
+	            </tbody>
+	        </table>
+	        <?php endforeach; ?>
+	    </div>
+    <?php endif; ?>
+    <div id="new_backup" style="display:none;">
+        <h2>WP BackItUp Backup Set</h2>
+        <p>Please refresh this page to download your new backup files.</p>
+    </div>
+</span>
+<!--End File download lists-->
