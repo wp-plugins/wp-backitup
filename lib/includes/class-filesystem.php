@@ -374,11 +374,12 @@ class WPBackItUp_FileSystem {
         }
 
         $folder_list = glob($path . $pattern, GLOB_ONLYDIR);
+
         //Sort by Date Time so oldest is deleted first
-        usort($folder_list, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
+        //usort($folder_list, create_function('$a,$b', 'return filemtime($b) - filemtime($a);'));
 
         $backup_count=0;
-        foreach ($folder_list as $key => $folder)
+        foreach (array_reverse($folder_list) as $key => $folder)
         {
             $this->logger->log_info(__METHOD__,' Folder:'.$folder);
             $this->logger->log_info(__METHOD__,' Folder Date Time:'.filemtime($folder));

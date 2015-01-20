@@ -199,13 +199,14 @@ if (!$backup_folder_exists) {
       <h3><i class="fa fa-cloud-download"></i> <?php _e('Available Backups', $namespace); ?></h3>
 
     <!--View Log Form-->
-    <form id = "viewlog" name = "viewlog" action="admin-post.php" method="post">
+    <form id = "viewlog" name = "viewlog" action="admin-post.php/?sc=<?php _e(current_time( 'timestamp' ) )?>" method="post">
         <input type="hidden" name="action" value="viewlog">
         <input type="hidden" id="backup_name" name="backup_name" value="">
         <?php wp_nonce_field($this->namespace . "-viewlog"); ?>
     </form>
 
-    <form id = "download_backup" name = "download_backup" action="admin-post.php" method="post">
+
+    <form id = "download_backup" name = "download_backup" action="admin-post.php/?sc=<?php _e(current_time( 'timestamp' ) )?>" method="post">
 	    <input type="hidden" name="action" value="download_backup">
 	    <input type="hidden" id="backup_file" name="backup_file" value="">
 	    <?php wp_nonce_field($this->namespace . "-download_backup"); ?>
@@ -228,7 +229,7 @@ if (!$backup_folder_exists) {
             ?>
 
             <tr <?php echo $class ?> id="row<?php echo $i; ?>">
-              <td><?php echo $file_datetime ?></td>
+              <td><?php echo $backup_name ?></td>
 
                 <!--Download Link-->
               <td>
@@ -414,7 +415,8 @@ if (!$backup_folder_exists) {
 	    $count=0;
 	    ?>
 	    <div id="<?php echo preg_replace('/[^A-Za-z0-9\-]/', '', $backup_name) ?>" style="display:none;">
-	        <h2>WP BackItUp Backup Set</h2>
+	        <h2>WP BackItUp Backup Set:</h2>
+            <h2><em><?php echo $backup_name ?></em></h2>
 	        <p>Below are the archive files included in this backup set. Click the link to download.</p>
 	        <table id="datatable" class="widefat">
 	            <tbody>

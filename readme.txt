@@ -151,6 +151,13 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.1 =
+* Update: Display backup set name in available backup lists.
+* Update: Remove backup retention limitations for WP BackItUp lite.
+* Fix: Downloads for large files was running into buffer errors when other plugins turn on output buffers incorrectly.  Added logic to flush and turn off buffering for all WP BackItUp downloads.
+* Fix: Backup lists were not being ordered properly under available backups.
+* Fix: Backup cleanup routines were not purging backups in correct order.
+
 = 1.10.0 =
 * New Feature: Add support request to plugin
 * New Feature: Add large backup support

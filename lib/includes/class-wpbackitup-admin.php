@@ -645,7 +645,7 @@ class WPBackitup_Admin {
         $backup_folder_name = str_replace('deleteRow', '', $_POST['filed']);
 
         $backup_folder_path =  WPBACKITUP__BACKUP_PATH .'/' . $backup_folder_name;
-        $DLT_backup_folder_path = WPBACKITUP__BACKUP_PATH .'/DLT_' . $backup_folder_name .'_' . current_time( 'timestamp' );;
+        $DLT_backup_folder_path = WPBACKITUP__BACKUP_PATH .'/DLT_' . $backup_folder_name .'_' . current_time( 'timestamp' );
 
         $logger->log_info(__METHOD__,'From:'.$backup_folder_path );
         $logger->log_info(__METHOD__,'To:'.$DLT_backup_folder_path );
@@ -734,16 +734,16 @@ class WPBackitup_Admin {
                     }
 
                     //exceeds lite threshold
-                    if ( !empty($data['backup_retained_number']) && ($this->license_type()==0)  && ($data['backup_retained_number'] > 1) ){
-                        $data['backup_retained_number'] = $this->defaults['lite_backup_retained_number'];
-                        set_transient('settings-license-error', __(ucfirst($license_description) .' license holders may only save 1 backup archive.', $this->namespace), 60);
-                    }
-
-                    //exceeds pro threshold
-                    if (!empty($data['backup_retained_number']) && ($this->license_type()==1) && ($data['backup_retained_number'] > 3)){
-                        $data['backup_retained_number'] = $this->defaults['backup_retained_number'];
-                        set_transient('settings-license-error', __(ucfirst($license_description) .' license holders may only save up to 3 backup archives.', $this->namespace), 60);
-                    }
+//                    if ( !empty($data['backup_retained_number']) && ($this->license_type()==0)  && ($data['backup_retained_number'] > 1) ){
+//                        $data['backup_retained_number'] = $this->defaults['lite_backup_retained_number'];
+//                        set_transient('settings-license-error', __(ucfirst($license_description) .' license holders may only save 1 backup archive.', $this->namespace), 60);
+//                    }
+//
+//                    //exceeds pro threshold
+//                    if (!empty($data['backup_retained_number']) && ($this->license_type()==1) && ($data['backup_retained_number'] > 3)){
+//                        $data['backup_retained_number'] = $this->defaults['backup_retained_number'];
+//                        set_transient('settings-license-error', __(ucfirst($license_description) .' license holders may only save up to 3 backup archives.', $this->namespace), 60);
+//                    }
 
                 }
 
@@ -1273,10 +1273,11 @@ class WPBackitup_Admin {
 //                    ];
                 }
             }
-            //sort the list by date
-            usort($backup_list, create_function('$a,$b', 'return $b["date_time"] - $a["date_time"];'));
+            //sort the list by date - doesnt work when impoing folders..use filename descending
 
-            return $backup_list;
+            //usort($backup_list, create_function('$a,$b', 'return $b["date_time"] - $a["date_time"];'));
+
+            return array_reverse($backup_list);
         }
 
         return false;
