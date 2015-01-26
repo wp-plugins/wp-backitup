@@ -1,12 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
+
 /**
- * WP Backitup Utility Class
- * 
- * @package WP Backitup
- * 
- * @author cssimmon
+ * WP BackItUp  - Utility Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
+
 class WPBackItUp_Utility {
 
 	private $logger;
@@ -78,6 +80,16 @@ class WPBackItUp_Utility {
 		$timestamp_diff_seconds = abs($timestamp1 - $timestamp2);
 
 		return $timestamp_diff_seconds;
+	}
+
+	public static function encode_items(&$item, $key)
+	{
+		$item = utf8_encode($item);
+	}
+
+	public static function decode_items(&$item, $key)
+	{
+		$item = utf8_decode($item);
 	}
 }
 

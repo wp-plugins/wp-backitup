@@ -2,12 +2,12 @@
 @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
 
 /**
- * WP Backitup Backup 
- * 
- * @package WP Backitup 
- * 
- * @author cssimmon
- * 
+ * WP BackItUp  - Backup Job
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
  */
 
 /*** Includes ***/

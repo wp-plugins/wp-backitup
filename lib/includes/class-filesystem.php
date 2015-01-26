@@ -1,13 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
 /**
- * WP Backitup Utility Class
- * 
- * @package WP Backitup
- * 
- * @author cssimmon
+ * WP BackItUp  - File System Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
+
 /*** Includes ***/
 // include backup class
 if( !class_exists( 'WPBackItUp_RecursiveFilter_Iterator' ) ) {
@@ -535,20 +536,32 @@ class WPBackItUp_FileSystem {
 
 
 	public function get_recursive_file_list($pattern) {
-		$this->logger->log_info( __METHOD__, 'Begin: ' .$pattern );
+		//$this->logger->log_info( __METHOD__, 'Begin: ' .$pattern );
 
 		return $this->glob_recursive($pattern);
 	}
 
-	private function glob_recursive($pattern, $flags = 0)
-	{
+	private function glob_recursive($pattern, $flags = 0) {
+        //$this->logger->log_info( __METHOD__, 'Begin' );
+
 		//The order here is important because the folders must be in the list before the files.
-		$files = glob($pattern, $flags);
+		$files = glob($pattern, $flags); //everything in the root
+        //$this->logger->log_info( __METHOD__, 'Files Count:' . count($files));
+
+        //Get the folders and append all the files in the folder
 		foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR) as $dir)
 		{
-			$files = array_merge($files, $this->glob_recursive($dir.'/'.basename($pattern), $flags));
+            //Get the contents of the folder
+            $current_folder = $this->glob_recursive($dir.'/'.basename($pattern), $flags);
+
+            if (is_array($current_folder)){
+			    $files = array_merge($files,$current_folder );
+            }
 		}
 
 		return $files;
 	}
+
+
  }
+

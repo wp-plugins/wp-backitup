@@ -1,6 +1,19 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
+/**
+ * WP BackItUp  - Job Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
+ */
 
+
+//Includes
+if( !class_exists( 'WPBackItUp_Utility' ) ) {
+	include_once 'class-utility.php';
+}
 
 class WPBackItUp_Job {
 
@@ -269,27 +282,25 @@ class WPBackItUp_Job {
 	public function update_job_meta($meta_name,$meta_value){
 		$this->logger->log_info(__METHOD__,'Begin - Update job meta:' .$this->job_id .'-'. $meta_name);
 
+		//Encode the array values
+		if (is_array($meta_value)){
+			array_walk_recursive($meta_value, 'WPBackItUp_Utility::encode_items');
+		}
+
 		return update_post_meta( $this->job_id, $meta_name, $meta_value );
 	}
-
-//	public function update_task_file_list($task_name,$file_list){
-//		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $task_name);
-//
-//		return update_post_meta( $this->job_id, $task_name, wp_slash($file_list) );
-//	}
-
-//	public function get_task_file_list($task_name){
-//		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $task_name);
-//
-//		$file_list = get_post_meta($this->job_id,$task_name,true);
-//
-//		return $file_list;
-//	}
 
 	public function get_job_meta($meta_name){
 		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $meta_name);
 
-		return  get_post_meta($this->job_id,$meta_name,true);
+		$job_meta = get_post_meta($this->job_id,$meta_name,true);
+
+		//Encode the array values
+		if (is_array($job_meta)){
+			array_walk_recursive($job_meta, 'WPBackItUp_Utility::decode_items');
+		}
+
+		return  $job_meta;
 
 	}
 

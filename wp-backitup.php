@@ -1,18 +1,19 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
 /**
- * WP Backitup
- * 
- * @package WP Backitup 
- * 
- * @author cssimmon
+ * WP BackItUp  - Backup View
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
+
 /*
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.10.1
+Version: 1.10.2
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -34,7 +35,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
-define( 'WPBACKITUP__VERSION', '1.10.1');
+define( 'WPBACKITUP__VERSION', '1.10.2');
 define( 'WPBACKITUP__DEBUG', false );
 define( 'WPBACKITUP__MINIMUM_WP_VERSION', '3.0' );
 define( 'WPBACKITUP__ITEM_NAME', 'WP Backitup' ); 

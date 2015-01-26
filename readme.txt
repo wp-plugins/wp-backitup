@@ -151,6 +151,16 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.2 =
+* Update: Display backup file set name instead of date
+* Fix: Backup plugins error when no files on last folder
+* Fix: Extend activation request timeout
+* Fix: Correct issue with restore version checking
+* Fix: Correct issue with restore current user capabilities
+* Fix: Correct sorting and display of available backups
+* Fix: Correct issues with files named using german character set
+* Fix: Correct issues with file downloads
+
 = 1.10.1 =
 * Update: Display backup set name in available backup lists.
 * Update: Remove backup retention limitations for WP BackItUp lite.

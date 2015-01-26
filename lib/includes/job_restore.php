@@ -2,11 +2,11 @@
 @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
 
 /**
- * WP Backitup Restore Functions
- * 
- * @package WP Backitup Pro
- * 
- * @author cssimmon
+ * WP BackItUp  - Restore Job
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
 
@@ -246,7 +246,7 @@ if ('task_preparing'==$current_task) {
 	$backup_path_pattern = $wp_restore->get_backup_folder_path() . '/'  .$wp_restore->get_backup_name() . '*.zip' ;
 	$logger->log_info(__METHOD__,'Fetch backups pattern:' .$backup_path_pattern);
 	$backup_set = glob( $backup_path_pattern);
-	if ( count($backup_set)>0){
+	if ( is_array($backup_set) && count($backup_set)>0){
 		$restore_job->update_job_meta('backup_set',wp_slash($backup_set));
 		$restore_job->update_job_meta('backup_set_remaining',wp_slash($backup_set));
 	}else{
@@ -318,7 +318,7 @@ if ('task_unzip_backup_set'==$current_task) {
 		array_shift( $backup_set_list ); //remove from list
 		$restore_job->update_job_meta('backup_set_remaining',wp_slash($backup_set_list));
 
-		if (count($backup_set_list)>0){
+		if (is_array($backup_set_list) && count($backup_set_list)>0){
 			//CONTINUE
 			$logger->log('Continue unzipping backup set.');
 			$restore_job->set_task_queued();
@@ -404,8 +404,7 @@ if ('task_validate_backup'==$current_task) {
 	$logger->log_info(__METHOD__,'Backup Created with WP BackItUp Version :');
 	$logger->log($restore_wpbackitup_version);
 
-	//Check version if not 1.9
-	if ("1" != $restore_wpbackitup_version[0] || "9" !=$restore_wpbackitup_version[1]){
+	if (! empty($restore_wpbackitup_version[0]) && isset ($restore_wpbackitup_version[0])){ //Check version if not old backup -  this should be removed in a few releases
 		//If major version is different
 		if ($restore_wpbackitup_version[0] != $current_wpbackitup_version[0] ||
 		    $restore_wpbackitup_version[1] != $current_wpbackitup_version[1] ) {
@@ -798,10 +797,10 @@ function set_status_success(){
 function end_restore($err=null, $success=null){
 	global $WPBackitup, $wp_restore, $logger;
 
-	if (true===$success) $logger->log("Backup completed: SUCCESS");
-	if (false===$success) $logger->log("Backup completed: ERROR");
+	if (true===$success) $logger->log("Restore completed: SUCCESS");
+	if (false===$success) $logger->log("Restore completed: ERROR");
 
-	$logger->log("*** END BACKUP ***");
+	$logger->log("*** END RESTORE ***");
 
 	//Zip up all the logs
 //	$zip_file_path =$wp_restore->zip_logs();
@@ -817,6 +816,6 @@ function end_restore($err=null, $success=null){
 	//Close the logger
 	$logger->close_file();
 
-	echo('Backup has completed');
+	echo('Restore has completed');
 	exit(0);
 }

@@ -1,11 +1,12 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
+
 /**
- * WP Backitup Admin Class
- * 
- * @package WP Backitup
- * 
- * @author cssimmon
- * 
+ * WP BackItUp  - Admin Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
  */
 
 
@@ -1236,7 +1237,7 @@ class WPBackitup_Admin {
         $folder_list = glob($backup_dir . "/*",GLOB_ONLYDIR);
         $backup_list=array();
         $i=0;
-        if (count($folder_list)>0) {
+        if (is_array($folder_list) && count($folder_list)>0) {
             foreach($folder_list as $folder) {
                 $backup_name = basename($folder);
                 $backup_prefix = substr($backup_name,0,4);
@@ -1246,11 +1247,10 @@ class WPBackitup_Admin {
                         $backup_prefix!='DLT_' ) {
 
                     $i++;
-                    if( $number_retained_archives && $i> $number_retained_archives ) break;
 
                     $logs = glob($folder . "/*.log");
                     $log_exists=false;
-                    if (count($logs)>0){
+                    if (is_array($logs) && count($logs)>0){
                         $log_exists=true;
                     }
 
@@ -1265,17 +1265,8 @@ class WPBackitup_Admin {
                             "zip_files"=>$zip_files,
                         ));
 
-//                    $backup_list[] = [
-//                        "backup_name" => $backup_name,
-//                        "log_exists"=>$log_exists,
-//                        "date_time" => filectime($folder),
-//                        "zip_files"=>$zip_files,
-//                    ];
                 }
             }
-            //sort the list by date - doesnt work when impoing folders..use filename descending
-
-            //usort($backup_list, create_function('$a,$b', 'return $b["date_time"] - $a["date_time"];'));
 
             return array_reverse($backup_list);
         }
@@ -1366,7 +1357,7 @@ class WPBackitup_Admin {
     */
     private function update_license_options($license)
     {
-        $logger = new WPBackItUp_Logger(false);
+        $logger = new WPBackItUp_Logger(true,null,'debug_activation');
         $logger->log('Update License Options:' .$license);
 
         $license=trim($license);
@@ -1402,10 +1393,11 @@ class WPBackitup_Admin {
 	        $logger->log('Activate License Request Info:');
 	        $logger->log($api_params);
 
+            //try 30 secs when connected to web.
             $response = wp_remote_get(
 	            add_query_arg( $api_params, WPBACKITUP__SECURESITE_URL ),
 	            array(
-		            'timeout' => 15,
+		            'timeout' => 25,
 	                'sslverify' => false
 	            )
             );
@@ -1696,7 +1688,7 @@ class WPBackitup_Admin {
         );
 
         $url = WPBACKITUP__SECURESITE_URL .'/stats-update-test';
-        $response = wp_remote_get( add_query_arg( $api_params, $url ), array( 'timeout' => 15, 'sslverify' => true ) );
+        $response = wp_remote_get( add_query_arg( $api_params, $url ), array( 'timeout' => 25, 'sslverify' => true ) );
         $logger->log('Stats Response:');
         $logger->log($response);
 

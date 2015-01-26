@@ -1,11 +1,11 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
 /**
- * WP Backitup Recurse Iterator
- * 
- * @package WP Backitup
- * 
- * @author cssimmon
+ * WP BackItUp  - Recursive iterator Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
 

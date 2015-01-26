@@ -1,12 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
+
 /**
- * WP Backitup Backup Class
- * 
- * @package WP Backitup
+ * WP BackItUp  - Restore Class
  *
- * @author cssimmon
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
+
 class WPBackItUp_Restore {
 
 	private $logger;
@@ -112,7 +114,7 @@ class WPBackItUp_Restore {
 	function unzip_archive_file($backup_set_list){
 		$this->logger->log_info(__METHOD__,'Begin');
 
-		if (count($backup_set_list)<=0) return false;
+		if (! is_array($backup_set_list) || count($backup_set_list)<=0) return false;
 
 		$backup_file_path = $backup_set_list[0];
 		$this->logger->log_info(__METHOD__,'Begin -  Unzip Backup File:' .$backup_file_path);
@@ -206,7 +208,7 @@ class WPBackItUp_Restore {
 		//Get file values
 		$this->logger->log_info(__METHOD__, 'GET Site Info data' );
 		$import_siteinfo_lines = file( $site_info_path);
-		if (count($import_siteinfo_lines)<3){
+		if (!is_array($import_siteinfo_lines) || count($import_siteinfo_lines)<3){
 			$this->logger->log_error(__METHOD__,'Site Data file NOT valid.' );
 			return false;
 		} else {
@@ -410,7 +412,7 @@ class WPBackItUp_Restore {
 		}
 
 
-		if (count($error_folders)>0){
+		if ( is_array($error_folders) && count($error_folders)>0){
 			$this->logger->log_error(__METHOD__,'End - Error Folders:');
 			$this->logger->log($error_folders);
 			return $error_folders;
@@ -469,7 +471,7 @@ class WPBackItUp_Restore {
 		}
 
 
-		if (count($error_files)>0) {
+		if ( is_array($error_files) && count($error_files)>0) {
 			$this->logger->log_error(__METHOD__,'End - Error Files:');
 			$this->logger->log($error_files);
 			return $error_folders;
@@ -552,7 +554,7 @@ class WPBackItUp_Restore {
 
 
 		//If error on folders then return
-		if (count($error_folders)>0){
+		if (is_array($error_folders) && count($error_folders)>0){
 			$this->logger->log_error(__METHOD__,'End - Error Folders:');
 			$this->logger->log($error_folders);
 			return $error_folders;
@@ -611,7 +613,7 @@ class WPBackItUp_Restore {
 		}
 
 
-		if (count($error_files)>0) {
+		if (is_array($error_files) && count($error_files)>0) {
 			$this->logger->log_error(__METHOD__,'End - Error Files:');
 			$this->logger->log($error_files);
 			return $error_folders;
@@ -843,7 +845,8 @@ class WPBackItUp_Restore {
 			$user_id = $dbc->get_sql_scalar($sql);
 			$this->logger->log_info(__METHOD__,'Fetch user by id:' .$user_id);
 
-			$sql = "INSERT INTO ". $table_prefix ."usermeta (user_id, meta_key, meta_value) values(" .$user_id .",'wp_capabilities', 'a:1:{s:13:\"administrator\";s:1:\"1\";}')";
+			$capabilities = $table_prefix . "capabilities";
+			$sql = "INSERT INTO ". $table_prefix ."usermeta (user_id, meta_key, meta_value) values(" .$user_id .",'" . $capabilities . "', 'a:1:{s:13:\"administrator\";s:1:\"1\";}')";
 			if (!$dbc->run_sql_command($sql)){
 				$this->logger->log_error(__METHOD__,'user capabilities insert failed.');
 				return false;
@@ -851,7 +854,8 @@ class WPBackItUp_Restore {
 				$this->logger->log_info(__METHOD__,'User capabilities inserted successfully.');
 			}
 
-			$sql = "INSERT INTO ". $table_prefix ."usermeta (user_id, meta_key, meta_value) values(" .$user_id .",'wp_user_level', '10')";
+			$user_level = $table_prefix . 'user_level';
+			$sql = "INSERT INTO ". $table_prefix ."usermeta (user_id, meta_key, meta_value) values(" .$user_id .",'" . $user_level . "', '10')";
 			if (!$dbc->run_sql_command($sql)){
 				$this->logger->log_error(__METHOD__,'User level insert failed');
 				return false;

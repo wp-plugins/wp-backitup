@@ -1,5 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
-    
+
+/**
+ * WP BackItUp  - Support View
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
+ */
+
     $page_title = $this->friendly_name . ' Support';
     $namespace = $this->namespace;
 

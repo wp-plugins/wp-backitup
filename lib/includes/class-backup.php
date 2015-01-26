@@ -1,10 +1,11 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
+
 /**
- * WP Backitup Backup Class
- * 
- * @package WP Backitup
- * 
- * @author cssimmon
+ * WP BackItUp -  Backup Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
 
@@ -443,17 +444,19 @@ class WPBackItUp_Backup {
             if (! $this->strposa(basename($folder), $ignore)){
                 array_push($uploads_file_list,$folder);
                 $file_list = $file_system->get_recursive_file_list($folder. '/*' );
-                $uploads_file_list = array_merge($uploads_file_list,$file_list);
+                if (is_array($file_list))  {
+                    $uploads_file_list = array_merge($uploads_file_list,$file_list);
+                }
             }
         }
 
         //Need to grab the files in the root also
         $files_only = array_filter(glob($uploads_root_path. '/*'), 'is_file');
-        if (count($files_only)>0){
+        if (is_array($files_only) && count($files_only)>0){
             $uploads_file_list = array_merge($uploads_file_list,$files_only);
         }
 
-        $this->logger->log_info( __METHOD__, 'Themes File Count: ' .count($uploads_file_list));
+        $this->logger->log_info( __METHOD__, 'Uploads File Count: ' .count($uploads_file_list));
 
         return $uploads_file_list;
     }
@@ -481,13 +484,15 @@ class WPBackItUp_Backup {
             if (!$this->strposa(basename($folder), $ignore)){
                 array_push($other_file_list,$folder);
                 $file_list = $file_system->get_recursive_file_list($folder. '/*' );
-                $other_file_list = array_merge($other_file_list,$file_list);
+                if (is_array($file_list)) {
+                    $other_file_list = array_merge($other_file_list,$file_list);
+                }
             }
         }
 
         //Need to grab the files in the root also
         $files_only = array_filter(glob($wpcontent_path. '/*'), 'is_file');
-        if (count($files_only)>0){
+        if (is_array($files_only) && count($files_only)>0){
 
             //Get rid of the debug.log file - dont want to restore it
             $debug_log_index = $this->search_array('debug.log', $files_only);
@@ -495,7 +500,9 @@ class WPBackItUp_Backup {
                 unset($files_only[$debug_log_index]);
             }
 
-            $other_file_list = array_merge($other_file_list,$files_only);
+            if (is_array($files_only)) {
+                $other_file_list = array_merge($other_file_list,$files_only);
+            }
         }
 
         $this->logger->log_info( __METHOD__, 'Other File Count: ' .count($other_file_list));
@@ -507,6 +514,14 @@ class WPBackItUp_Backup {
     //BackUp
 	public function backup_file_list($source_root,$target_root,$suffix,$file_list,$batch_size,$ignore=''){
 		$this->logger->log_info(__METHOD__,'Begin - Item Count: '. count($file_list));
+        $this->logger->log_info(__METHOD__,'Items in Backup List: ');
+        $this->logger->log($file_list);
+
+        if (! is_array($file_list)) {
+            $this->logger->log_error(__METHOD__,'Array expected in file list:');
+            $this->logger->log($file_list);
+            return 'error';
+        }
 
 		$zip_file_path = $this->backup_project_path . $this->backup_name .'-'.$suffix .'.tmp';
 		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
@@ -530,6 +545,7 @@ class WPBackItUp_Backup {
 
 			//replace the source path with the target
 			$target_item_path = str_replace(rtrim($source_root, '/'),rtrim($target_root,'/'),$item);
+
             if ( $zip->add_file($item,$target_item_path)) {
                 array_shift($file_list);
                 $this->logger->log_info( __METHOD__, 'File Added:' . $target_item_path );
@@ -650,7 +666,7 @@ class WPBackItUp_Backup {
 
 		//get a list of all the zips
 		$backup_files_path = array_filter(glob($this->backup_project_path. '*.zip'), 'is_file');
-		if (count($backup_files_path)>0){
+		if (is_array($backup_files_path) && count($backup_files_path)>0){
 			//get rid of the path.
 			$backup_files = str_replace($this->backup_project_path,'',$backup_files_path);
 			$manifest_file=$this->backup_project_path . 'backupmanifest.txt';

@@ -1,10 +1,11 @@
-<?php
+<?php if (!defined ('ABSPATH')) die('No direct access allowed');
+
 /**
- * WP BackItUp Scheduler Class
+ * WP BackItUp  - Scheduler Class
  *
- * @package WP Backitup
- *
- * @author cssimmon
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
 

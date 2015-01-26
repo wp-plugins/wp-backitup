@@ -1,5 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
+/**
+ * WP BackItUp  - Backup View
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
+ */
+
         $page_title = $this->friendly_name . ' Dashboard';
         $namespace = $this->namespace;
 
@@ -199,14 +208,14 @@ if (!$backup_folder_exists) {
       <h3><i class="fa fa-cloud-download"></i> <?php _e('Available Backups', $namespace); ?></h3>
 
     <!--View Log Form-->
-    <form id = "viewlog" name = "viewlog" action="admin-post.php/?sc=<?php _e(current_time( 'timestamp' ) )?>" method="post">
+    <form id = "viewlog" name = "viewlog" action="admin-post.php" method="post">
         <input type="hidden" name="action" value="viewlog">
         <input type="hidden" id="backup_name" name="backup_name" value="">
         <?php wp_nonce_field($this->namespace . "-viewlog"); ?>
     </form>
 
 
-    <form id = "download_backup" name = "download_backup" action="admin-post.php/?sc=<?php _e(current_time( 'timestamp' ) )?>" method="post">
+    <form id = "download_backup" name = "download_backup" action="admin-post.php" method="post">
 	    <input type="hidden" name="action" value="download_backup">
 	    <input type="hidden" id="backup_file" name="backup_file" value="">
 	    <?php wp_nonce_field($this->namespace . "-download_backup"); ?>
@@ -220,6 +229,9 @@ if (!$backup_folder_exists) {
           $i = 0;
           foreach ($backup_list as $file)
           {
+
+            //Only show the number in the retained list
+            if($i >= $number_retained_archives ) break;
 
 	        $backup_name = $file["backup_name"];
 	        $file_datetime = get_date_from_gmt(date('Y-m-d H:i:s', $file["date_time"]), 'Y-m-d g:i a');

@@ -1,5 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
+/**
+ * WP BackItUp  - Restore View
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
+ */
+
     $page_title = $this->friendly_name . ' Restore';
     $namespace = $this->namespace;
 

@@ -1,10 +1,11 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed (upload)');
+
 /**
- * WP BackItUp File Upload Handler
- * 
+ * WP BackItUp  - Upload Handler
+ *
  * @package WP BackItUp
- * 
- * @author cssimmon
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
 

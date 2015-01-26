@@ -1,6 +1,15 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed (viewlog)');
 @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
 
+/**
+ * WP BackItUp  - View Log Handler
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
+ */
+
 
 if ( isset($_REQUEST['_wpnonce']) && !empty($_REQUEST['_wpnonce'])
     && isset($_REQUEST['backup_name']) && !empty($_REQUEST['backup_name']) ){

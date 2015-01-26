@@ -1,8 +1,17 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed (viewlog)');
 @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
 
+/**
+ * WP BackItUp  - Download handler
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
+ *
+ */
+
 //Turn off output buffering if it was on.
-while (@ob_end_flush());
+while (@ob_end_clean());
 
 // required for IE, otherwise Content-disposition is ignored
 //@apache_setenv('no-gzip', 1); //Causes failure on siteground...research
@@ -58,18 +67,22 @@ if ( isset($_REQUEST['_wpnonce']) && !empty($_REQUEST['_wpnonce'])
             $cnt =0;
             $handle = fopen($backup_path, 'rb');
             if ($handle !== false) {
+                //Have the headers already been sent for some reason
+                if (headers_sent()) {
+                    $logger->log_error( __METHOD__, 'Headers already sent.' );
+                }
+
                 //Output Headers
-                header("Cache-Control: no-store, no-cache, must-revalidate");
-                header("Cache-Control: post-check=0, pre-check=0", false);
-                header("Pragma: no-cache");
-                header("Expires: Sat, 26 Jul 1997 05:00:00 GMT" );
-                header("Last-Modified: ".gmdate("D, d M Y H:i:s")." GMT");
+                header("Pragma: public");
+                header("Expires: -1");
+                header("Cache-Control: public, must-revalidate, post-check=0, pre-check=0");
 
-                header("Content-Disposition: inline; filename=$file_name");
-
+                header("Content-Disposition: attachment; filename=\"".urlencode($file_name)."\"");
+//              header("Content-Disposition: attachment; filename=\"$file_name\"");
                 header("Content-type: application/zip");
-                header("Content-Transfer-Encoding: binary");
                 header("Content-Length: ".$file_size);
+
+
 
                 while (!feof($handle) &&  (connection_status()==0) ) {
                     $buffer = fread($handle, $chunksize);

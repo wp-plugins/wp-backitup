@@ -1,13 +1,14 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
 /**
- * WP Backitup SQL Class
- * 
- * @package WP Backitup
- * 
- * @author cssimmon
+ * WP BackItUp  - SQL Class
+ *
+ * @package WP BackItUp
+ * @author  Chris Simmons <chris.simmons@wpbackitup.com>
+ * @link    http://www.wpbackitup.com
  *
  */
+
 class WPBackItUp_SQL {
 
 	private $logger;
