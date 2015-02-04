@@ -259,6 +259,8 @@
         });
     }
 
+    //global to track backup response.
+    var backup_response=false;
     /* define backup response_reader function */
     function wpbackitup_get_backup_response() {
     //This function is required because of 504 gateway timeouts
@@ -277,6 +279,10 @@
             {
                 console.log("JSON Backup Status:" + jsonData.backupStatus);
                 console.log("JSON Backup Message:" + jsonData.backupMessage);
+
+                //If response aleady received
+                if (backup_response) return;
+                backup_response=true;
 
                 switch (jsonData.backupStatus) {
                     case 'success':
@@ -470,6 +476,7 @@
 
         /* show backup status, backup errors */
         $('.backup-status').show();
+        backup_response=false;
         window.intervalDefine = setInterval(wpbackitup_get_backup_status, 5000);
     }
 
@@ -720,8 +727,8 @@
       $('#datatable').prepend(newRow);
       $('#datatable tr:first').hide().show('slow'); // just an animation to show newly added row
       
-      if(total_rows >= data.backupRetained)
-        $('#datatable tr:last').hide();
+      //if(total_rows >= data.backupRetained)
+      //  $('#datatable tr:last').hide();
 
         wpbackitup_add_viewlog_onclick();
 

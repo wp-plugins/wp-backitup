@@ -130,7 +130,18 @@ class WPBackItUp_Logger {
 		try{
 			if (true===$this->logging){
 
-				$this->log("**SYSTEM INFO**");
+				$this->log("\n**SYSTEM INFO**");
+
+				$this->log("\n--WP BackItUp Info--");
+
+				$this->log("WPBACKITUP License Active: " . ($WPBackitup->license_active() ? 'true' : 'false'));
+				$prefix='WPBACKITUP';
+				foreach (get_defined_constants() as $key=>$value)
+				{
+					if (substr($key,0,strlen($prefix))==$prefix) {
+						$this->log($key . ':' . $value);
+					}
+				}
 
 				$this->log("\n--Site Info--");
 				$this->log('Site URL:' . site_url());
@@ -143,7 +154,6 @@ class WPBackItUp_Logger {
 				$this->log('Table Prefix:' . 'Length: ' . strlen( $wpdb->prefix ) . '   Status: ' . ( strlen( $wpdb->prefix ) > 16 ? 'ERROR: Too long' : 'Acceptable' ));
 				$this->log('WP_DEBUG:' . ( defined( 'WP_DEBUG' ) ? WP_DEBUG ? 'Enabled' : 'Disabled' : 'Not set' ));
 				$this->log('Memory Limit:' . WP_MEMORY_LIMIT );
-
 
 				$this->log("\n--WordPress Active Plugins--");
 				// Check if get_plugins() function exists. This is required on the front end of the
@@ -175,7 +185,6 @@ class WPBackItUp_Logger {
 				$this->log('Webserver Info:' . $_SERVER['SERVER_SOFTWARE']);
 				$this->log('MySQL Version:' . $wpdb->db_version());
 
-
 				$this->log("\n--PHP Info--");
 				$this->log("PHP Info:" . phpversion());
 				$this->log("Operating System:" .  php_uname());
@@ -198,18 +207,9 @@ class WPBackItUp_Logger {
 				$this->log('Upload Max Filesize:' . ini_get( 'upload_max_filesize' ));
 				$this->log('Max Input Vars:' . ini_get( 'max_input_vars' ));
 				$this->log('Display Errors:' . ( ini_get( 'display_errors' ) ? 'On (' . ini_get( 'display_errors' ) . ')' : 'N/A' ));
+				$this->log('Curl Installed:' . (function_exists('curl_version') ?'True' : 'False'));
 
-
-				$this->log("\n--WP BackItUp Info--");
-				$this->log("WPBACKITUP License Active: " . ($WPBackitup->license_active() ? 'true' : 'false'));
-				$prefix='WPBACKITUP';
-			    foreach (get_defined_constants() as $key=>$value) 
-			    {
-			        if (substr($key,0,strlen($prefix))==$prefix) {
-			        	$this->log($key . ':' . $value); 
-			        }
-			    }
-				$this->log("**END SYSTEM INFO**");
+				$this->log("\n**END SYSTEM INFO**");
 			}
 		} catch(Exception $e) {
 			//Dont do anything

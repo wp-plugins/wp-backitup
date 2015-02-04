@@ -841,17 +841,30 @@ class WPBackitup_Admin {
 				set_transient('error-support-email', __('Please enter a valid email', $this->namespace), 60);
 			}
 
-			if(empty($_POST['support_subject']))
-			{
-				$error=true;
-				set_transient('error-support-subject', __('Please enter a short description of your problem', $this->namespace), 60);
-			}
 
-			if(empty($_POST['support_body']))
-			{
-				$error=true;
-				set_transient('error-support-body', __('Please enter your problem description', $this->namespace), 60);
-			}
+            if(empty($_POST['support_ticket_id']))
+            {
+                $error=true;
+                set_transient('error-support-ticket', __('Please enter your support ticket id', $this->namespace), 60);
+            }else {
+                if(!is_numeric($_POST['support_ticket_id']))
+                {
+                    $error=true;
+                    set_transient('error-support-ticket', __('Please only enter numbers in this field', $this->namespace), 60);
+                }
+            }
+
+//			if(empty($_POST['support_subject']))
+//			{
+//				$error=true;
+//				set_transient('error-support-subject', __('Please enter a short description of your problem', $this->namespace), 60);
+//			}
+
+//			if(empty($_POST['support_body']))
+//			{
+//				$error=true;
+//				set_transient('error-support-body', __('Please enter your problem description', $this->namespace), 60);
+//			}
 
 			$include_logs=false;
 			if(!empty($_POST['support_include_logs']))
@@ -895,13 +908,12 @@ class WPBackitup_Admin {
 				$utility = new WPBackItUp_Utility($logger);
                 $support_to_address = WPBACKITUP__SUPPORT_EMAIL;
                 $support_from_email=$_POST['support_email'];
-                $support_subject = 'Support Request (' .$support_request_id .'): ' .$_POST['support_subject'];
-
+                $support_subject = '[#' .trim($_POST['support_ticket_id']) .']';
 
                 $site_info = 'WordPress Site: <a href="'  . home_url() . '" target="_blank">' . home_url() .'</a><br/>';
                 $site_info .="WP BackItUp License Type: " . $this->license_type_description() .' <br />';
 
-                $support_body=$site_info . '<br/><br/>' . $_POST['support_body'];
+                $support_body=$site_info . '<br/><br/><b>Customer Comments:</b><br/><br/>' . $_POST['support_body'];
 
 
                 $utility->send_email($support_to_address,$support_subject,$support_body,$logs_attachment,$support_from_email);

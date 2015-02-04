@@ -287,7 +287,53 @@ class WPBackItUp_Job {
 			array_walk_recursive($meta_value, 'WPBackItUp_Utility::encode_items');
 		}
 
-		return update_post_meta( $this->job_id, $meta_name, $meta_value );
+		return update_post_meta( $this->job_id, $meta_name,$this->wpb_slash($meta_value));
+	}
+
+	/**
+	 * Add slashes to a string or array of strings.
+	 *
+	 * This should be used when preparing data for core API that expects slashed data.
+	 * This should not be used to escape data going directly into an SQL query.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param string|array $value String or array of strings to slash.
+	 * @return string|array Slashed $value
+	 */
+	private function wpb_slash( $value ) {
+		//only available 3.6 or later
+		if (function_exists('wp_slash')) return wp_slash($value);
+
+		if ( is_array( $value ) ) {
+			foreach ( $value as $k => $v ) {
+				if ( is_array( $v ) ) {
+					$value[$k] = $this->wpb_slash( $v );
+				} else {
+					$value[$k] = addslashes( $v );
+				}
+			}
+		} else {
+			$value = addslashes( $value );
+		}
+
+		return $value;
+	}
+
+	/**
+	 * Remove slashes from a string or array of strings.
+	 *
+	 * This should be used to remove slashes from data passed to core API that
+	 * expects data to be unslashed.
+	 *
+	 * @since 3.6.0
+	 *
+	 * @param string|array $value String or array of strings to unslash.
+	 * @return string|array Unslashed $value
+	 */
+	function wpb_
+	( $value ) {
+        return stripslashes_deep( $value );
 	}
 
 	public function get_job_meta($meta_name){
@@ -295,7 +341,7 @@ class WPBackItUp_Job {
 
 		$job_meta = get_post_meta($this->job_id,$meta_name,true);
 
-		//Encode the array values
+		//Decode the array values
 		if (is_array($job_meta)){
 			array_walk_recursive($job_meta, 'WPBackItUp_Utility::decode_items');
 		}

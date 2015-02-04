@@ -247,8 +247,8 @@ if ('task_preparing'==$current_task) {
 	$logger->log_info(__METHOD__,'Fetch backups pattern:' .$backup_path_pattern);
 	$backup_set = glob( $backup_path_pattern);
 	if ( is_array($backup_set) && count($backup_set)>0){
-		$restore_job->update_job_meta('backup_set',wp_slash($backup_set));
-		$restore_job->update_job_meta('backup_set_remaining',wp_slash($backup_set));
+		$restore_job->update_job_meta('backup_set',$backup_set);
+		$restore_job->update_job_meta('backup_set_remaining',$backup_set);
 	}else{
 		fatal_error($task,'222','No zip files found (pattern):' . $backup_path_pattern);
 	}
@@ -316,7 +316,7 @@ if ('task_unzip_backup_set'==$current_task) {
 	} else {
 
 		array_shift( $backup_set_list ); //remove from list
-		$restore_job->update_job_meta('backup_set_remaining',wp_slash($backup_set_list));
+		$restore_job->update_job_meta('backup_set_remaining',$backup_set_list);
 
 		if (is_array($backup_set_list) && count($backup_set_list)>0){
 			//CONTINUE

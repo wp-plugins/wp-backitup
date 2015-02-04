@@ -39,8 +39,9 @@
           <?php wp_nonce_field($namespace . "-support-form"); ?>
           <div class="widget">
             <h3 class="promo"><i class="fa fa-envelope"></i> Email Logs to Support</h3>
-            <p><b>Please use this form to send your log files to support.  You may also use this form to open a support ticket.</b></p>
-            <p><?php _e('We will respond to this request via email using the email address you enter below.', $namespace); ?></p>
+            <p><b>This form should be used to send log files to support only.</b></p>
+            <p>Please make sure to open a support ticket via WP BackItUp <a href="https://www.wpbackitup.com/support" target="_blank">support portal.</a> before using this form.</p>
+            <p><em><?php _e('The ticket id you receive from your support request should be entered in the ticket id field below.', $namespace); ?></em></p>
             <p><input <?php echo($disabled) ; ?> type="text" name="support_email" value="<?php echo $support_email; ?>" size="30" placeholder="your email address">
 	            <?php
 	            if ( false !== ( $msg = get_transient('error-support-email') ) && $msg)
@@ -51,18 +52,17 @@
 	            ?>
             </p>
 
-            <p><input <?php echo($disabled) ; ?> type="text" name="support_subject" value="<?php echo get_transient('support_subject'); ?>" size="30" placeholder="problem subject">
-	            <?php
-	            if ( false !== ( $msg = get_transient('error-support-subject') ) && $msg)
-	            {
-		            echo '<span class="error">'.$msg.'</span>';
-		            delete_transient('error-support-subject');
-	            }
-	            ?>
-
+            <p><input <?php echo($disabled) ; ?> type="text" name="support_ticket_id" value="" size="30" placeholder="support ticket id">
+              <?php
+              if ( false !== ( $msg = get_transient('error-support-ticket') ) && $msg)
+              {
+                echo '<span class="error">'.$msg.'</span>';
+                delete_transient('error-support-ticket');
+              }
+              ?>
             </p>
 
-            <p><textarea <?php echo($disabled) ; ?> name="support_body" rows="4" cols="50" style="width:450px;height:150px;" placeholder="problem description"><?php echo get_transient('support_body'); ?></textarea>
+            <p><textarea <?php echo($disabled) ; ?> name="support_body" rows="4" cols="50" style="width:450px;height:150px;" placeholder="problem description or additional information"><?php echo get_transient('support_body'); ?></textarea>
 	            <?php
 	            if ( false !== ( $msg = get_transient('error-support-body') ) && $msg)
 	            {

@@ -151,6 +151,12 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.3 =
+* Update: Add ticket id to support view.
+* Fix: Add UTF Encoding on file names being backed up and restored
+* Fix: Multiple new backup success messages after backup
+* Fix: Add wp_slash function to support Wordpress versions 3.6 and lower
+
 = 1.10.2 =
 * Update: Display backup file set name instead of date
 * Fix: Backup plugins error when no files on last folder

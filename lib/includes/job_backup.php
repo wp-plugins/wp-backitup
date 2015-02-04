@@ -291,22 +291,22 @@ if ('task_preparing'==$current_task) {
 	//Generate the list of files to be backed up and update the tasks info
 
 	$plugins_file_list = $wp_backup->get_plugins_file_list();
-	$backup_job->update_job_meta('backup_plugins_filelist',wp_slash($plugins_file_list));
-	$backup_job->update_job_meta('backup_plugins_filelist_remaining',wp_slash($plugins_file_list));
+	$backup_job->update_job_meta('backup_plugins_filelist',$plugins_file_list);
+	$backup_job->update_job_meta('backup_plugins_filelist_remaining',$plugins_file_list);
 
 	$themes_file_list = $wp_backup->get_themes_file_list();
-	$backup_job->update_job_meta('backup_themes_filelist',wp_slash($themes_file_list));
-	$backup_job->update_job_meta('backup_themes_filelist_remaining',wp_slash($themes_file_list));
+	$backup_job->update_job_meta('backup_themes_filelist',$themes_file_list);
+	$backup_job->update_job_meta('backup_themes_filelist_remaining',$themes_file_list);
 
 	//some folders excluded
 	$uploads_file_list = $wp_backup->get_uploads_file_list();
-	$backup_job->update_job_meta('backup_uploads_filelist',wp_slash($uploads_file_list));
-	$backup_job->update_job_meta('backup_uploads_filelist_remaining',wp_slash($uploads_file_list));
+	$backup_job->update_job_meta('backup_uploads_filelist',$uploads_file_list);
+	$backup_job->update_job_meta('backup_uploads_filelist_remaining',$uploads_file_list);
 
 	//some folders excluded
 	$others_file_list = $wp_backup->get_other_file_list();
-	$backup_job->update_job_meta('backup_others_filelist',wp_slash($others_file_list));
-	$backup_job->update_job_meta('backup_others_filelist_remaining',wp_slash($others_file_list));
+	$backup_job->update_job_meta('backup_others_filelist',$others_file_list);
+	$backup_job->update_job_meta('backup_others_filelist_remaining',$others_file_list);
 
 
 	set_status('preparing',$complete,false);
@@ -403,7 +403,7 @@ if ('task_backup_themes'==$current_task) {
 		end_backup( 120, false );
 	}else{
 		//update the file list with remaining files
-		$backup_job->update_job_meta('backup_themes_filelist_remaining',wp_slash($themes_remaining_files));
+		$backup_job->update_job_meta('backup_themes_filelist_remaining',$themes_remaining_files);
 
 		$themes_remaining_files_count= count($themes_remaining_files);
 		$themes_batch_count = $themes_file_list_count-$themes_remaining_files_count;
@@ -450,7 +450,7 @@ if ('task_backup_plugins'==$current_task) {
 		end_backup( 121, false );
 	} else {
 		//update the file list with remaining files
-		$backup_job->update_job_meta('backup_plugins_filelist_remaining',wp_slash($plugins_remaining_files));
+		$backup_job->update_job_meta('backup_plugins_filelist_remaining',$plugins_remaining_files);
 
 		$plugins_remaining_files_count= count($plugins_remaining_files);
 		$plugins_batch_count = $plugins_file_list_count-$plugins_remaining_files_count;
@@ -501,7 +501,7 @@ if ('task_backup_uploads'==$current_task) {
 		end_backup( 122, false );
 	} else {
 		//update the file list with remaining files
-		$backup_job->update_job_meta( 'backup_uploads_filelist_remaining', wp_slash($uploads_remaining_files) );
+		$backup_job->update_job_meta( 'backup_uploads_filelist_remaining',$uploads_remaining_files);
 
 		$uploads_remaining_files_count = count( $uploads_remaining_files );
 		$uploads_batch_count           = $uploads_file_list_count - $uploads_remaining_files_count;
@@ -551,7 +551,7 @@ if ('task_backup_other'==$current_task) {
 		end_backup( 123, false );
 	} else {
 		//update the file list with remaining files
-		$backup_job->update_job_meta( 'backup_others_filelist_remaining', wp_slash($others_remaining_files) );
+		$backup_job->update_job_meta( 'backup_others_filelist_remaining', $others_remaining_files );
 
 		$others_remaining_files_count = count( $others_remaining_files );
 		$others_batch_count           = $others_file_list_count - $others_remaining_files_count;
