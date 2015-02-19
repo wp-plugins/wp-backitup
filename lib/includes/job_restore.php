@@ -467,7 +467,7 @@ if ('task_stage_wpcontent'==$current_task) {
 	//Stage all but plugins
 
 	$logger->log('*STAGE THEMES*');
-	$from_folder_name = $wp_restore->get_restore_root_folder_path() .'/' .$wp_restore::THEMESPATH;
+	$from_folder_name = $wp_restore->get_restore_root_folder_path() .'/' .WPBackItUp_Restore::THEMESPATH;
 	$to_folder_name = WPBACKITUP__THEMES_ROOT_PATH . $folder_stage_suffix;
 	if (! $wp_restore->rename_folder($from_folder_name,$to_folder_name)){
 		fatal_error($task,'219','Cant stage themes.',false);
@@ -477,7 +477,7 @@ if ('task_stage_wpcontent'==$current_task) {
 	$logger->log('*END STAGE THEMES*');
 
 	$logger->log('*STAGE UPLOADS*');
-	$from_folder_name = $wp_restore->get_restore_root_folder_path() .'/' .$wp_restore::UPLOADPATH;
+	$from_folder_name = $wp_restore->get_restore_root_folder_path() .'/' .WPBackItUp_Restore::UPLOADPATH;
 	$upload_array = wp_upload_dir();
 	$uploads_root_path = $upload_array['basedir'];
 	$to_folder_name = $uploads_root_path . $folder_stage_suffix;
@@ -489,7 +489,7 @@ if ('task_stage_wpcontent'==$current_task) {
 	$logger->log('*END STAGE UPLOADS*');
 
 	$logger->log('*STAGE OTHER FOLDERS*');
-	$other_list = glob($wp_restore->get_restore_root_folder_path() .'/' .$wp_restore::OTHERPATH .'/*',GLOB_ONLYDIR|GLOB_NOSORT);
+	$other_list = glob($wp_restore->get_restore_root_folder_path() .'/' .WPBackItUp_Restore::OTHERPATH .'/*',GLOB_ONLYDIR|GLOB_NOSORT);
 	foreach ( $other_list as $from_folder_name ) {
 		$to_folder_name = WPBACKITUP__CONTENT_PATH .'/' .basename($from_folder_name) . $folder_stage_suffix;
 		if (! $wp_restore->rename_folder($from_folder_name,$to_folder_name)) {

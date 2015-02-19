@@ -36,8 +36,8 @@
         // get retention number set
         $number_retained_archives = $this->backup_retained_number();
 
-		$lite_registration_first_name = $this->lite_registration_first_name();
-        $lite_registration_email = $this->lite_registration_email();
+		$license_customer_name = $this->license_customer_name();
+        $license_customer_email = $this->license_customer_email();
         $is_lite_registered = $this->is_lite_registered();
 
         $backup_schedule=$this->backup_schedule();
@@ -316,31 +316,52 @@ if (!$backup_folder_exists) {
 
   <div id="sidebar">
 
+
+          <div class="widget">
+              <h3 class="promo"><?php _e('Backups', $namespace); ?> <span style="float: right"><?php _e('Version ' .$version, $namespace); ?></span></h3>
+              <?php if ($this->successful_backup_count()<1) : ?>
+                  <p>Welcome to WP BackItUp!<br/>  The simplest way to backup your WordPress site.</p>
+                  <p>Getting started is easy, just click the backup button on the left side of this page.</p>
+              <?php endif ?>
+
+              <?php if ($this->successful_backup_count()>=1) : ?>
+                <p>Congratulations! You have performed <span style="font-weight:bold;font-size:medium;color: green"><?php _e($this->successful_backup_count(),  $namespace); ?></span> successful backups.</p>
+                <p><span style="font-weight:bold;font-size:medium">Tips</span>
+                   <br/>1)&nbsp;Backup your site at least once per week
+                   <br/>2)&nbsp;Download all your backups and store them somewhere safe
+                   <br/>3)&nbsp;Verify your backup files are good by taking a look at what's inside
+                </p>
+              <?php endif ?>
+
+              <?php if (!$license_active && $this->successful_backup_count()>=10) : ?>
+                  * Why not <?php echo($this->get_anchor_with_utm('upgrade','pricing-purchase','get+license','purchase'))?> and schedule your backups!
+              <?php endif ?>
+          </div>
+
+
     <!-- Display opt-in form if the user is unregistered -->
     <?php if (!$license_active) : ?>
         <?php if (!$is_lite_registered) : ?>
             <div class="widget">
-                <h3 class="promo"><?php _e('Register WP BackItUp Lite', $namespace); ?></h3>
+                <h3 class="promo"><span><?php _e('Register WP BackItUp', $namespace); ?></span></h3>
                 <form action="" method="post" id="<?php echo $namespace; ?>-form">
-                <?php wp_nonce_field($namespace . "-register-lite"); ?>
-                <p><?php _e('Enter your email address to register WP BackItUp Lite.  Registered users will receive <b>special offers</b> and access to our world class <b>support</b> team.  <br /> <br />Premium customers only need to enter their license key in the section below.  Registration is not required.', $namespace); ?></p>
-	            <input type="text" name="first_name" id="first_name" placeholder="first name" value="<?php echo($lite_registration_first_name) ?>" /><br/>
-                <input type="text" name="email" id="email" placeholder="email address" value="<?php echo($lite_registration_email) ?>" />
+                <?php wp_nonce_field($namespace . "-register"); ?>
+                <p><?php _e('Enter your name and email address below to receive <b>special offers</b> and access to our world class <b>support</b> team.  <br />
+                <br />Enter your license key below to activate it on this site.', $namespace); ?></p>
+	            <input type="text" name="license_name" id="license_name" placeholder="name" value="<?php echo($license_customer_name) ?>" /><br/>
+                <input type="text" name="license_email" id="license_email" placeholder="email address" value="<?php echo($license_customer_email) ?>" /><br/>
+                <input type="text" name="license_key" id="license_key" placeholder="license key" value="<?php if ($license_key!= 'lite') echo($license_key) ?>" /> &nbsp;<span style="color:red"><?php _e($license_status_message, $namespace); ?></span>
+                <br />* Free plugin customers do not need to enter license key.
                 <div class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Register", $namespace) ?>" /></div>
                 </form>
             </div>
-       <?php else : ?>
-          <div class="widget">
-            <h3 class="promo"><?php _e('Get a license', $namespace); ?></h3>
-            <p><?php _e('Tired of messing with FTP, MySQL and PHPMyAdmin? Restore your backups from this page in minutes or your money back', $namespace); ?>.</p>
-            <?php echo($this->get_anchor_with_utm('Purchase a license for WP BackItUp','pricing-purchase','get+license','purchase')) ?>
-          </div>
-      <?php endif ?>
+       <?php endif ?>
     <?php endif; ?>
 
+    <?php if ($license_active || $is_lite_registered) : ?>
       <!-- Display license key widget -->
       <div class="widget">
-        <h3 class="promo"><?php _e('License v ' . $version, $namespace); ?></h3>
+        <h3 class="promo"><span><?php _e('License Info', $namespace); ?></span><span style="float: right"></h3></h3>
         <form action="" method="post" id="<?php echo $namespace; ?>-form">
         <?php wp_nonce_field($namespace . "-update-options"); ?>
         <?php
@@ -360,55 +381,76 @@ if (!$backup_folder_exists) {
             $license_message=' License Status: ' . $license_status;
         }
 
-        if($license_active)
-            echo '<p>' . $license_type_description .' License Key</p>';
-        else
-            echo '<p>Enter your license key to activate features.</p>';
+        if($license_active) {
+            echo('<p>');
+            echo('Name: &nbsp;' . $license_customer_name);
+            echo('<br/>Email: &nbsp;' . $license_customer_email);
+            echo('<br/>License Type: &nbsp;' . $license_type_description);
+            echo('<br/>Expires: &nbsp;' . $formatted_expired_date);
+            echo('</p>');
+        } else {
+            echo '<p>Enter license key to activate on this site.</p>';
+        }
         ?>
 
-        <input type="text" name="data[license_key]" id="license_key" value="<?php _e($license_key, $namespace); ?>" />
-        <div style="color:<?php _e($fontColor); ?>"><?php _e($license_message, $namespace); ?></div>
-        <div style="color:<?php _e($fontColor); ?>"><?php _e($license_status_message, $namespace); ?></div>
+        <input type="text" name="data[license_key]" id="license_key" value="<?php _e($license_key, $namespace); ?>" />&nbsp;
 
-        <?php if ($license_status=='expired'): ?>
-          <div>License expired:&nbsp;<span style="color:red"><?php _e($formatted_expired_date, $namespace); ?></span></div>
-        <?php endif; ?>
+            <?php if ($license_status=='valid'): ?>
+                <span style="color:green">License Active</span>
+            <?php endif; ?>
 
-        <?php if ($license_active) : ?>
-          <div class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Update", $namespace) ?>" /></div>
-        <?php endif; ?>
+            <?php if ($license_status=='invalid'): ?>
+              <span style="color:<?php _e($fontColor); ?>"><?php _e($license_status_message, $namespace); ?></span>
+            <?php endif; ?>
 
-        <?php if (!$license_active) : ?>
-          <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Activate", $namespace) ?>" /></p>
-        <?php endif; ?>
+            <?php if ($license_status=='expired'): ?>
+            <span style="color:red">License expired:&nbsp;<?php _e($formatted_expired_date, $namespace); ?></span>
+            <?php endif; ?>
 
-        <?php if ($license_status=='invalid' || $license_status==''): ?>
-          <p>Purchase a <?php echo($this->get_anchor_with_utm('no-risk','pricing-purchase','license','no+risk'))?>  license using the purchase link above.</p>
-        <?php endif; ?>
+            <?php if ($license_active) : ?>
+              <div class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Update", $namespace) ?>" /></div>
+            <?php endif; ?>
 
-        <?php if ($license_status=='expired'): ?>
-          <div>License expired? <?php echo($this->get_anchor_with_utm('Renew Now ','documentation/faqs/expired-license','license','license+expired'))?> and save 20%.</div>
-          <div>* Offer valid for a limited time!</div>
-        <?php endif; ?>
+            <?php if (!$license_active) : ?>
+              <p class="submit"><input type="submit" name="Submit" class="button-secondary" value="<?php _e("Activate", $namespace) ?>" /></p>
+            <?php endif; ?>
+
+            <?php if ($license_status=='invalid' || $license_status==''): ?>
+              <p>Purchase a <?php echo($this->get_anchor_with_utm('no-risk','pricing-purchase','license','no+risk'))?>  license using the purchase link above.</p>
+            <?php endif; ?>
+
+            <?php if ($license_status=='expired'): ?>
+              <div><?php echo(
+                   '<a target="_blank" href="' .WPBACKITUP__SECURESITE_URL .'/checkout?edd_license_key='.$license_key .'&download_id=679&nocache=true&utm_medium=plugin&utm_source=wp-backitup&utm_campaign=premium&utm_content=license&utm_term=license+expired">Renew</a>');
+              ?>&nbsp; your license now for another year of <strong>product updates</strong> and <strong>priority support.</strong></div>
+            <?php endif; ?>
+
         </form>
       </div>
+      <?php endif; ?>
 
     <!-- Display links widget -->
     <div class="widget">
           <h3 class="promo"><?php _e('Useful Links', $namespace); ?></h3>
           <ul>
               <?php if ($license_active) : ?>
-                  <li><?php echo($this->get_anchor_with_utm('Your account','your-account','useful+links','your+account'))?></li>
-                  <li><?php echo($this->get_anchor_with_utm('Upgrade your license','pricing-purchase','useful+links','upgrade+license'))?></li>
+                  <li><?php echo($this->get_anchor_with_utm('Your account','account','useful+links','your+account'))?></li>
               <?php endif; ?>
-              <li><?php echo($this->get_anchor_with_utm('Documentation','documentation','useful+links','help'))?></li>
+
+              <?php if (!$license_active) : ?>
+                <li><?php echo($this->get_anchor_with_utm('Purchase a license','pricing-purchase','useful+links','upgrade+license'))?></li>
+              <?php endif; ?>
+
+              <li><?php echo($this->get_anchor_with_utm('Documentation','documentation/faqs/wp-backitup-logging','useful+links','help'))?></li>
 
               <?php if ($license_active || $is_lite_registered) : ?>
                   <li><?php echo($this->get_anchor_with_utm('Get support','support' ,'useful+links','get+support'))?></li>
               <?php endif; ?>
 
-              <li><?php echo($this->get_anchor_with_utm('Feature request','feature-request' ,'useful+links','feature+request'))?></li>
-              <li>Have a suggestion? Why not submit a feature request.</li>
+              <li><?php echo($this->get_anchor_with_utm('Feature request','contact' ,'useful+links','feature+request'))?></li>
+
+              <li><?php echo($this->get_anchor_with_utm('Contact','contact' ,'useful+links','contact'))?></li>
+
           </ul>
     </div>
 

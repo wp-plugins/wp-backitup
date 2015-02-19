@@ -49,11 +49,11 @@ class WPBackitup_Admin {
         'license_expires'=> "1970-01-01 00:00:00",
         'license_limit'=> "1",
         'license_sitecount'=> "",
+        'license_customer_name' => "",
+        'license_customer_email' => "",
         'notification_email' => "",
         'backup_retained_number' => "3",
         'lite_backup_retained_number' => "1",
-        'lite_registration_email' => "",
-        'lite_registration_first_name' => "",
         'backup_count'=>0,
         'successful_backup_count'=>0,
         'stats_last_check_date'=> "1970-01-01 00:00:00",
@@ -141,6 +141,8 @@ class WPBackitup_Admin {
         add_action( 'wpbackitup_run_backup_tasks',  array( &$this,'wpbackitup_run_backup_tasks'));
 
 	    add_action( 'wpbackitup_run_cleanup_tasks',  array( &$this,'wpbackitup_run_cleanup_tasks'));
+
+        add_action( 'wpbackitup_check_license',  array( &$this,'check_license'),10,1);
 
     }
 
@@ -291,9 +293,9 @@ class WPBackitup_Admin {
                     $this->_admin_options_update();
                 }
 
-                if( wp_verify_nonce( $nonce, "{$this->namespace}-register-lite" ) ) {
+                if( wp_verify_nonce( $nonce, "{$this->namespace}-register" ) ) {
                     $logger->log('Register Lite Form Post');
-                    $this->_admin_register_lite();
+                    $this->_admin_register();
                 }
 
                 if( wp_verify_nonce( $nonce, "{$this->namespace}-update-schedule" ) ) {
@@ -324,7 +326,7 @@ class WPBackitup_Admin {
     }
 
     public function initialize(){
-        $this->check_license();
+        do_action( 'wpbackitup_check_license');
     }
 
 	public function wpbackitup_queue_scheduled_jobs(){
@@ -937,9 +939,9 @@ class WPBackitup_Admin {
      * Process registration page form submissions
      *
      */
-    public  function _admin_register_lite() {
+    public  function _admin_register() {
         // Verify submission for processing using wp_nonce
-        if( wp_verify_nonce( $_REQUEST['_wpnonce'], "{$this->namespace}-register-lite" ) ) {
+        if( wp_verify_nonce( $_REQUEST['_wpnonce'], "{$this->namespace}-register" ) ) {
 
             /**
              * Loop through each POSTed value and sanitize it to protect against malicious code. Please
@@ -947,56 +949,70 @@ class WPBackitup_Admin {
              * dealt with directly.
              */
 
-            $logger = new WPBackItUp_Logger(false,null,'debug_lite_registration');
-            $logger->log("Register WP BackItUp Lite");
+            $logger = new WPBackItUp_Logger(false,null,'debug_registration');
+            $logger->log("Register WP BackItUp");
             $logger->log($_POST);
 
-            $val = $_POST['email'];
-            $email = $this->_sanitize($val);
-            if (!empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL)){
-                $urlparts = parse_url(site_url());
-                $domain = $urlparts['host'];
+            //First lets check the license
+            $val = $_POST['license_key'];
+            $license_key = $this->_sanitize($val);
 
-                $first_name=$_POST['first_name'];
+            //activate the license if entered
+            $logger->log("Activate License");
+            $this->update_license_options($license_key);
 
-                //save options to DB
-                $this->set_option('lite_registration_email', $email);
-	            if(!empty($first_name)){
-	                $this->set_option('lite_registration_first_name', $first_name);
-	            }
+            //LITE users only
+            if ($this->license_type()=='0') {
 
-                $form_data =  array(
-                        'email' => $email,
-                        'site' => $domain,
-                        'first_name' => $first_name,
-	                    'time_zone'=> get_option('timezone_string'),
-                );
+                $logger->log("Register WP BackItUp LITE");
 
-	            $url = WPBACKITUP__SECURESITE_URL; //PRD
-	            $post_url=$url . '/api/wpbackitup/register_lite';
+                $val           = $_POST['license_email'];
+                $license_email = $this->_sanitize( $val );
+                if ( ! empty( $license_email ) && filter_var( $license_email, FILTER_VALIDATE_EMAIL ) ) {
+                    $urlparts = parse_url( site_url() );
+                    $domain   = $urlparts['host'];
 
-                $logger->log('Lite User Registration Post URL: ' .$post_url);
-                $logger->log('Lite User Registration Post Form Data: ' );
-	            $logger->log($form_data);
+                    $license_name = $_POST['license_name'];
 
-                $response = wp_remote_post( $post_url, array(
-                        'method' => 'POST',
-                        'timeout' => 45,
-                        'blocking' => true,
-                        'headers' => array(),
-                        'body' => $form_data,
-                        'cookies' => array()
-                    )
-                );
+                    //save options to DB
+                    $this->set_option( 'license_customer_email', $license_email );
+                    if ( ! empty( $license_name ) ) {
+                        $this->set_option( 'license_customer_name', $license_name );
+                    }
 
-                if ( is_wp_error( $response ) ) {
-                    $error_message = $response->get_error_message();
-                    $logger->log('Lite User Registration Error: ' .$error_message);
-                } else {
-                    $logger->log('Lite User Registered Successfully:');
-                    $logger->log($response);
+                    $form_data = array(
+                        'email'     => $license_email,
+                        'site'      => $domain,
+                        'name'      => $license_name,
+                        'time_zone' => get_option( 'timezone_string' ),
+                    );
+
+                    $url      = WPBACKITUP__SECURESITE_URL; //PRD
+                    $post_url = $url . '/api/wpbackitup/register_lite';
+
+                    $logger->log( 'Lite User Registration Post URL: ' . $post_url );
+                    $logger->log( 'Lite User Registration Post Form Data: ' );
+                    $logger->log( $form_data );
+
+                    $response = wp_remote_post( $post_url, array(
+                            'method'   => 'POST',
+                            'timeout'  => 45,
+                            'blocking' => true,
+                            'headers'  => array(),
+                            'body'     => $form_data,
+                            'cookies'  => array()
+                        )
+                    );
+
+                    if ( is_wp_error( $response ) ) {
+                        $error_message = $response->get_error_message();
+                        $logger->log( 'Lite User Registration Error: ' . $error_message );
+                    } else {
+                        $logger->log( 'Lite User Registered Successfully:' );
+                        $logger->log( $response );
+                    }
+
                 }
-
             }
 
             // Redirect back to the options page with the message flag to show the saved message
@@ -1159,11 +1175,11 @@ class WPBackitup_Admin {
                     break;
 
                 case 2:
-                    $this->license_type_description = 'business';
+                    $this->license_type_description = 'professional';
                     break;
 
                 case 3:
-                    $this->license_type_description = 'professional';
+                    $this->license_type_description = 'premium';
                     break;
             }
         }
@@ -1215,17 +1231,17 @@ class WPBackitup_Admin {
         return $this->get('successful_backup_count');
     }
 
-    function lite_registration_email(){
-        return $this->get('lite_registration_email');
+    function license_customer_email(){
+        return $this->get('license_customer_email');
     }
 
-	function lite_registration_first_name(){
-		return $this->get('lite_registration_first_name');
+	function license_customer_name(){
+		return $this->get('license_customer_name');
 	}
 
     function is_lite_registered(){
-        $lite_email_registration= $this->lite_registration_email();
-        if (!empty($lite_email_registration)) {
+        $license_email= $this->license_customer_email();
+        if (!empty($license_email)) {
             return true;
         } else {
             return false;
@@ -1340,7 +1356,7 @@ class WPBackitup_Admin {
     /**
      * Validate License Info Once per day
      */
-    public function check_license(){
+    public function check_license($force_check=false){
         $license_key=$this->license_key(); 
         //echo "</br>License Key:" .$license_key;
         
@@ -1356,7 +1372,7 @@ class WPBackitup_Admin {
         //echo($yesterday->format('Y-m-d H:i:s') .'</br>');
 
         //Validate License
-        if ($license_last_check_date<$yesterday)
+        if ($license_last_check_date<$yesterday || $force_check)
         {
           //echo "Validate License";
           $this->update_license_options($license_key);
@@ -1386,13 +1402,19 @@ class WPBackitup_Admin {
         $data['license_sitecount']= $this->defaults['license_sitecount'];
         $data['license_type']= $this->defaults['license_type'];
 
+        //$data['license_customer_name'] = $this->defaults['license_customer_name'];
+        //$data['license_customer_email'] = $this->defaults['license_customer_email'];
+
+        $data['license_customer_name'] = $this->license_customer_name();
+        $data['license_customer_email'] = $this->license_customer_email();
+
         //If no value then default to lite     
         if (empty($license) || 'lite'== $license ){
             $data['license_status'] = 'free';
             $data['license_expires']= $this->defaults['license_expires'];
             $data['license_limit']= 1;
             $data['license_sitecount']= 1;
-            $data['license_type']= 0;        
+            $data['license_type']= 0;
         } else {
             //CALL EDD_ACTIVATE_LICENSE to get activation information
             $api_params = array( 
@@ -1429,9 +1451,17 @@ class WPBackitup_Admin {
 
             $data['license_key'] = $license;
             $data['license_status'] = $license_data->license;
+
+            if (property_exists($license_data,'error')) {
+                $data['license_status_message'] = $license_data->error;
+            }
+
             $data['license_limit'] = $license_data->license_limit;
             $data['license_sitecount'] = $license_data->site_count;
-            $data['license_expires'] = $license_data->expires; 
+            $data['license_expires'] = $license_data->expires;
+
+            $data['license_customer_name'] = $license_data->customer_name;
+            $data['license_customer_email'] = $license_data->customer_email;
 
             //This is how we determine the type of license because
             //there is no difference in EDD
@@ -1451,34 +1481,23 @@ class WPBackitup_Admin {
                if ($license_data->license_limit>=20) {
                         $data['license_type'] = 3;
                 }
+            }
+
+            //EDD sends back expired in the error
+            if (($license_data->license=='invalid')) {
+                $data['license_status_message'] = 'License is invalid.';
 
                 //EDD sends back expired in the error
-                if (($license_data->license=='invalid') && ($license_data->error=='expired')){
-
-                    //Default to valid for now
-                    $data['license_status'] ='valid';
-                    $data['license_status_message'] ='';
-
-                    //Only expire license in current month
-                    $license_expire_date = $license_data->expires;
-                    $expire_date_array = date_parse($license_expire_date);
-                    $logger->log('Expire Date Array');
-                    $logger->log($expire_date_array);
-                    $logger->log('Expire Month: ' .$expire_date_array[month]);
-                    $logger->log('Current Month: ' .date('m'));
-
-                    //only EXPIRE current month
-                    //if ($expire_date_array[month]==date('m')) {
-                        $data['license_status'] ='expired';
-                        $data['license_status_message'] ='License has expired.';
-                        $logger->log('Expire License.');
-                    //}
+                if ($license_data->error == 'expired') {
+                    $data['license_status']         = 'expired';
+                    $data['license_status_message'] = 'License has expired.';
+                    $logger->log( 'Expire License.' );
                 }
 
-                if (($license_data->license=='invalid') && ($license_data->error=='no_activations_left')){
-                    $data['license_status_message'] ='Activation limit has been reached.';
+                if ( ( $license_data->error == 'no_activations_left' ) ) {
+                    $data['license_status_message'] = 'Activation limit has been reached.';
                 }
-            }  
+            }
         }
 
         $logger->log('Updating License Options');  
@@ -1504,34 +1523,8 @@ class WPBackitup_Admin {
         // Load option values if they haven't been loaded already
         $wp_option_name = $this->namespace .'_' .$option_name;
 
-        //Use this after migration
-        //$option_value = get_option($wp_option_name,$this->defaults[$option_name]);   
-       
-        $option_value = get_option($wp_option_name);  
-
-        //return the value
-        if(isset( $option_value ) && !empty( $option_value )) return $option_value;
-        
-        //Should only happen once
-        //Can take this out in next release
-        //If looking for license then migrate the old settings
-        if ('license_key'==$option_name) {
-            $options = get_option('_' . $this->namespace . '--options');
-            $license = $options[$option_name];
-            if( isset( $license ) || !empty( $license ) ) {
-                //migrate to new option setting
-                $this->set_option($option_name, $license);
-                $this->update_license_options($license);
-                
-                //Delete the old options  
-                delete_option('_' . $this->namespace . '--options');               
-
-                return $license;
-            }
-        
-        }
-        //Return the default
-        return $this->defaults[$option_name];
+        $option_value = get_option($wp_option_name,$this->defaults[$option_name]);
+        return $option_value;
     }
 
     //Prefix options with namespace & save
@@ -1631,8 +1624,6 @@ class WPBackitup_Admin {
      */
     public static function activate() {
        try{
-	       //Get rid of old job
-	       wp_clear_scheduled_hook('wpbackitup_check_scheduled_tasks');
 
 	       //add cron task for once per hour starting in 1 hour
 	       if(!wp_next_scheduled( 'wpbackitup_queue_scheduled_jobs' ) ){
@@ -1664,6 +1655,23 @@ class WPBackitup_Admin {
            if ($batch_size<100){
                 delete_option('wp-backitup_backup_batch_size');
            }
+
+           //Migrate old properties - can be removed in a few releases
+           $old_lite_name = get_option('wp-backitup_lite_registration_first_name');
+           if ($old_lite_name) {
+               update_option('wp-backitup_license_customer_name','test');
+               delete_option('wp-backitup_lite_registration_first_name');
+           }
+
+           $old_lite_email = get_option('wp-backitup_lite_registration_email');
+           if ($old_lite_email) {
+               update_option('wp-backitup_license_customer_email',$old_lite_email);
+               delete_option('wp-backitup_lite_registration_email');
+           }
+           //--END Migrate
+
+
+           do_action( 'wpbackitup_check_license',true);
 
        } catch (Exception $e) {
            exit ('WP BackItUp encountered an error during activation.</br>' .$e->getMessage());
@@ -1724,7 +1732,7 @@ class WPBackitup_Admin {
         $campaign='lite';
         if ($this->license_active()) $campaign='premium';
 
-        $utm_url = WPBACKITUP__SITE_URL .'/' .$page .'/?utm_medium=' .$medium . '&utm_source=' .$source .'&utm_campaign=' .$campaign;
+        $utm_url = WPBACKITUP__SECURESITE_URL .'/' .$page .'/?utm_medium=' .$medium . '&utm_source=' .$source .'&utm_campaign=' .$campaign;
 
         if (!empty($content)){
             $utm_url .= '&utm_content=' .$content;

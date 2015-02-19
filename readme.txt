@@ -151,6 +151,11 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.4 =
+* Updates: Make registration section easier to use and add more status information
+* Updates: Add backups section with tips and backup count
+* Fix: Restore - fix to static folder property reference
+
 = 1.10.3 =
 * Update: Add ticket id to support view.
 * Fix: Add UTF Encoding on file names being backed up and restored
