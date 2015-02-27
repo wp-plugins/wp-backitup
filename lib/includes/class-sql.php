@@ -102,12 +102,13 @@ class WPBackItUp_SQL {
 
 
     public function manual_export($sql_file_path) {
-		$this->logger->log('(SQL.manual_export)Manually Create SQL Backup File:'.$sql_file_path);
+		$this->logger->log_info(__METHOD__,'Manually Create SQL Backup File:'.$sql_file_path);
 		
 		$mysqli = $this->connection;
 		$mysqli->set_charset('utf8');
 
 		if (false===$mysqli) {
+			$this->logger->log_error(__METHOD__,'No SQL Connection');
 		 	return false;
 		}
 
@@ -143,7 +144,9 @@ class WPBackItUp_SQL {
 		}
 
 		// Cycle through each  table
-		foreach($tables as $table) { 
+		foreach($tables as $table) {
+			$this->logger->log($table);
+
 			// Get content of each table
 			$result = $mysqli->query('SELECT * FROM '. $table) ; 
 

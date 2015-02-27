@@ -527,6 +527,7 @@ class WPBackItUp_Backup {
 		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
 
 		foreach($file_list as $item) {
+            $this->logger->log_info( __METHOD__, 'File:' . $item );
 
             //skip it if in ignore
             if ( !empty($ignore) && false!== strpos($item,$ignore)) {
@@ -546,6 +547,7 @@ class WPBackItUp_Backup {
 			//replace the source path with the target
 			$target_item_path = str_replace(rtrim($source_root, '/'),rtrim($target_root,'/'),$item);
 
+            $this->logger->log_info( __METHOD__, 'Add File:' .$target_item_path );
             if ( $zip->add_file($item,$target_item_path)) {
                 array_shift($file_list);
                 $this->logger->log_info( __METHOD__, 'File Added:' . $target_item_path );
@@ -584,7 +586,7 @@ class WPBackItUp_Backup {
 
 		//if there are no more files to add then rename the zip
         //Check to see if the file exists, it is possible that it does not if only empty folders were contained
-		if(count($file_list)==0 && file_exists($zip_file_path) ){
+            if(count($file_list)==0 && file_exists($zip_file_path) ){
             $this->logger->log_info( __METHOD__, 'Zip Actual Size after close:' . $zip->get_zip_actual_size());
 			if (! $this->add_zip_suffix($zip_file_path)){
 				return 'error';

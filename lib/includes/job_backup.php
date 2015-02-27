@@ -726,10 +726,10 @@ function end_backup($err=null, $success=null){
     $logFilePath = $logger->logFilePath;
     $logger->close_file();
 
-    //Move the log if it exists
+    //COPY the log if it exists
     $newlogFilePath = $wp_backup->backup_project_path .$logFileName;
     if (null!=$success && file_exists($logFilePath)){
-        rename($logFilePath,$newlogFilePath);
+	    copy($logFilePath,$newlogFilePath);
     }
 
     echo('Backup has completed');

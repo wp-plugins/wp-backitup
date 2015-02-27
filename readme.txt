@@ -151,6 +151,11 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.5 =
+* UPDATE: Change support request to forward to new support email address.
+* UPDATE: Leave copy of log in logs folder so when included when support logs are sent
+* UPDATE: Add additional logging on site info backup & DB export
+
 = 1.10.4 =
 * Updates: Make registration section easier to use and add more status information
 * Updates: Add backups section with tips and backup count
