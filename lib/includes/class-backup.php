@@ -411,9 +411,10 @@ class WPBackItUp_Backup {
 
 		$file_system = new WPBackItUp_FileSystem($this->logger);
 		$plugins_file_list = $file_system->get_recursive_file_list(WPBACKITUP__PLUGINS_ROOT_PATH. '/*' );
+		$file_system=null;//release resources.
 		$this->logger->log_info( __METHOD__, 'Plugin File Count: ' .count($plugins_file_list));
 
-		return $plugins_file_list;
+		return  $plugins_file_list;
 	}
 
 	public function get_themes_file_list() {
@@ -422,6 +423,7 @@ class WPBackItUp_Backup {
 		$file_system = new WPBackItUp_FileSystem($this->logger);
 		$themes_root_path = WPBACKITUP__THEMES_ROOT_PATH;
 		$themes_file_list = $file_system->get_recursive_file_list($themes_root_path. '/*' );
+		$file_system=null;//release resources.
 		$this->logger->log_info( __METHOD__, 'Themes File Count: ' .count($themes_file_list));
 
 		return $themes_file_list;
@@ -449,6 +451,7 @@ class WPBackItUp_Backup {
                 }
             }
         }
+	    $file_system=null;//release resources.
 
         //Need to grab the files in the root also
         $files_only = array_filter(glob($uploads_root_path. '/*'), 'is_file');
@@ -489,6 +492,7 @@ class WPBackItUp_Backup {
                 }
             }
         }
+	    $file_system=null;//release resources.
 
         //Need to grab the files in the root also
         $files_only = array_filter(glob($wpcontent_path. '/*'), 'is_file');
@@ -668,6 +672,7 @@ class WPBackItUp_Backup {
 
 		//get a list of all the zips
 		$backup_files_path = array_filter(glob($this->backup_project_path. '*.zip'), 'is_file');
+		$this->logger->log_error(__METHOD__,'Zip files found:'. var_export($backup_files_path,true));
 		if (is_array($backup_files_path) && count($backup_files_path)>0){
 			//get rid of the path.
 			$backup_files = str_replace($this->backup_project_path,'',$backup_files_path);
@@ -682,12 +687,14 @@ class WPBackItUp_Backup {
                 $zip_file_path = $backup_files_path[$main_zip_index];
                 $zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
                 $target_item_path = str_replace(rtrim($this->backup_project_path, '/'),rtrim('site-data','/'),$manifest_file);
-                if ( $zip->add_file($manifest_file,$target_item_path)) {
+                if ($zip->add_file($manifest_file,$target_item_path)) {
                     $zip->close();//close the zip
                     $this->logger->log_info(__METHOD__,'End -  Manifest created.');
                     return true;
                 }
-             }
+             }else{
+	            $this->logger->log_error(__METHOD__,'Main zip not found.');
+            }
 		}
 
         $this->logger->log_error(__METHOD__,'End -  Manifest not created.');

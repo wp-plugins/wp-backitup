@@ -532,6 +532,47 @@ class WPBackItUp_Job {
 	}
 
 	/**
+	 * get completed jobs
+	 *      - complete, cancelled, error
+	 *
+	 * @param $job_name
+	 * @param int $count
+	 *
+	 * @return bool
+	 */
+	public static function get_completed_jobs($job_name,$count=25) {
+		$logger = new WPBackItUp_Logger(false,null,'debug_job');
+		$logger->log_info(__METHOD__,'Begin');
+
+		$save_last = 10;
+		$count+=$save_last; //always leave the last n
+
+		$args = array(
+			'posts_per_page'   => $count,
+			'post_type'        => $job_name,
+			'post_status'      => array('complete','cancelled','error'),
+			'orderby'          => 'post_date',
+			'order'            => 'ASC',
+			'suppress_filters' => true
+		);
+		$jobs = get_posts( $args );
+
+		if (is_array($jobs) && count($jobs)>$save_last) {
+			$logger->log_info(__METHOD__,'Jobs found:' . count($jobs));
+
+			$diff=count($jobs)-$save_last;
+
+			//pull off the last N
+			$rtn_val = array_slice($jobs,0,$diff);
+			return $rtn_val;
+		}
+
+		$logger->log_info(__METHOD__,'No jobs found:' . $job_name);
+		$logger->log_info(__METHOD__,'End');
+		return false;
+	}
+
+	/**
 	 * Cancel all queued or active jobs
 	 *
 	 * @return bool
@@ -558,6 +599,29 @@ class WPBackItUp_Job {
 		}
 
 		$logger->log_info(__METHOD__,'End - All jobs cancelled');
+	}
+
+	/**
+	 * purge old jobs
+	 *
+	 * @param $job_name *
+	 * @param int $count
+	 *
+	 * @return bool
+	 */
+	public static function purge_old_jobs($job_name,$count=25) {
+		$logger = new WPBackItUp_Logger(false,null,'debug_job');
+		$logger->log_info(__METHOD__,'Begin - Purge Jobs.');
+
+		$jobs = self::get_completed_jobs($job_name,$count);
+		$purge_count=0;
+		foreach($jobs as $job){
+			$logger->log_info(__METHOD__,'Delete Job:'.$job->ID .':' .$job->post_type .":" .$job->post_title .':' .$job->post_date);
+			wp_delete_post( $job->ID, true );
+			$purge_count+=1;
+		}
+		$logger->log_info(__METHOD__,'End - job purge complete');
+		return $purge_count;
 	}
 
 	/**
@@ -719,74 +783,6 @@ class WPBackItUp_Job {
 		return true;
 
 	}
-
-//	/**
-//	 * Create all the tasks for a job
-//	 * @param $job_id
-//	 *
-//	 * @return bool
-//	 */
-//	private static function create_backup_tasks($job_id){
-//		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-//		$logger->log_info(__METHOD__,'Begin');
-//
-//		//Create the job tasks
-//		$last_updated_time=time();
-//		foreach (self::$backup_tasks as $key => $value){
-//			$task_name = $value;
-//			$task_data = array(
-//				'task_id'     => $task_name,
-//				'task_status' => 'queued',
-//				'task_allocated_id'=>'',
-//				'task_last_updated'=>$last_updated_time
-//			);
-//			$task_created = update_post_meta( $job_id, $task_name, $task_data );
-//
-//			if (false===$task_created){
-//				$logger->log_error( __METHOD__, 'Tasks NOT created');
-//				return false;
-//			}
-//			$logger->log_info( __METHOD__, 'task created:' . $task_created .':'. $task_name);
-//		}
-//
-//		$logger->log_info(__METHOD__,'End');
-//		return true;
-//
-//	}
-
-//	/**
-//	 * Create all the tasks for a job
-//	 * @param $job_id
-//	 *
-//	 * @return bool
-//	 */
-//	private static function create_cleanup_tasks($job_id){
-//		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-//		$logger->log_info(__METHOD__,'Begin');
-//
-//		//Create the job tasks
-//		$last_updated_time=time();
-//		foreach (self::$cleanup_tasks as $key => $value){
-//			$task_name = $value;
-//			$task_data = array(
-//				'task_id'     => $task_name,
-//				'task_status' => 'queued',
-//				'task_allocated_id'=>'',
-//				'task_last_updated'=>$last_updated_time
-//			);
-//			$task_created = update_post_meta( $job_id, $task_name, $task_data );
-//
-//			if (false===$task_created){
-//				$logger->log_error( __METHOD__, 'Tasks NOT created');
-//				return false;
-//			}
-//			$logger->log_info( __METHOD__, 'task created:' . $task_created );
-//		}
-//
-//		$logger->log_info(__METHOD__,'End');
-//		return true;
-//
-//	}
 
 	/**
 	 * @return mixed

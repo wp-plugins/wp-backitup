@@ -151,6 +151,15 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.6 =
+* FEATURE:Add job data to cleanup routine
+* FIX:    Add wp-cron task on schedule check to fix issue with sheduled backups not running.
+* FIX:    Write response file before status update.
+* UPDATE: Cancel all scheduled jobs on plugin activation & deactivation.
+* UPDATE: Add additional logging to job scheduler.
+* UPDATE: Add additional logging to manifest creation.
+* UPDATE: Add additional logging to add files to backup.
+
 = 1.10.5 =
 * UPDATE: Change support request to forward to new support email address.
 * UPDATE: Leave copy of log in logs folder so when included when support logs are sent

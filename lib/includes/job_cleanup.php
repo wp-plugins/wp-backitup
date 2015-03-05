@@ -192,8 +192,15 @@ if ('task_scheduled_cleanup'==$current_task) {
 	$file_system->secure_folder( $logs_dir);
 	$logger->log( '**END SECURE FOLDERS**' );
 
-	$cleanup_job->set_task_complete();
+	$logger->log( '**CLEANUP OLD JOBS**' );
+	$backup_job_purge_count = WPBackItUp_Job::purge_old_jobs('backup',25);
+	$logger->log( 'Backup job records purged:' .$backup_job_purge_count );
 
+	$cleanup_job_purge_count = WPBackItUp_Job::purge_old_jobs('cleanup',25);
+	$logger->log( 'Cleanup job records purged:' .$cleanup_job_purge_count );
+	$logger->log( '**END CLEANUP OLD JOBS**' );
+
+	$cleanup_job->set_task_complete();
 }
 
 end_job(null,true);

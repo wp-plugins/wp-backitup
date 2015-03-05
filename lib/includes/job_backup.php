@@ -293,20 +293,24 @@ if ('task_preparing'==$current_task) {
 	$plugins_file_list = $wp_backup->get_plugins_file_list();
 	$backup_job->update_job_meta('backup_plugins_filelist',$plugins_file_list);
 	$backup_job->update_job_meta('backup_plugins_filelist_remaining',$plugins_file_list);
+	$plugins_file_list=null;
 
 	$themes_file_list = $wp_backup->get_themes_file_list();
 	$backup_job->update_job_meta('backup_themes_filelist',$themes_file_list);
 	$backup_job->update_job_meta('backup_themes_filelist_remaining',$themes_file_list);
+	$themes_file_list=null;
 
 	//some folders excluded
 	$uploads_file_list = $wp_backup->get_uploads_file_list();
 	$backup_job->update_job_meta('backup_uploads_filelist',$uploads_file_list);
 	$backup_job->update_job_meta('backup_uploads_filelist_remaining',$uploads_file_list);
+	$uploads_file_list=null;
 
 	//some folders excluded
 	$others_file_list = $wp_backup->get_other_file_list();
 	$backup_job->update_job_meta('backup_others_filelist',$others_file_list);
 	$backup_job->update_job_meta('backup_others_filelist_remaining',$others_file_list);
+	$others_file_list=null;
 
 
 	set_status('preparing',$complete,false);
@@ -657,8 +661,11 @@ $wp_backup->set_final_backup_path();
 
 if ($backup_job->get_job_status()=='complete') {
 	//SUCCESS- End Job!
-	set_status_success();
+
+	//write response file first to make sure it is there
 	write_response_file_success();
+	set_status_success();
+
 	$WPBackitup->increment_successful_backup_count();
 	end_backup( null, true );
 }

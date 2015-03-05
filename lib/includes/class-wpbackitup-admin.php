@@ -331,6 +331,9 @@ class WPBackitup_Admin {
 
 	public function wpbackitup_queue_scheduled_jobs(){
 
+		$logger = new WPBackItUp_Logger(false,null,'debug_scheduled_jobs');
+		$logger->log_info(__METHOD__,'Begin');
+
 		// Check permissions
 		if (! self::is_authorized()) exit('Access denied.');
 
@@ -346,12 +349,34 @@ class WPBackitup_Admin {
 
 
         //If any jobs are queued or active then just exit
-        if (WPBackItUp_Job::is_job_queued('backup') ||
-            WPBackItUp_Job::is_job_queued('restore') ||
-            WPBackItUp_Job::is_job_queued('cleanup')) {
+        if (WPBackItUp_Job::is_job_queued('backup')) {
+
+	        if(!wp_next_scheduled( 'wpbackitup_run_backup_tasks' ) ) {
+		        wp_schedule_single_event( time(), 'wpbackitup_run_backup_tasks' );
+	        }
+
+	        $logger->log_info(__METHOD__,'Backup Job already Queued');
             exit;
         }
 
+		//Check cleanup jobs
+		if (WPBackItUp_Job::is_job_queued('cleanup')) {
+
+			if(!wp_next_scheduled( 'wpbackitup_run_cleanup_tasks' ) ) {
+				wp_schedule_single_event( time(), 'wpbackitup_run_cleanup_tasks' );
+			}
+
+			$logger->log_info(__METHOD__,'Cleanup job already Queued');
+			exit;
+		}
+
+		//If any jobs are queued or active then just exit
+		if (WPBackItUp_Job::is_job_queued('restore')) {
+			$logger->log_info(__METHOD__,'Restore Job already Queued');
+			exit;
+		}
+
+		$logger->log_info(__METHOD__,'No jobs already queued.');
 
         //Is it time for a backup?
         //Check scheduler and queue tasks that need to be run
@@ -361,8 +386,11 @@ class WPBackitup_Admin {
             $backup_job = WPBackItUp_Job::queue_job( 'backup' );
 
             //Setup the job run event
-            wp_schedule_single_event( time(), 'wpbackitup_run_backup_tasks' );
+	        if(!wp_next_scheduled( 'wpbackitup_run_backup_tasks' ) ) {
+		        wp_schedule_single_event( time(), 'wpbackitup_run_backup_tasks' );
+	        }
 
+	        $logger->log_info(__METHOD__,'Backup job queued to run.');
             exit( 0 ); //success - don't schedule anything else
         }
 
@@ -373,12 +401,16 @@ class WPBackitup_Admin {
             $cleanup_job = WPBackItUp_Job::queue_job( 'cleanup' );
 
             //Setup the job run event
-            wp_schedule_single_event( time(), 'wpbackitup_run_cleanup_tasks' );
+	        if(!wp_next_scheduled( 'wpbackitup_run_cleanup_tasks' ) ) {
+		        wp_schedule_single_event( time(), 'wpbackitup_run_cleanup_tasks' );
+	        }
 
+	        $logger->log_info(__METHOD__,'Cleanup job queued to run.');
             exit( 0 ); //success - don't schedule anything else
         }
 
 
+		$logger->log_info(__METHOD__,'No jobs scheduled to run.');
 		exit(0); //success nothing to schedule
 	}
 
