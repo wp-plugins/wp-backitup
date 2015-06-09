@@ -216,4 +216,22 @@ class WPBackItUp_Logger {
 			print $e;
 		}
 	}
+
+	function log_memory_info(){
+		try{
+
+			$memory_usage = memory_get_usage();
+			$memory_peak_usage = memory_get_peak_usage();
+			$memory_limit=ini_get('memory_limit');
+
+			$this->log("\n**MEMORY USAGE INFO**");
+			$this->log('Memory in use: ' . $memory_usage . ' ('. $memory_usage/1024/1024 .' Mb)');
+			$this->log('Peak usage: ' . $memory_peak_usage . ' ('. $memory_peak_usage/1024/1024 .' Mb)');
+			$this->log('Memory limit: ' . $memory_limit  . ' ('. $memory_limit/1024/1024 .' Mb)');
+			$this->log("\n**END MEMORY USAGE INFO**");
+		} catch(Exception $e) {
+			//Dont do anything
+			//print $e;
+		}
+	}
 }

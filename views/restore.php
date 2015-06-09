@@ -9,6 +9,9 @@
  *
  */
 
+	//Check the license
+	do_action( 'wpbackitup_check_license');
+
     $page_title = $this->friendly_name . ' Restore';
     $namespace = $this->namespace;
 
@@ -223,7 +226,7 @@ if (!$restore_folder_exists) {
         <li class="restore_database"><?php _e('Restoring database', $namespace); ?>...<span class='status-icon'><img class="restore_database-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
         <li class="update_user"><?php _e('Updating current user info', $namespace); ?>...<span class='status-icon'><img class="update_user-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
         <li class="update_site_info"><?php _e('Updating site URL', $namespace); ?>...<span class='status-icon'><img class="update_site_info-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
-        <li class="activate_plugins"><?php _e('Activating plugins', $namespace); ?>...<span class='status-icon'><img class="activate_plugins-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
+<!--        <li class="activate_plugins">--><?php //_e('Activating plugins', $namespace); ?><!--...<span class='status-icon'><img class="activate_plugins-icon" src="--><?php //echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?><!--" height="16" width="16" /></span><span class='status'>--><?php //_e('Done', $namespace); ?><!--</span><span class='fail error'>--><?php //_e('Failed', $namespace); ?><!--</span></li>-->
         <li class="update_permalinks"><?php _e('Updating permalinks', $namespace); ?>...<span class='status-icon'><img class="update_permalinks-icon" src="<?php echo WPBACKITUP__PLUGIN_URL . "/images/loader.gif"; ?>" height="16" width="16" /></span><span class='status'><?php _e('Done', $namespace); ?></span><span class='fail error'><?php _e('Failed', $namespace); ?></span></li>
       </ul>
       <p>

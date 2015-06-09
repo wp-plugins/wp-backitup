@@ -13,7 +13,7 @@
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.10.6
+Version: 1.10.7
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -35,7 +35,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
-define( 'WPBACKITUP__VERSION', '1.10.6');
+define( 'WPBACKITUP__MAJOR_VERSION', 1);
+define( 'WPBACKITUP__MINOR_VERSION', 10);
+define( 'WPBACKITUP__MAINTENANCE_VERSION', 7);
+define( 'WPBACKITUP__BUILD_VERSION', 0);
+define( 'WPBACKITUP__VERSION',sprintf("%d.%d.%d.%d", WPBACKITUP__MAJOR_VERSION, WPBACKITUP__MINOR_VERSION,WPBACKITUP__MAINTENANCE_VERSION,WPBACKITUP__BUILD_VERSION));
 define( 'WPBACKITUP__DEBUG', false );
 define( 'WPBACKITUP__MINIMUM_WP_VERSION', '3.0' );
 define( 'WPBACKITUP__ITEM_NAME', 'WP Backitup' ); 
@@ -66,21 +70,26 @@ define( 'WPBACKITUP__THEMES_FOLDER',basename(get_theme_root()));
 define( 'WPBACKITUP__SQL_DBBACKUP_FILENAME', 'db-backup.sql');
 
 define( 'WPBACKITUP__BACKUP_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft*,wp-clone*,backwpup*,backupwordpress*,cache,backupcreator*,backupbuddy*');
+define( 'WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST','.htaccess');//comma seperated list with no spaces after comma
+
+define( 'WPBACKITUP__BACKUP_OTHER_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft*,wp-clone*,backwpup*,backupwordpress*,cache,backupcreator*,backupbuddy*,wptouch-data*,backups*');
 define( 'WPBACKITUP__TASK_TIMEOUT_SECONDS', 300);//300 = 5 minutes
 define( 'WPBACKITUP__SCRIPT_TIMEOUT_SECONDS', 900);//900 = 15 minutes
 
 define( 'WPBACKITUP__BACKUP_RETAINED_DAYS', 5);//5 days
 define( 'WPBACKITUP__SUPPORT_EMAIL', 'wpbackitupcomsupport@wpbackitup.freshdesk.com');
 
+define( 'WPBACKITUP__SQL_BULK_INSERT_SIZE', 1000);
 define( 'WPBACKITUP__ZIP_MAX_FILE_SIZE', 524288000); //524288000; # 500Mb
 define( 'WPBACKITUP__THEMES_BATCH_SIZE', 5000); //~100kb each = 5000*100 = 500000 kb = 500 mb
 define( 'WPBACKITUP__PLUGINS_BATCH_SIZE', 5000); //~100kb each = 5000*100 = 500000 kb = 500 mb
 define( 'WPBACKITUP__OTHERS_BATCH_SIZE', 500); //~100kb each = 5000*100 = 500000 kb = 500 mb
 define( 'WPBACKITUP__UPLOADS_BATCH_SIZE', 500); //anyones guess here
 
+
+//activation hooks
 register_activation_hook( __FILE__, array( 'WPBackitup_Admin', 'activate' ) );
 register_deactivation_hook( __FILE__, array( 'WPBackitup_Admin', 'deactivate' ) );
-
 
 function wpbackitup_modify_cron_schedules($schedules) {
     $schedules['weekly'] = array('interval' => 604800, 'display' => 'Once Weekly');
@@ -144,6 +153,13 @@ if (!is_admin()
 require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-wpbackitup-admin.php' );
 require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-logger.php' );
 
+//Shared Classes 
+if( !class_exists('WPBackItUp_Job_v2') ) {
+	include_once(WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-job-v2.php');
+}
+
 global $WPBackitup;
 $WPBackitup = WPBackitup_Admin::get_instance();
 $WPBackitup->initialize();
+
+

@@ -16,6 +16,8 @@ class WPBackitup_Admin {
     public $friendly_name = WPBACKITUP__FRIENDLY_NAME;
     public $version = WPBACKITUP__VERSION;
 
+	const  DB_VERSION = 1;
+
     private static $instance = false;
 
     //Use Getters
@@ -80,7 +82,7 @@ class WPBackitup_Admin {
      * Instantiation construction
      * 
      */
-    private function __construct() {
+    public function __construct() {
         /**
          * Make this plugin available for translation.
          * Translations can be added to the /languages/ directory.
@@ -109,6 +111,9 @@ class WPBackitup_Admin {
         
         //Load all the resources
         add_action( 'admin_enqueue_scripts', array( &$this, 'load_resources' ) );
+
+	    //Update
+	    add_action( 'plugins_loaded', array( $this, 'maybe_update' ), 1 );
 
         //Load the backup action
         add_action('wp_ajax_wp-backitup_backup', array( &$this, 'ajax_queue_backup' ));
@@ -326,7 +331,7 @@ class WPBackitup_Admin {
     }
 
     public function initialize(){
-        do_action( 'wpbackitup_check_license');
+
     }
 
 	public function wpbackitup_queue_scheduled_jobs(){
@@ -597,6 +602,9 @@ class WPBackitup_Admin {
      * Return the restore status and try run tasks
      */
     public  function ajax_get_restore_status() {
+	    //@session_start();
+	    @session_write_close();
+
         // Check permissions
         if (! self::is_authorized()) exit('Access denied.');
 
@@ -606,19 +614,25 @@ class WPBackitup_Admin {
 
         //Check permissions
         if ( current_user_can( 'manage_options' ) ) {
-            //echo('RUNNING BACKUP');
-
-            $process_id = uniqid();
+	        global $restore_job,$process_id;
+	        $process_id = uniqid();
 
             $event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'Begin');
-
-            //Try Run Next Backup Tasks
-            $event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run restore task');
-
             $this->backup_type='manual';
-            include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_restore.php' );
 
-            $event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run Backup Task');
+	        //Is there a restore job available and is it already running
+	        $restore_job = WPBackItUp_Job_v2::get_current_job('restore');
+	        if (false!==$restore_job && $restore_job->get_lock('restore-lock')) {
+		        $event_logger->log_info(__METHOD__.'(' .$process_id .')','Job Lock Acquired.');
+
+		        //Try Run Next Backup Tasks
+		        $event_logger->log_info(__METHOD__.'(' .$process_id .')','Try Run restore task');
+		        include_once( WPBACKITUP__PLUGIN_PATH.'/lib/includes/job_restore.php' );
+		        $restore_job->release_lock();
+		        $event_logger->log_info(__METHOD__.'(' .$process_id .')','End Try Run Backup Task');
+	        }else{
+		        $event_logger->log_info(__METHOD__.'(' .$process_id .')','Job Lock NOT Acquired.');
+	        }
 
             //return status
             $log = WPBACKITUP__PLUGIN_PATH .'/logs/restore_status.log';
@@ -629,7 +643,8 @@ class WPBackitup_Admin {
             }
         }
 
-        exit;
+	    $event_logger->log_info(__METHOD__ .'(' .$process_id .')', 'End');
+        exit(0);
     }
 
     public function plupload_action() {
@@ -900,11 +915,11 @@ class WPBackitup_Admin {
 //				set_transient('error-support-body', __('Please enter your problem description', $this->namespace), 60);
 //			}
 
-			$include_logs=false;
-			if(!empty($_POST['support_include_logs']))
-			{
-				$include_logs=true;
-			}
+			$include_logs=true; //always send logs
+//			if(!empty($_POST['support_include_logs']))
+//			{
+//				$include_logs=true;
+//			}
 
 			//Send if no errors
 			if (!$error){
@@ -939,8 +954,12 @@ class WPBackitup_Admin {
 
 				}
 
+				//Get registration name
 				$utility = new WPBackItUp_Utility($logger);
                 $support_to_address = WPBACKITUP__SUPPORT_EMAIL;
+
+				//If we force registration then this will always be here.
+				$from_name=$this->license_customer_name();
                 $support_from_email=$_POST['support_email'];
                 $support_subject = '[#' .trim($_POST['support_ticket_id']) .']';
 
@@ -949,9 +968,7 @@ class WPBackitup_Admin {
 
                 $support_body=$site_info . '<br/><br/><b>Customer Comments:</b><br/><br/>' . $_POST['support_body'];
 
-
-                $utility->send_email($support_to_address,$support_subject,$support_body,$logs_attachment,$support_from_email);
-
+                $utility->send_email_v2($support_to_address,$support_subject,$support_body,$logs_attachment,$from_name,$support_from_email,$support_from_email);
                 // get rid of the transients
 				foreach( $_POST as $key => $val ){
 					delete_transient($key);
@@ -1417,7 +1434,7 @@ class WPBackitup_Admin {
     */
     private function update_license_options($license)
     {
-        $logger = new WPBackItUp_Logger(true,null,'debug_activation');
+        $logger = new WPBackItUp_Logger(false,null,'debug_activation');
         $logger->log('Update License Options:' .$license);
 
         $license=trim($license);
@@ -1472,7 +1489,9 @@ class WPBackitup_Admin {
 
             if ( is_wp_error( $response ) ){
 	            $logger->log_error(__METHOD__,$response->get_error_message());
-                return false; //Exit and don't update
+	            //update license last checked date and
+	            $this->set_option('license_last_check_date', $data['license_last_check_date']);
+                return false; //Exit and don't update license
             }else{
 	            $logger->log_info(__METHOD__,'No request errors.');
             }
@@ -1652,7 +1671,7 @@ class WPBackitup_Admin {
 
     
     /**
-     * Activation action
+     * Activation action -  will run ONLY on activation
      */
     public static function activate() {
        try{
@@ -1682,26 +1701,8 @@ class WPBackitup_Admin {
 			   exit ('WP BackItUp was not able to create the required backup and restore folders.');
 			}
 
-           //Need to reset the batch size for this release
-           $batch_size = get_option('wp-backitup_backup_batch_size');
-           if ($batch_size<100){
-                delete_option('wp-backitup_backup_batch_size');
-           }
-
-           //Migrate old properties - can be removed in a few releases
-           $old_lite_name = get_option('wp-backitup_lite_registration_first_name');
-           if ($old_lite_name) {
-               update_option('wp-backitup_license_customer_name','test');
-               delete_option('wp-backitup_lite_registration_first_name');
-           }
-
-           $old_lite_email = get_option('wp-backitup_lite_registration_email');
-           if ($old_lite_email) {
-               update_option('wp-backitup_license_customer_email',$old_lite_email);
-               delete_option('wp-backitup_lite_registration_email');
-           }
-           //--END Migrate
-
+	       //Run database update routines
+	       self::maybe_update();
 
            do_action( 'wpbackitup_check_license',true);
 
@@ -1709,6 +1710,24 @@ class WPBackitup_Admin {
            exit ('WP BackItUp encountered an error during activation.</br>' .$e->getMessage());
        }
     }
+
+
+	//Run on plugins loaded
+	public static function maybe_update() {
+
+		//if the plugin version is less than current, run the update
+		if ( get_option( 'wp-backitup_major_version',0 ) < WPBACKITUP__MAJOR_VERSION ) {
+			require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/update_plugin.php' );
+			wpbackitup_update_plugin();
+		}
+
+		//if the DB version is less than current, run the update
+		if ( get_option( 'wp-backitup_db_version',0 ) < self::DB_VERSION ) {
+			require_once(WPBACKITUP__PLUGIN_PATH .'/lib/includes/update_database.php' );
+			wpbackitup_update_database();
+		}
+
+	}
 
     /**
      * Deactivation action

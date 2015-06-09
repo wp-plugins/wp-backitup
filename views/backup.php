@@ -8,6 +8,8 @@
  * @link    http://www.wpbackitup.com
  *
  */
+		//Check the license
+		do_action( 'wpbackitup_check_license');
 
         $page_title = $this->friendly_name . ' Dashboard';
         $namespace = $this->namespace;
@@ -16,8 +18,11 @@
         $backup_folder_root = WPBACKITUP__BACKUP_PATH;
 		$logs_folder_root = WPBACKITUP__PLUGIN_PATH .'/logs';
 
-        //Get license info
-        $version = $this->version;
+		$logger = new WPBackItUp_Logger(false,null,'debug_backup_view');
+
+        //Get license info - trim off build version if 0
+        $version = rtrim ($this->version,'.0');
+
         $license_key = $this->license_key();
         $license_active = $this->license_active();
 
@@ -63,62 +68,68 @@
 		//Get Zip File List
 		$file_list = glob($backup_folder_root . "/*.{zip,log}",GLOB_BRACE);
 		//If there are zip files then move them into their own folders
-		foreach($file_list as $file) {
 
-			//remove the suffix
-			$file_name = substr(basename($file),0,-4);
+		$logger->log_info(__METHOD__,'Files in backup folder: ' .var_export($file_list,true));
+		$logger->log_info(__METHOD__,'Last Error: ' .var_export(error_get_last(),true));
 
-			//strip off the suffix IF one exists
-			$folder_name = $file_name;
-			if ( ( $str_pos = strpos( $folder_name, '-main-' ) ) !== false ) {
-				$suffix      = substr( $folder_name, $str_pos );
-				$folder_name = str_replace( $suffix, '', $folder_name );
-			}
+		if (null != $file_list) {
+			foreach ( $file_list as $file ) {
 
-			if ( ( $str_pos = strpos( $folder_name, '-others-' ) ) !== false ) {
-				$suffix      = substr( $folder_name, $str_pos );
-				$folder_name = str_replace( $suffix, '', $folder_name );
-			}
+				//remove the suffix
+				$file_name = substr( basename( $file ), 0, - 4 );
 
-			if ( ( $str_pos = strpos( $folder_name, '-plugins-' ) ) !== false ) {
-				$suffix      = substr( $folder_name, $str_pos );
-				$folder_name = str_replace( $suffix, '', $folder_name );
-			}
-
-			if ( ( $str_pos = strpos( $folder_name, '-themes-' ) ) !== false ) {
-				$suffix      = substr( $folder_name, $str_pos );
-				$folder_name = str_replace( $suffix, '', $folder_name );
-			}
-
-			if ( ( $str_pos = strpos( $folder_name, '-uploads-' ) ) !== false ) {
-				$suffix      = substr( $folder_name, $str_pos );
-				$folder_name = str_replace( $suffix, '', $folder_name );
-			}
-
-			//Does folder exist
-			$backup_archive_folder = $backup_dir . '/' . $folder_name;
-			if ( ! is_dir( $backup_archive_folder ) ) {
-				if (mkdir( $backup_archive_folder, 0755 )){
-					//print_r( "Folder Create.." );
-				}else{
-					//print_r( "Create Failed.." );
-				}
-			}
-
-			//make sure it exists before you move it
-			if ( is_dir( $backup_archive_folder ) ) {
-				//move the file to the archive folder
-				$target_file = $backup_archive_folder ."/" . basename($file);
-				if (rename ($file,$target_file)){
-					//print_r( "File Moved.." );
-				} else{
-					//print_r( "Move Failed.." );
+				//strip off the suffix IF one exists
+				$folder_name = $file_name;
+				if ( ( $str_pos = strpos( $folder_name, '-main-' ) ) !== false ) {
+					$suffix      = substr( $folder_name, $str_pos );
+					$folder_name = str_replace( $suffix, '', $folder_name );
 				}
 
-			} else {
-				//print_r( "NO FOLDER" );
-			}
+				if ( ( $str_pos = strpos( $folder_name, '-others-' ) ) !== false ) {
+					$suffix      = substr( $folder_name, $str_pos );
+					$folder_name = str_replace( $suffix, '', $folder_name );
+				}
 
+				if ( ( $str_pos = strpos( $folder_name, '-plugins-' ) ) !== false ) {
+					$suffix      = substr( $folder_name, $str_pos );
+					$folder_name = str_replace( $suffix, '', $folder_name );
+				}
+
+				if ( ( $str_pos = strpos( $folder_name, '-themes-' ) ) !== false ) {
+					$suffix      = substr( $folder_name, $str_pos );
+					$folder_name = str_replace( $suffix, '', $folder_name );
+				}
+
+				if ( ( $str_pos = strpos( $folder_name, '-uploads-' ) ) !== false ) {
+					$suffix      = substr( $folder_name, $str_pos );
+					$folder_name = str_replace( $suffix, '', $folder_name );
+				}
+
+				//Does folder exist
+				$backup_archive_folder = $backup_dir . '/' . $folder_name;
+				if ( ! is_dir( $backup_archive_folder ) ) {
+					if ( mkdir( $backup_archive_folder, 0755 ) ) {
+						//print_r( "Folder Create.." );
+					} else {
+						//print_r( "Create Failed.." );
+					}
+				}
+
+				//make sure it exists before you move it
+				if ( is_dir( $backup_archive_folder ) ) {
+					//move the file to the archive folder
+					$target_file = $backup_archive_folder . "/" . basename( $file );
+					if ( rename( $file, $target_file ) ) {
+						//print_r( "File Moved.." );
+					} else {
+						//print_r( "Move Failed.." );
+					}
+
+				} else {
+					//print_r( "NO FOLDER" );
+				}
+
+			}
 		}
 
         $backup_list = $this->get_backup_list();

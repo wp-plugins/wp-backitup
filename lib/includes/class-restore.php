@@ -897,6 +897,19 @@ class WPBackItUp_Restore {
 		return true;
 	}
 
+	function update_license_key($table_prefix, $license_key){
+		$this->logger->log_info(__METHOD__,'Begin');
+
+		$sql = "UPDATE ". $table_prefix ."options SET option_value='" .$license_key ."' WHERE option_name='wp-backitup_license_key'";
+		$dbc = new WPBackItUp_SQL($this->logger);
+		if (!$dbc->run_sql_command($sql)){
+			$this->logger->log(__METHOD__,'License Key database update failed..');
+			return false;
+		}
+		$this->logger->log_info(__METHOD__,'End - License Key updated in database:'.$license_key);
+		return true;
+	}
+
 	function update_permalinks(){
 		global $wp_rewrite;
 		$this->logger->log_info(__METHOD__,'Begin');

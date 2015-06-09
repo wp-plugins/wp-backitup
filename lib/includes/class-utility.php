@@ -53,6 +53,42 @@ class WPBackItUp_Utility {
 
 	}
 
+	function send_email_v2($to,$subject,$message,$attachments=array(),$from_name=null,$from_email=null,$reply_email=null)
+	{
+		try {
+
+			if($to) {
+
+				if (empty($from_name)){
+					$from_name = 'WP BackItUp';
+				}
+
+				if (empty($from_email)){
+					$from_email = get_bloginfo( 'admin_email' );
+				}
+
+				$headers[] = 'Content-type: text/html';
+				$headers[] = 'From: '.$from_name .' <'. $from_email .'>';
+
+				if (null!=$reply_email) {
+					$headers[] = 'Reply-To: ' .$from_name .' <'. $reply_email .'>';
+				}
+
+				wp_mail($to, $subject, nl2br($message), $headers,$attachments);
+
+				$this->logger->log('(send_email)Headers:' .var_export($headers,true));
+				$this->logger->log('(send_email)EMail Sent from:' .$from_email);
+				$this->logger->log('(send_email)EMail Sent to:' .$to);
+			}
+
+		} catch(Exception $e) {
+			//Dont do anything
+			$this->logger->log('(send_email)Send Email Exception:'.$e);
+		}
+
+	}
+
+
     //Function for PHP version 5.2
     //Diff Approximation only
     function date_diff_days($date1,$date2 ){
@@ -84,6 +120,12 @@ class WPBackItUp_Utility {
 
 	public static function encode_items(&$item, $key)
 	{
+		//If not string convert to one.
+		//If this happens it could be an error on backup job.
+		if (!is_string($item)){
+			$item = var_export($item,true);
+		}
+
 		$item = utf8_encode($item);
 	}
 
@@ -91,5 +133,37 @@ class WPBackItUp_Utility {
 	{
 		$item = utf8_decode($item);
 	}
+
+
+	/**
+	 * Compare major and minor versions
+	 *
+	 * @param $version1
+	 * @param $version2
+	 *
+	 * @return bool
+	 */
+	public static function version_compare($version1, $version2) {
+		//Check major and minor versions only
+
+		$version1_array = explode('.', $version1);
+		$version2_array = explode('.', $version2);
+
+		if (! empty($version1_array[0]) && isset ($version1_array[0]) &&
+			! empty($version2_array[0]) && isset ($version2_array[0]) &&
+		    ! empty($version1_array[1]) && isset ($version1_array[1]) &&
+		    ! empty($version2_array[1]) && isset ($version2_array[1]) ){
+
+			//If major  or minor version is different
+			if ($version1_array[0] == $version2_array[0] &&
+			    $version1_array[1] == $version2_array[1] ) {
+				return true;
+			}
+
+		}
+
+		return false;
+	}
+
 }
 

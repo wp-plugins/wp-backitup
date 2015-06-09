@@ -31,77 +31,97 @@ class WPBackItUp_SQL {
    }
 
    public function mysqldump_export($sql_file_path,$with_mysqlpath=false) {
+		global $wpdb;
+		$this->logger->log('(SQL.mysqldump_export) Export Database to: ' .$sql_file_path);
 
-			$this->logger->log('(SQL.mysqldump_export) Export Database to: ' .$sql_file_path);
+        $db_name = DB_NAME;
+        $db_user = DB_USER;
+        $db_pass = DB_PASSWORD;
+        $db_host = $this->get_hostonly(DB_HOST);
+        $db_port = $this->get_portonly(DB_HOST);
 
-            $db_name = DB_NAME; 
-            $db_user = DB_USER;
-            $db_pass = DB_PASSWORD; 
-            $db_host = $this->get_hostonly(DB_HOST);
-        	$db_port = $this->get_portonly(DB_HOST);
-			
-			//This is to ensure that exec() is enabled on the server           
-			if(exec('echo EXEC') == 'EXEC') {
-				try {
-                    $mysql_path='';
-                    if ($with_mysqlpath)  {
-                        $mysql_path = $this->get_mysql_path();
-                        if ($mysql_path===false) return false;
-                    }
-
-                    $process = $mysql_path .'mysqldump';
-		            $command = $process
-		        	 . ' --host=' . $db_host;
-					
-					//Check for port
-		        	 if (false!==$db_port){
-		        	 	$command .=' --port=' . $db_port;
-		        	 }	
-
-		        	 $command .=
-		        	   ' --user=' . $db_user
-		        	 . ' --password=' . $db_pass	        	 
-		        	 .=' ' . $db_name		        	 
-		        	 . ' > "' . $sql_file_path .'"';
-
-                    if (WPBACKITUP__DEBUG) {
-                        $this->logger->log('(SQL.db_SQLDump)Execute command:' . $command);
-                    }
-
-            		exec($command,$output,$rtn_var);
-		            $this->logger->log('(SQL.mysqldump_export)Execute output:');
-		            $this->logger->log($output);
-		            $this->logger->log('Return Value:' .$rtn_var);
-
-		            //0 is success
-		            if ($rtn_var>0){
-                        $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED return Value:' .$rtn_var);
-		            	return false;
-		            }
-
-            		//Did the export work
-            		clearstatcache();
-	           		if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
-	           			$this->logger->log('(SQL.mysqldump_export) EXPORT FAILED: Dump was empty or missing.');
-	           			return false;
-	           		}	
-	           	} catch(Exception $e) {
-                 	$this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exception: ' .$e);
-                 	return false;
+		//This is to ensure that exec() is enabled on the server
+		if(exec('echo EXEC') == 'EXEC') {
+			try {
+                $mysql_path='';
+                if ($with_mysqlpath)  {
+                    $mysql_path = $this->get_mysql_path();
+                    if ($mysql_path===false) return false;
                 }
-            }
-            else
-            {
-            	$this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exec() disabled.');
-            	return false;
-            }
 
-            $this->logger->log('(SQL.mysqldump_export) SQL Dump SUCCESS.');
-            return true;
+                $process = $mysql_path .'mysqldump';
+	            $command = $process
+	             . ' --host=' . $db_host;
+
+				//Check for port
+	             if (false!==$db_port){
+	                $command .=' --port=' . $db_port;
+	             }
+
+				//If multi-site install then just backup the tables for current install.
+				$tables='';
+				if (is_multisite()){
+					$sql = sprintf('SHOW TABLES like \'%s%%\' ',$wpdb->prefix);
+					$this->logger->log('tables:' . $sql);
+					$mysqli = $this->connection;
+					$result = $mysqli->query($sql);
+					// Cycle through "$result" and put content into an array
+					while ($row = $result->fetch_row()) {
+						$tables_list[] = $row[0] ;
+					}
+
+					if (is_array($tables_list)){
+						$tables = implode( " ", $tables_list);
+					}
+				}
+
+				$command .=
+	               ' --user=' . $db_user
+	             . ' --password=' . $db_pass
+	             . ' ' . $db_name
+	             . ' ' . $tables
+	             . ' > "' . $sql_file_path .'"';
+
+                if (WPBACKITUP__DEBUG) {
+					$masked_command = str_replace(array($db_user,$db_pass),'XXXXXX',$command);
+                    $this->logger->log('(SQL.db_SQLDump)Execute command:' . $masked_command);
+                }
+
+                exec($command,$output,$rtn_var);
+	            $this->logger->log('(SQL.mysqldump_export)Execute output:');
+	            $this->logger->log($output);
+	            $this->logger->log('Return Value:' .$rtn_var);
+
+	            //0 is success
+	            if ($rtn_var>0){
+                    $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED return Value:' .$rtn_var);
+	                return false;
+	            }
+
+                //Did the export work
+                clearstatcache();
+                if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
+                    $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED: Dump was empty or missing.');
+                    return false;
+                }
+            } catch(Exception $e) {
+                $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exception: ' .$e);
+                return false;
+            }
+        }
+        else
+        {
+            $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exec() disabled.');
+            return false;
+        }
+
+        $this->logger->log('(SQL.mysqldump_export) SQL Dump SUCCESS.');
+        return true;
 	}
 
 
     public function manual_export($sql_file_path) {
+	    global $wpdb;
 		$this->logger->log_info(__METHOD__,'Manually Create SQL Backup File:'.$sql_file_path);
 		
 		$mysqli = $this->connection;
@@ -111,6 +131,14 @@ class WPBackItUp_SQL {
 			$this->logger->log_error(__METHOD__,'No SQL Connection');
 		 	return false;
 		}
+
+	    //open the SQL file
+	    $handle = fopen($sql_file_path,'w+');
+	    if (false===$handle) {
+		    $this->logger->log_error(__METHOD__,'File could not be opened.');
+		    return false;
+	    }
+
 
 		// Script Header Information
 		$return  = '';
@@ -133,10 +161,16 @@ class WPBackItUp_SQL {
         $return .= '/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;' ."\n" ;
         $return .= '/*!40101 SET NAMES utf8 */;' ."\n" ;
 
+	    fwrite($handle,$return); //Write to file
+
 		$tables = array() ; 
 
-		// Exploring what tables this database has
-		$result = $mysqli->query('SHOW TABLES' ) ; 
+	    //If multisite install then just backup the tables for current install.
+		$sql = 'SHOW TABLES';
+	    if (is_multisite()){
+		    $sql .= sprintf(' like \'%s%%\' ',$wpdb->prefix);
+	    }
+		$result = $mysqli->query($sql);
 
 		// Cycle through "$result" and put content into an array
 		while ($row = $result->fetch_row()) {
@@ -147,6 +181,11 @@ class WPBackItUp_SQL {
 		foreach($tables as $table) {
 			$this->logger->log($table);
 
+//			//if multi site install then
+//			if (is_multisite()){
+//
+//			}
+
 			// Get content of each table
 			$result = $mysqli->query('SELECT * FROM '. $table) ; 
 
@@ -154,10 +193,10 @@ class WPBackItUp_SQL {
 			$num_fields = $mysqli->field_count  ;
 			
 			// Add table information
-			$return .= "--\n" ;
+			$return  = "--\n" ;
 			$return .= '-- Table structure for table `' . $table . '`' . "\n" ;
 			$return .= "--\n" ;
-			$return.= 'DROP TABLE  IF EXISTS `'.$table.'`;' . "\n" ; 
+			$return .= 'DROP TABLE  IF EXISTS `'.$table.'`;' . "\n" ;
 			
 			// Get the table-shema
 			$shema = $mysqli->query('SHOW CREATE TABLE '.$table) ;
@@ -166,12 +205,14 @@ class WPBackItUp_SQL {
 			$tableshema = $shema->fetch_row() ; 
 			
 			// Append table-shema into code
-			$return.= $tableshema[1].";" . "\n\n" ; 
-			
+			$return.= $tableshema[1].";" . "\n\n" ;
+
+			fwrite($handle,$return); //Write to file
+
 			// Cycle through each table-row
 			while($rowdata = $result->fetch_row()) { 
 							
-				$return.= 'INSERT INTO '.$table.' VALUES(';
+				$return = 'INSERT INTO '.$table.' VALUES(';
 				for($j=0; $j<$num_fields; $j++){
 				        $rowdata[$j] = addslashes($rowdata[$j]);
 						$rowdata[$j] = str_replace("\n","\\n",$rowdata[$j]);
@@ -189,8 +230,12 @@ class WPBackItUp_SQL {
 				        if ($j<($num_fields-1)) { $return.= ','; }
 				}
 				$return.= ");\n";
-			} 
-			$return .= "\n\n" ; 
+
+				fwrite($handle,$return); //Write to file
+			}
+
+			$return= "\n\n" ;
+			fwrite($handle,$return); //Write to file
 		}
 
 		$return .= 'SET FOREIGN_KEY_CHECKS = 1 ; '  . "\n" ; 
@@ -198,9 +243,10 @@ class WPBackItUp_SQL {
 		$return .= 'SET AUTOCOMMIT = 1 ; ' . "\n"  ; 
 		
 		//save file
-		$handle = fopen($sql_file_path,'w+');
+		//$handle = fopen($sql_file_path,'w+');
 		fwrite($handle,$return);
 		fclose($handle);
+
 		clearstatcache();
 
 		//Did the export work
@@ -258,7 +304,8 @@ class WPBackItUp_SQL {
                 . ' --execute="SOURCE ' . $sql_file .'"';
 
             if (WPBACKITUP__DEBUG) {
-                $this->logger->log( '(SQL.db_run_sql)Execute command:' . $command );
+	            $masked_command = str_replace(array($db_user,$db_pass),'XXXXXX',$command);
+                $this->logger->log( '(SQL.db_run_sql)Execute command:' . $masked_command );
             }
 
             //$output = shell_exec($command);

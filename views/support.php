@@ -9,6 +9,9 @@
  *
  */
 
+	//Check the license
+	do_action( 'wpbackitup_check_license');
+
     $page_title = $this->friendly_name . ' Support';
     $namespace = $this->namespace;
 
@@ -16,11 +19,15 @@
     $is_lite_registered = $this->is_lite_registered();
 
 	$support_email =$this->support_email();
+	if (empty($support_email)){
+		$support_email =$this->license_customer_email();
+	}
 
+	//Force registration for support
 	$disabled='';
-//    if (!$license_active && !$is_lite_registered){
-//        $disabled='disabled';
-//    }
+    if (!$license_active && !$is_lite_registered){
+        $disabled='disabled';
+    }
 
 ?>
 <?php if (!empty($_GET["s"]) && '1' == $_GET["s"]) : ?>
@@ -72,12 +79,17 @@
 	            ?>
 
             </p>
-            <input <?php echo($disabled) ; ?> type="checkbox" name="support_include_logs" id="support_include_logs" value="1" checked> <label for="support_include_logs">send logs</label><br>
+<!--            <input <?php echo($disabled) ; ?> type="checkbox" name="support_include_logs" id="support_include_logs" value="1" checked> <label for="support_include_logs">send logs</label><br>-->
 
 	        <div class="submit"><input <?php echo($disabled) ; ?> type="submit" name="send_ticket" class="button-primary" value="<?php _e("Send", $namespace) ?>" />
-			<?php if (!$license_active) : ?>
-                * Premium customers receive priority support.
+
+	        <?php if (!$license_active && !$is_lite_registered) : ?>
+		        <span style="color:red">* Please register your version of WP BackItUp for access to support.</span>
             <?php endif; ?>
+
+           <?php if (!$license_active && $is_lite_registered) : ?>
+		        * Premium customers receive priority support.
+	        <?php endif; ?>
             </div>
 
             <?php

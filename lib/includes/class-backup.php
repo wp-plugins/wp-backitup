@@ -347,14 +347,6 @@ class WPBackItUp_Backup {
             }
         }
         $this->logger->log_info(__METHOD__,'Database Exported successfully');
-
-	    //  Uncomment when encryption is added
-//      backup wp.config
-//		$from_path = get_home_path() .'/wp-config.php';
-//		$to_path = $this->backup_project_path .'/wp-config.bak';
-//		$file_system = new WPBackItUp_FileSystem($this->logger);
-//		$file_system->copy_file($from_path,$to_path);
-
         return true;
     }
 
@@ -417,6 +409,261 @@ class WPBackItUp_Backup {
 		return  $plugins_file_list;
 	}
 
+	//Search array(needle) for value(haystack) starting in position 1
+	function strposa0($haystack, $needle, $offset=0) {
+		if(!is_array($needle)) $needle = array($needle);
+		foreach($needle as $query) {
+			$pos = strpos($haystack, $query, $offset);
+			//looking for position 0 - string must start at the beginning
+			if($pos === 0) return true; // stop on first true result
+		}
+		return false;
+	}
+
+
+	public function save_inventory_files($batch_insert_size,$job_id,$group_id,$root_path,$exclude=null) {
+		$this->logger->log_info( __METHOD__, 'Begin:' .$group_id);
+
+		//create a separate log file for inventory
+		$logger_inventory = new WPBackItUp_Logger(true,null,'debug_inventory_'.$group_id);
+		$logger_inventory->log_info( __METHOD__, 'Root Path: ' .$root_path);
+		$logger_inventory->log_info( __METHOD__, 'Exclude: ' .var_export($exclude,true));
+		$logger_inventory->log_info( __METHOD__, '***');
+		try {
+			$batch_counter = 0;
+			$total_counter=0;
+			$directory_iterator=new RecursiveDirectoryIterator($root_path,FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS | RecursiveIteratorIterator::CATCH_GET_CHILD);
+			$item_iterator = new RecursiveIteratorIterator($directory_iterator,RecursiveIteratorIterator::SELF_FIRST);
+
+			$datetime1 = new DateTime('now');
+			$sql="";
+			while ($item_iterator->valid()) {
+				//Skip the item if its in the exclude array
+				//This is a string compare starting in position 1
+				$file_path = $item_iterator->getSubPathname();
+				if ($this->strposa0($file_path, $exclude)===true) {
+					$logger_inventory->log_info( __METHOD__, 'Skip: ' .$file_path);
+				} else {
+					if ( $item_iterator->isFile()) {
+						if ($batch_counter>=$batch_insert_size){
+							if (! $this->save_inventory_db($sql,$logger_inventory)) {
+								return false;
+							}
+							$sql="";
+							$batch_counter=0;
+						}
+						$total_counter++;
+						$batch_counter++;
+						$file_size=ceil($item_iterator->getSize()/1024);//round up
+						$logger_inventory->log_info( __METHOD__, 'Add File: ' .$batch_counter . ' ' .$file_path);
+						$sql.= "(".$job_id .", '" .$group_id."', '" .$file_path ."', ".$file_size ."),";
+					}
+				}
+				$item_iterator->next();
+			}
+
+			if ($batch_counter>0) {
+				if (! $this->save_inventory_db($sql,$logger_inventory)) {
+					return false;
+				}
+			}
+
+			$datetime2 = new DateTime('now');
+			$interval = $datetime1->diff($datetime2);
+			$this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+			return true;
+
+		} catch(Exception $e) {
+			$this->logger->log_error( __METHOD__, 'Exception: ' .$e);
+			return false;
+		}
+	}
+
+
+	public function create_job_control($job_id) {
+		$this->logger->log_info( __METHOD__, 'Begin' );
+
+		//create a separate log file for inventory
+		$logger_inventory = new WPBackItUp_Logger( true, null, 'debug_inventory_' . $job_id );
+		$logger_inventory->log_info( __METHOD__, '***' );
+		try {
+
+			$db = new WPBackItUp_DataAccess();
+			return $db->create_job_control($job_id);
+
+		} catch ( Exception $e ) {
+			$this->logger->log_error( __METHOD__, 'Exception: ' . $e );
+
+			return false;
+
+		}
+	}
+
+	public function update_job_control_complete($job_id) {
+		$this->logger->log_info( __METHOD__, 'Begin' );
+
+		//create a separate log file for inventory
+		$logger_inventory = new WPBackItUp_Logger( true, null, 'debug_inventory_' . $job_id );
+		$logger_inventory->log_info( __METHOD__, '***' );
+		try {
+
+			$db = new WPBackItUp_DataAccess();
+			return $db->update_job_control_complete($job_id);
+
+		} catch ( Exception $e ) {
+			$this->logger->log_error( __METHOD__, 'Exception: ' . $e );
+
+			return false;
+
+		}
+	}
+
+
+	/**
+	 * Save inventory of folder to database
+	 *
+	 * @param $batch_insert_size
+	 * @param $job_id
+	 * @param $group_id
+	 * @param $root_path
+	 * @param null $exclude
+	 *
+	 * @return bool
+	 */
+	public function save_folder_inventory($batch_insert_size,$job_id,$group_id,$root_path,$exclude=null) {
+		$this->logger->log_info( __METHOD__, 'Begin:' .$group_id);
+
+		//create a separate log file for inventory
+		$logger_inventory = new WPBackItUp_Logger(true,null,'debug_inventory_'.$group_id);
+		$logger_inventory->log_info( __METHOD__, 'Root Path: ' .$root_path);
+		$logger_inventory->log_info( __METHOD__, 'Exclude: ' .var_export($exclude,true));
+		$logger_inventory->log_info( __METHOD__, '***');
+		try {
+			$batch_counter = 0;
+			$total_counter=0;
+			$directory_iterator=new RecursiveDirectoryIterator($root_path,FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS | RecursiveIteratorIterator::CATCH_GET_CHILD);
+			$item_iterator = new RecursiveIteratorIterator($directory_iterator,RecursiveIteratorIterator::SELF_FIRST);
+
+			$datetime1 = new DateTime('now');
+			$sql="";
+			$db = new WPBackItUp_DataAccess();
+
+			while ($item_iterator->valid()) {
+				//Skip the item if its in the exclude array
+				//This is a string compare starting in position 1
+				$file_path = $item_iterator->getSubPathname();
+				if ($this->strposa0($file_path, $exclude)===true) {
+					$logger_inventory->log_info( __METHOD__, 'Skip: ' .$file_path);
+				} else {
+					if ( $item_iterator->isFile()) {
+						if ($batch_counter>=$batch_insert_size){
+							if (! $db->insert_job_items($sql,$logger_inventory)) {
+								return false;
+							}
+							$sql="";
+							$batch_counter=0;
+						}
+						$total_counter++;
+						$batch_counter++;
+						$file_size=ceil($item_iterator->getSize()/1024);//round up
+						$logger_inventory->log_info( __METHOD__, 'Add File: ' .$batch_counter . ' ' .$file_path);
+						$sql.= "(".$job_id .", '" .$group_id."', '" .utf8_encode($file_path) ."', ".$file_size .",now() ),";
+					}
+				}
+				$item_iterator->next();
+			}
+
+			if ($batch_counter>0) {
+				if (! $db->insert_job_items($sql,$logger_inventory)) {
+					return false;
+				}
+			}
+
+			$datetime2 = new DateTime('now');
+			$interval = $datetime1->diff($datetime2);
+			$this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+			return true;
+
+		} catch(Exception $e) {
+			$this->logger->log_error( __METHOD__, 'Exception: ' .$e);
+			return false;
+		}
+	}
+
+	/**
+	 * Save inventory of array list to database
+	 *
+	 * @param $batch_insert_size
+	 * @param $job_id
+	 * @param $group_id
+	 * @param $file_list
+	 *
+	 * @return bool
+	 * @internal param $root_path
+	 */
+	public function save_file_list_inventory($batch_insert_size,$job_id,$group_id,$root_path,$file_list) {
+		$this->logger->log_info( __METHOD__, 'Begin:' .var_export($file_list,true));
+
+		//check is array list
+		if (! is_array($file_list)) {
+			$this->logger->log_error(__METHOD__,'Array expected in file list:');
+			return false;
+		}
+
+		//create a separate log file for inventory
+		$logger_inventory = new WPBackItUp_Logger(true,null,'debug_inventory_'.$group_id);
+		$logger_inventory->log_info( __METHOD__, '***');
+		try {
+			$batch_counter = 0;
+			$total_counter=0;
+
+			$datetime1 = new DateTime('now');
+			$sql="";
+			$db = new WPBackItUp_DataAccess();
+			foreach($file_list as $file_path) {
+
+				//skip if folder
+				if ( is_dir( $file_path ) ) {
+					$this->logger->log_info( __METHOD__, 'Skip folder:' . $file_path );
+					continue;
+				}
+
+
+				if ($batch_counter>=$batch_insert_size){
+					if (! $db->insert_job_items($sql,$logger_inventory)) {
+						return false;
+					}
+					$sql="";
+					$batch_counter=0;
+				}
+				$total_counter++;
+				$batch_counter++;
+				$file_size=ceil(filesize($file_path) /1024);//round up
+
+				//get rid of root path and utf8 encode
+				$file_path = utf8_encode(str_replace($root_path,'',$file_path));
+
+				$logger_inventory->log_info( __METHOD__, 'Add File: ' .$batch_counter . ' ' .$file_path);
+				$sql.= "(".$job_id .", '" .$group_id."', '" .$file_path ."', ".$file_size .",now() ),";
+			}
+
+			if ($batch_counter>0) {
+				if (! $db->insert_job_items($sql,$logger_inventory)) {
+					return false;
+				}
+			}
+
+			$datetime2 = new DateTime('now');
+			$interval = $datetime1->diff($datetime2);
+			$this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+			return true;
+
+		} catch(Exception $e) {
+			$this->logger->log_error( __METHOD__, 'Exception: ' .$e);
+			return false;
+		}
+	}
+
 	public function get_themes_file_list() {
 		$this->logger->log_info( __METHOD__, 'Begin' );
 
@@ -475,7 +722,7 @@ class WPBackItUp_Backup {
         $plugins_folder = basename (WPBACKITUP__PLUGINS_ROOT_PATH);
 
         //ignore these folders
-        $wpback_ignore = explode(',',WPBACKITUP__BACKUP_IGNORE_LIST);
+        $wpback_ignore = explode(',',WPBACKITUP__BACKUP_OTHER_IGNORE_LIST);
         $wpcontent_ignore=array($uploads_folder, $themes_folder, $plugins_folder);
         $ignore = array_merge($wpback_ignore,$wpcontent_ignore);
 
@@ -515,92 +762,287 @@ class WPBackItUp_Backup {
     }
 
 
-    //BackUp
-	public function backup_file_list($source_root,$target_root,$suffix,$file_list,$batch_size,$ignore=''){
-		$this->logger->log_info(__METHOD__,'Begin - Item Count: '. count($file_list));
-        $this->logger->log_info(__METHOD__,'Items in Backup List: ');
-        $this->logger->log($file_list);
 
-        if (! is_array($file_list)) {
-            $this->logger->log_error(__METHOD__,'Array expected in file list:');
-            $this->logger->log($file_list);
-            return 'error';
-        }
+	/**
+	 *
+	 * Fetch batch of files from DB and add to zip
+	 *
+	 * @param $job_id
+	 * @param $source_root
+	 * @param $content_type
+	 *
+	 * @return bool|mixed
+	 */
+	public function backup_files($job_id,$source_root,$content_type){
+		$this->logger->log_info(__METHOD__,'Begin ');
 
-		$zip_file_path = $this->backup_project_path . $this->backup_name .'-'.$suffix .'.tmp';
-		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
+		//get files to backup
+		$db = new WPBackItUp_DataAccess();
 
-		foreach($file_list as $item) {
-            $this->logger->log_info( __METHOD__, 'File:' . $item );
+		switch($content_type)
+		{
+			case 'themes';
+				$target_root='wp-content-themes';
+				$batch_size=WPBACKITUP__THEMES_BATCH_SIZE;
+				break;
+			case 'plugins';
+				$target_root='wp-content-plugins';
+				$batch_size=WPBACKITUP__PLUGINS_BATCH_SIZE;
+				break;
+			case 'uploads';
+				$target_root='wp-content-uploads';
+				$batch_size=WPBACKITUP__UPLOADS_BATCH_SIZE;
+				break;
+			case 'others';
+				$target_root='wp-content-other';
+				$batch_size=WPBACKITUP__OTHERS_BATCH_SIZE;
+				break;
+//			case 'combined';
+//				$batch_size=4;
+//				break;
+			default:
+				$this->logger->log_error(__METHOD__,'Content type not recognized:'.$content_type);
+				return false;
 
-            //skip it if in ignore
-            if ( !empty($ignore) && false!== strpos($item,$ignore)) {
-                $this->logger->log_info( __METHOD__, 'Skip File:' . $item );
-                array_shift($file_list); //remove from list
-                continue;
-            }
+		}
 
-            //skip it if folder
-            if ( is_dir( $item ) ) {
-                $this->logger->log_info( __METHOD__, 'Skip folder:' . $item );
-                array_shift( $file_list ); //remove from list
-                continue;
-            }
+		//If default batch size is not 500 then override defaults
+//		$default_batch_size = get_option('wp-backitup_backup_batch_size');
+//		if ($default_batch_size!=500){
+//			$this->logger->log_info(__METHOD__,'Default batch size overridden:'.$default_batch_size);
+//			$batch_size=$default_batch_size;
+//		}
 
+		//get a timestamp for the batch id
+		$batch_id=current_time( 'timestamp' );
+		$file_list = $db->get_batch_open_tasks($batch_id,$batch_size,$job_id,$content_type);
 
-			//replace the source path with the target
-			$target_item_path = str_replace(rtrim($source_root, '/'),rtrim($target_root,'/'),$item);
+		//It is possible that there are no file to backup so return count or false
+		if($file_list == false || $file_list==0) return $file_list;
 
-            $this->logger->log_info( __METHOD__, 'Add File:' .$target_item_path );
-            if ( $zip->add_file($item,$target_item_path)) {
-                array_shift($file_list);
-                $this->logger->log_info( __METHOD__, 'File Added:' . $target_item_path );
-                $this->logger->log_info( __METHOD__, 'Zip file count:' . $zip->get_zip_file_count() . '>=' . $batch_size);
-
-                //If we have added X# of files or hit the size limit then lets close the zip and finish on the next pass
-                if( $zip->get_zip_file_count()>=$batch_size){
-
-                    $zip->close();//close the zip
-
-                    //check the compressed file size
-                    $compressed_zip_file_size = $zip->get_zip_actual_size();
-                    $this->logger->log_info( __METHOD__, 'Zip Actual Size after close:' . $zip->get_zip_actual_size());
-
-                    //if the zip is too big we need to rename it
-                    $threshold = $zip->get_max_zip_size(.8);
-                    if ($compressed_zip_file_size >= $threshold) {
-                        $this->logger->log_info(__METHOD__,'Zip hit max size threshold:'.$compressed_zip_file_size .'>' .$threshold );
-                        if (! $this->add_zip_suffix($zip_file_path)){
-                            return 'error';
-                        }
-                    }
-
-                    $this->logger->log_info(__METHOD__,'End - Item Count:' . count($file_list));
-                    return $file_list;
-                }
-            } else {
-                $this->logger->log_error( __METHOD__, 'File NOT added:' . $target_item_path );
-                return 'error';
-            }
-        }
-
-
-        //if we get here then close the zip
-        $zip->close();//close the zip
+		$zip_file_path = $this->backup_project_path . $this->backup_name .'-'.$content_type .'.tmp';
+		if (! $this->backup_files_to_zip($source_root,$target_root,$file_list,$zip_file_path)){
+			return false;
+		}
 
 		//if there are no more files to add then rename the zip
         //Check to see if the file exists, it is possible that it does not if only empty folders were contained
-            if(count($file_list)==0 && file_exists($zip_file_path) ){
-            $this->logger->log_info( __METHOD__, 'Zip Actual Size after close:' . $zip->get_zip_actual_size());
-			if (! $this->add_zip_suffix($zip_file_path)){
-				return 'error';
+        if(file_exists($zip_file_path) ) {
+	        if ( ! $this->add_zip_suffix( $batch_id,$zip_file_path ) ) {
+		        return false;
+	        }
+        }
+
+		//update the batch as done.
+		$db->update_batch_complete($job_id,$batch_id);
+
+		//get count of remaining
+		$remaining_count = $db->get_open_task_count($job_id,$content_type);
+
+		//return count;
+        return $remaining_count;
+	}
+
+	/**
+	 *
+	 * Validate backup files
+	 *
+	 * @param $job_id
+	 * @param $source_root
+	 * @param $target_root
+	 * @param $content_type
+	 *
+	 * @return bool|mixed
+	 */
+	public function validate_backup_files($job_id,$content_type){
+		$this->logger->log_info(__METHOD__,'Begin: '.$content_type);
+
+		//get files to backup
+		$db = new WPBackItUp_DataAccess();
+
+		switch($content_type)
+		{
+			case 'themes';
+				$target_root='wp-content-themes';
+				break;
+			case 'plugins';
+				$target_root='wp-content-plugins';
+				break;
+			case 'uploads';
+				$target_root='wp-content-uploads';
+				break;
+			case 'others';
+				$target_root='wp-content-other';
+				break;
+			//ADD exception when other
+		}
+
+		$file_list = $db->get_completed_tasks($job_id,$content_type);
+
+		//It is possible that there were no files backed up
+		if($file_list == false || $file_list==0) {
+			$this->logger->log_info(__METHOD__,'No files found to validate.');
+			return true;
+		}
+
+		$current_zip_file=null;
+		$zip=null;
+		$file_counter=0;
+		foreach($file_list as $file) {
+			$batch_id = $file->batch_id;
+			$item     = $target_root .'/' .utf8_decode( $file->item );
+
+			//get zip path
+			$zip_file_path = sprintf('%s-%s-%s.zip',$this->backup_project_path . $this->backup_name, $content_type,$batch_id);
+			if ($current_zip_file!=$zip_file_path){
+				//$this->logger->log_info( __METHOD__, 'Zip File:' . $zip_file_path );
+				if (! file_exists($zip_file_path)){
+					$this->logger->log_error( __METHOD__, 'Zip File not found:' . $zip_file_path );
+					return false;
+				}
+				$current_zip_file = $zip_file_path;
+				if (null!=$zip) $zip->close();
+				$zip = new WPBackItUp_Zip($this->logger,$current_zip_file);
+				$this->logger->log_info( __METHOD__, 'Current Zip File:' . $current_zip_file );
+			}
+
+			//validate file exists in zip
+			if (false===$zip->validate_file($item)) {
+				$this->logger->log_error( __METHOD__, 'File NOT found in zip :' . $item );
+				$zip->close();
+				return false;
+			}
+			$file_counter++;
+		}
+
+		$this->logger->log_info( __METHOD__, 'Validation Successful:'.$content_type . '(' .$file_counter .')');
+		if (null!=$zip) $zip->close();
+		return true;
+	}
+
+	/**
+	 *
+	 * Add files in file list to zip file
+	 *
+	 *
+	 * @param $source_root
+	 * @param $target_root
+	 * @param $file_list (object collection)
+	 * @param $zip_file_path
+	 *
+	 * @return bool
+	 */
+	private function backup_files_to_zip($source_root,$target_root,$file_list, $zip_file_path){
+		$this->logger->log_info(__METHOD__,'Begin ');
+
+        if (empty($file_list) || !isset($file_list)) {
+            $this->logger->log_error(__METHOD__,'File list is not valid:');
+            $this->logger->log(var_export($file_list,true));
+            return false;
+        }
+
+		$this->logger->log_info(__METHOD__,'Begin - Item Count: '. count($file_list));
+		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
+
+		foreach($file_list as $file) {
+			$item = $source_root. '/' .utf8_decode($file->item);
+			$this->logger->log_info( __METHOD__, 'File:' .$item);
+
+			//skip it if folder
+			if ( is_dir( $item ) ) {
+				$this->logger->log_info( __METHOD__, 'Skip folder:' . $item );
+				continue;
+			}
+
+			//replace the source path with the target & fix any pathing issues
+			$target_item_path = str_replace(rtrim($source_root, '/'),rtrim($target_root,'/'),$item);
+			$target_item_path= str_replace('//','/',$target_item_path);
+			$target_item_path= str_replace('\\','/',$target_item_path);
+
+			$this->logger->log_info( __METHOD__, 'Add File:' .$target_item_path );
+			if ( $zip->add_file($item,$target_item_path)) {
+				$this->logger->log_info( __METHOD__, 'File Added:' . $target_item_path );
+			} else {
+				$this->logger->log_error( __METHOD__, 'File NOT added:' . $target_item_path );
+				return false;
+			}
+		}
+
+		//if we get here then close the zip
+		$zip->close();//close the zip
+		$this->logger->log_info(__METHOD__,'End');
+		return true;
+	}
+
+
+	/**
+	 *
+	 * Backup files in array to list
+	 *
+	 * @param $source_root
+	 * @param $target_root
+	 * @param $suffix
+	 * @param $file_list
+	 * @param $batch_size
+	 *
+	 * @return array|bool
+	 */
+	public function backup_file_list($source_root,$target_root,$suffix,$file_list,$batch_size){
+		$this->logger->log_info(__METHOD__,'Begin');
+
+		if (! is_array($file_list)) {
+			$this->logger->log_error(__METHOD__,'Array expected in file list:');
+			$this->logger->log(var_export($file_list,true));
+			return false;
+		}
+
+		$batch_id=current_time( 'timestamp' );
+
+		$zip_file_path = $this->backup_project_path . $this->backup_name .'-'.$suffix .'.tmp';
+		$zip = new WPBackItUp_Zip($this->logger,$zip_file_path);
+		foreach($file_list as $item) {
+			$item = utf8_decode($item);
+			$this->logger->log_info( __METHOD__, 'File:' . $item );
+
+			//skip it if folder
+			if ( is_dir( $item ) ) {
+				$this->logger->log_info( __METHOD__, 'Skip folder:' . $item );
+				array_shift( $file_list ); //remove from list
+				continue;
+			}
+
+			//replace the source path with the target
+			$target_item_path = str_replace(rtrim($source_root, '/'),rtrim($target_root,'/'),$item);
+			$this->logger->log_info( __METHOD__, 'Add File:' .$target_item_path );
+			if ( $zip->add_file($item,$target_item_path)) {
+				array_shift($file_list);
+				$this->logger->log_info( __METHOD__, 'File Added:' . $target_item_path );
+				//If we have added X# of files or hit the size limit then lets close the zip and finish on the next pass
+				if( $zip->get_zip_file_count()>=$batch_size){
+					$zip->close();//close the zip
+					$this->logger->log_info(__METHOD__,'End - Item Count:' . count($file_list));
+					return $file_list;
+				}
+			} else {
+				$this->logger->log_error( __METHOD__, 'File NOT added:' . $target_item_path );
+				return false;
+			}
+		}
+
+		//if we get here then close the zip
+		$zip->close();//close the zip
+
+		//if there are no more files to add then rename the zip
+		//Check to see if the file exists, it is possible that it does not if only empty folders were contained
+		if(count($file_list)==0 && file_exists($zip_file_path) ){
+			if (! $this->add_zip_suffix($batch_id,$zip_file_path)){
+				return false;
 			}
 		}
 
 		$this->logger->log_info(__METHOD__,'End - Item Count:' . count($file_list));
 		return $file_list;
 	}
-
 
     private function strposa($haystack, $needle) {
         if(!is_array($needle)) $needle = array($needle);
@@ -618,14 +1060,14 @@ class WPBackItUp_Backup {
         return false;
     }
 
-	private function add_zip_suffix($zip_file_path){
+	private function add_zip_suffix($batch_id,$zip_file_path){
 		$this->logger->log_info(__METHOD__,'Begin');
 
 		$file_extension = pathinfo($zip_file_path, PATHINFO_EXTENSION);
 		$this->logger->log_info(__METHOD__,'File Extension:'.$file_extension);
 		if ($file_extension!='zip'){
 			$file_system = new WPBackItUp_FileSystem($this->logger);
-			$new_zip_name = str_replace('.' . $file_extension,'-'.time() .'.zip',$zip_file_path);
+			$new_zip_name = str_replace('.' . $file_extension,'-'.$batch_id .'.zip',$zip_file_path);
 			if ( !$file_system->rename_file($zip_file_path,$new_zip_name)){
 				$this->logger->log_error(__METHOD__,'Zip could not be renamed.');
 				return false;
@@ -672,7 +1114,7 @@ class WPBackItUp_Backup {
 
 		//get a list of all the zips
 		$backup_files_path = array_filter(glob($this->backup_project_path. '*.zip'), 'is_file');
-		$this->logger->log_error(__METHOD__,'Zip files found:'. var_export($backup_files_path,true));
+		$this->logger->log_info(__METHOD__,'Zip files found:'. var_export($backup_files_path,true));
 		if (is_array($backup_files_path) && count($backup_files_path)>0){
 			//get rid of the path.
 			$backup_files = str_replace($this->backup_project_path,'',$backup_files_path);

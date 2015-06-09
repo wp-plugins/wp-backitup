@@ -9,6 +9,9 @@
  *
  */
 
+	//Check the license
+	do_action( 'wpbackitup_check_license');
+
     $page_title = $this->friendly_name . ' Settings';
     $namespace = $this->namespace;
 

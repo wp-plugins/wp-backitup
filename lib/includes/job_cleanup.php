@@ -148,6 +148,9 @@ if ('task_scheduled_cleanup'==$current_task) {
 	$logger->log('***BEGIN JOB***');
 	$logger->log_sysinfo();
 
+	$logger->log('Check License');
+	do_action( 'wpbackitup_check_license');
+
 	$logger->log('Scheduled Cleanup requested');
 
 	$logger->log( '**CLEAN UNFINISHED BACKUPS**' );
@@ -193,10 +196,10 @@ if ('task_scheduled_cleanup'==$current_task) {
 	$logger->log( '**END SECURE FOLDERS**' );
 
 	$logger->log( '**CLEANUP OLD JOBS**' );
-	$backup_job_purge_count = WPBackItUp_Job::purge_old_jobs('backup',25);
+	$backup_job_purge_count = WPBackItUp_Job_v2::purge_completed_jobs('backup');
 	$logger->log( 'Backup job records purged:' .$backup_job_purge_count );
 
-	$cleanup_job_purge_count = WPBackItUp_Job::purge_old_jobs('cleanup',25);
+	$cleanup_job_purge_count = WPBackItUp_Job_v2::purge_completed_jobs('cleanup');
 	$logger->log( 'Cleanup job records purged:' .$cleanup_job_purge_count );
 	$logger->log( '**END CLEANUP OLD JOBS**' );
 

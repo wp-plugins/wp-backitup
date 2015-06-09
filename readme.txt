@@ -3,7 +3,7 @@ Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
-Tested up to: 4.1.1
+Tested up to: 4.2.2
 Stable tag: 1.10.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -151,6 +151,19 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.7 =
+* UPDATE: Add multi-site support for database backup
+* UPDATE: Add WordPress 4.2 support
+* UPDATE: Enhance backup file validation
+* UPDATE: Add job table to better handle large backup jobs
+* UPDATE: Add logging additional logging to database export.
+* UPDATE: Add logging for is_file to make sure filtering properly.
+* UPDATE: Add logging to backup view to list all files contained in root backup folder.
+* UPDATE: Add logging to plugin meta update
+* FIX:    Modify manual db export to write flush file buffer more frequently.
+* FIX:    Change backup to use default batch size.
+* FIX:    Correct job check error when no jobs available to purge.
+
 = 1.10.6 =
 * FEATURE:Add job data to cleanup routine
 * FIX:    Add wp-cron task on schedule check to fix issue with sheduled backups not running.

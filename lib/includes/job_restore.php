@@ -12,10 +12,6 @@
 
 /*** Includes ***/
 
-if( !class_exists( 'WPBackItUp_Backup' ) ) {
-	include_once 'class-backup.php';
-}
-
 if( !class_exists( 'WPBackItUp_Restore' ) ) {
     include_once 'class-restore.php';
 }
@@ -36,10 +32,9 @@ if( !class_exists( 'WPBackItUp_SQL' ) ) {
     include_once 'class-sql.php';
 }
 
-if( !class_exists( 'WPBackItUp_Job' ) ) {
-	include_once 'class-job.php';
+if( !class_exists( 'WPBackItUp_Task' ) ) {
+	include_once 'class-task.php';
 }
-
 
 /*** Globals ***/
 global $WPBackitup;
@@ -70,7 +65,6 @@ $status_array = array(
 	'restore_database'=>$inactive,
 	'update_user'=>$inactive,
 	'update_site_info'=>$inactive,
-	'activate_plugins'=>$inactive,
 	'update_permalinks'=>$inactive,
  );
 
@@ -79,58 +73,46 @@ $status_array = array(
 //**************************//
 
 $logger_tasks = new WPBackItUp_Logger(false,null,'debug_restore_tasks');
-$process_id = uniqid();
-
-//Is restore running
-if ( ! WPBackItUp_Backup::start()) {
-	$logger_tasks->log_info(__METHOD__,'Restore job cant acquire job lock.');
-	return; // do nothing.
-}else{
-	$logger_tasks->log_info(__METHOD__,'Restore job lock acquired.');
-}
-
 
 //**************************//
 //     Task Handling        //
 //**************************//
-global $restore_job;
-$restore_job=null;
 $current_task= null;
 
 $restore_error=false;
-$restore_job = WPBackItUp_Job::get_job('restore');
 $logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Check for available job');
 if ($restore_job){
 
 	//Get the next task in the stack
-	$next_task = $restore_job->get_next_task();
-	if (false!==$next_task){
-		$restore_id=$restore_job->backup_id;
-		$current_task=$next_task;
+	$current_task = $restore_job->get_next_task();
+	$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','TASK Info:'.var_export($current_task,true));
+	if (null!= $current_task && false!==$current_task){
+		$restore_id=$restore_job->get_job_id();
+		$current_task->increment_retry_count();
 
-		//If task contains error then timeout has occurred
-		if (strpos($current_task,'error') !== false){
-			$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Restore Error Found:' .$current_task);
+		//Was there an error on the previous task
+		if (WPBackItUp_Job_v2::ERROR==$current_task->getStatus()){
+			$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Restore Error Found:' .$current_task->getId());
 			$restore_error=true;
 		}
 
-		$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Available Task Found:' . $current_task);
+		$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Available Task Found:' . $current_task->getId());
 
 	}else{
 		$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','No available tasks found.');
-		WPBackItUp_Backup::end(); //release lock
+		//WPBackItUp_Backup::end(); //release lock
 		return;
 	}
 }else {
 	$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','No job available.');
 
 	//wp_clear_scheduled_hook( 'wpbackitup_run_restore_tasks');
-	WPBackItUp_Backup::end(); //release lock
+	//WPBackItUp_Backup::end(); //release lock
 	return;
 }
 
 //Should only get here when there is a task to run
-$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Run Restore task:' .$current_task);
+$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Run Restore task:' .$current_task->getId());
 
 
 //*****************//
@@ -138,7 +120,7 @@ $logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Run Restore task:' .$c
 //*****************//
 
 //Get the job name
-$job_log_name =  get_job_log_name($restore_job->backup_id);
+$job_log_name =  get_job_log_name($restore_job->get_job_id());
 
 global $logger;
 $logger = new WPBackItUp_Logger(false,null,$job_log_name,true);
@@ -159,53 +141,52 @@ if( empty($user_id)) {
 }
 
 global $wp_restore; //Eventually everything will be migrated to this class
-$wp_restore = new WPBackItUp_Restore($logger,$backup_name,$restore_job->backup_id);
+$wp_restore = new WPBackItUp_Restore($logger,$backup_name,$restore_job->get_job_id());
 
 //*************************//
 //***   RESTORE TASKS   ***//
 //*************************//
 //An error has occurred on the previous tasks
 if ($restore_error) {
-	$error_task = substr( $current_task, 6 );
 
 	//Check for error type
-	switch ( $error_task ) {
+	switch ( $current_task->getId() ) {
 		case "task_preparing":
-			fatal_error( 'preparing', '2001', 'Task ended in error:'.$error_task );
+			fatal_error( 'preparing', '2001', 'Task ended in error:'.$current_task->getId() );
 			break;
 
 		case "task_unzip_backup_set":
-			fatal_error( 'unzipping', '2002', 'Task ended in error:'.$error_task );
+			fatal_error( 'unzipping', '2002', 'Task ended in error:'.$current_task->getId());
 			break;
 
 		case "task_validate_backup":
-			fatal_error( 'validation', '2003', 'Task ended in error:'.$error_task );
+			fatal_error( 'validation', '2003', 'Task ended in error:'.$current_task->getId() );
 			break;
 
 		case "task_create_checkpoint":
-			fatal_error( 'restore_point', '2004', 'Task ended in error:'.$error_task );
+			fatal_error( 'restore_point', '2004', 'Task ended in error:'.$current_task->getId() );
 			break;
 
 		case "task_stage_wpcontent":
-			fatal_error( 'stage_wpcontent', '2005', 'Task ended in error:'.$error_task );
+			fatal_error( 'stage_wpcontent', '2005', 'Task ended in error:'.$current_task->getId() );
 			break;
 
 		case "task_restore_wpcontent":
-			fatal_error( 'restore_wpcontent', '2006', 'Task ended in error:'.$error_task );
+			fatal_error( 'restore_wpcontent', '2006', 'Task ended in error:'.$current_task->getId() );
 			break;
 
 		case "task_restore_database":
-			fatal_error( 'restore_database', '2007', 'Task ended in error:'.$error_task );
+			fatal_error( 'restore_database', '2007', 'Task ended in error:'.$current_task->getId() );
 			break;
 
 		default:
-			fatal_error( 'unknown', '2999', 'Task ended in error:'.$error_task );
+			fatal_error( 'unknown', '2999', 'Task ended in error:'.$current_task->getId() );
 			break;
 	}
 }
 
 //Cleanup Task
-if ('task_preparing'==$current_task) {
+if ('task_preparing'==$current_task->getId()) {
 	$logger->log('***BEGIN RESTORE***');
 	$logger->log_sysinfo();
 
@@ -214,6 +195,9 @@ if ('task_preparing'==$current_task) {
 
 	$logger->log('**PREPARING FOR RESTORE**');
 
+	//ONLY check license here and prevent restore from starting. If
+	//IF license check fails in later steps could be because DB was restored and no license on backup
+	//which is a valid condition.
 	if (! $this->license_active()){
 		fatal_error($task,'225','Restore is not available because license is not active.');
 	}
@@ -300,7 +284,7 @@ if ('task_preparing'==$current_task) {
 	return;
 }
 
-if ('task_unzip_backup_set'==$current_task) {
+if ('task_unzip_backup_set'==$current_task->getId()) {
 
 	$logger->log( '**UNZIP BACKUP**' );
 
@@ -337,7 +321,7 @@ if ('task_unzip_backup_set'==$current_task) {
 }
 
 //Validate the backup folder
-if ('task_validate_backup'==$current_task) {
+if ('task_validate_backup'==$current_task->getId()) {
 	$logger->log_info(__METHOD__, '**VALIDATE BACKUP**' );
 
 	$task =  'validation';
@@ -386,30 +370,22 @@ if ('task_validate_backup'==$current_task) {
 	}
 
 	//Check wordpress version
-	if ( get_bloginfo( 'version') != $site_info['restore_wp_version'] ) {
+	$site_wordpress_version =  get_bloginfo('version');
+	$backup_wordpress_version = $site_info['restore_wp_version'];
+	$logger->log_info(__METHOD__, 'Site Wordpress Version:' . $site_wordpress_version);
+	$logger->log_info(__METHOD__, 'Backup Wordpress Version:' . $backup_wordpress_version);
+	if ( ! WPBackItUp_Utility::version_compare($site_wordpress_version, $backup_wordpress_version )) {
+		$logger->log( '*VALIDATE SITEDATA FILE*' );
 		fatal_error($task,'226','Backup was created using different version of wordpress');
 	}
 
 
-	//Check wpbackitup version
-	//Only major versions differences should fail
-	//1.9.2.8 and 1.9.2.9 are ok
-	//1.9.2 and 1.10 are NOT
-	//Even minor numbers are final releases
-	//Odd minor numbers are pre-releases
 	$restore_wpbackitup_version = $site_info['restore_wpbackitup_version'];
-	$restore_wpbackitup_version = explode('.', $restore_wpbackitup_version);
-	$current_wpbackitup_version = explode('.', WPBACKITUP__VERSION);
-
-	$logger->log_info(__METHOD__,'Backup Created with WP BackItUp Version :');
-	$logger->log($restore_wpbackitup_version);
-
-	if (! empty($restore_wpbackitup_version[0]) && isset ($restore_wpbackitup_version[0])){ //Check version if not old backup -  this should be removed in a few releases
-		//If major version is different
-		if ($restore_wpbackitup_version[0] != $current_wpbackitup_version[0] ||
-		    $restore_wpbackitup_version[1] != $current_wpbackitup_version[1] ) {
-				fatal_error($task,'227','Backup was created using different version of WP BackItUp');
-		}
+	$current_wpbackitup_version = WPBACKITUP__VERSION;
+	$logger->log_info(__METHOD__, 'WP BackItUp current Version:' . $current_wpbackitup_version);
+	$logger->log_info(__METHOD__, 'WP BackItUp backup  Version:' . $restore_wpbackitup_version);
+	if (! WPBackItUp_Utility::version_compare($restore_wpbackitup_version, $current_wpbackitup_version )){
+		fatal_error($task,'227','Backup was created using different version of WP BackItUp');
 	}
 	$logger->log( '*END VALIDATE SITEDATA FILE*' );
 
@@ -436,7 +412,7 @@ if ('task_validate_backup'==$current_task) {
 
 
 //Create the DB restore point
-if ('task_create_checkpoint'==$current_task) {
+if ('task_create_checkpoint'==$current_task->getId()) {
 
 	$logger->log('**CREATE RESTORE POINT**');
 	$task = 'restore_point';
@@ -455,7 +431,7 @@ if ('task_create_checkpoint'==$current_task) {
 
 
 //Stage WP content folders
-if ('task_stage_wpcontent'==$current_task) {
+if ('task_stage_wpcontent'==$current_task->getId()) {
 
 	$logger->log('*STAGE WP-CONTENT*');
 	$task = 'stage_wpcontent';
@@ -510,7 +486,7 @@ if ('task_stage_wpcontent'==$current_task) {
 
 
 //Rename the staged folders to current
-if ('task_restore_wpcontent'==$current_task) {
+if ('task_restore_wpcontent'==$current_task->getId()) {
 
 	$logger->log('**RESTORE WPCONTENT**');
 	$task ='restore_wpcontent';
@@ -542,11 +518,14 @@ if ('task_restore_wpcontent'==$current_task) {
 }
 
 //restore the DB
-if ('task_restore_database'==$current_task) {
+if ('task_restore_database'==$current_task->getId()) {
 
 	$logger->log('**RESTORE DATABASE**');
 	$task ='restore_database';
 	start_status($task);
+
+	//grab the license before the database is restored
+	$license_key = $this->license_key();
 
 	$current_siteurl= $restore_job->get_job_meta('current_siteurl');
 	$current_homeurl= $restore_job->get_job_meta('current_homeurl');
@@ -576,7 +555,9 @@ if ('task_restore_database'==$current_task) {
 	//update the session cookie
 	wp_set_auth_cookie( $user_id, true);
 
-	WPBackItUp_Job::cancel_all_jobs(); //Cancel any jobs that were in the restored DB
+	//Cancel any jobs that were in the restored DB
+	WPBackItUp_Job_v2::cancel_all_jobs('backup');
+	WPBackItUp_Job_v2::cancel_all_jobs('cleanup');
 
 	start_status('update_user');
 	//Restored DB so current user may not be there.
@@ -597,14 +578,14 @@ if ('task_restore_database'==$current_task) {
 	}
 	end_status('update_site_info');
 
+
+	//Update the license information in the DB just in case it wasn't there on DB restore
+	//Dont need to call activation, will happen on its own
+	$wp_restore->update_license_key($table_prefix, $license_key);
+
+
 	//DONT NEED TO UPDATE TASKS - DB RESTORED
-
-	$logger->log('*ACTIVATE PLUGINS*');
-	start_status('activate_plugins');
-	$wp_restore->activate_plugins();
-	end_status('activate_plugins');
-	$logger->log('*END ACTIVATE PLUGINS*');
-
+	//DONT need to activate plugins, they will be active in restored DB
 
 	start_status('update_permalinks');
 	if (! $wp_restore->update_permalinks()){
@@ -627,10 +608,7 @@ if ('task_restore_database'==$current_task) {
 	$logger->log('Restore completed successfully');
 	$logger->log('***END RESTORE***');
 
-	echo('Restore has completed successfully.');
 	end_restore(null,true);
-
-	exit;
 
 /******************/
 /*** Functions ***/
@@ -795,27 +773,23 @@ function set_status_success(){
 }
 
 function end_restore($err=null, $success=null){
-	global $WPBackitup, $wp_restore, $logger;
+	global $restore_job, $logger;
 
 	if (true===$success) $logger->log("Restore completed: SUCCESS");
 	if (false===$success) $logger->log("Restore completed: ERROR");
 
 	$logger->log("*** END RESTORE ***");
 
-	//Zip up all the logs
-//	$zip_file_path =$wp_restore->zip_logs();
-
-	//Email the log
-//	$notification_email = $WPBackitup->get_option('notification_email');
-//	$logs_attachment = array( $zip_file_path  );
-//	$wp_restore->send_notification_email($err, $success,$logs_attachment,$notification_email);
-
-	//Release the lock
-	WPBackItUp_Backup::end();
 
 	//Close the logger
 	$logger->close_file();
+	$restore_job->release_lock();
 
-	echo('Restore has completed');
+	//response back the status file since this method will end processing
+	$log = WPBACKITUP__PLUGIN_PATH .'/logs/restore_status.log';
+	if(file_exists($log) ) {
+		readfile($log);
+	}
+
 	exit(0);
 }
