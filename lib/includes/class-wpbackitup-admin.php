@@ -964,7 +964,10 @@ class WPBackitup_Admin {
                 $support_subject = '[#' .trim($_POST['support_ticket_id']) .']';
 
                 $site_info = 'WordPress Site: <a href="'  . home_url() . '" target="_blank">' . home_url() .'</a><br/>';
-                $site_info .="WP BackItUp License Type: " . $this->license_type_description() .' <br />';
+				$site_info .="WordPress Version: " . get_bloginfo( 'version') .' <br />';
+				$site_info .="WP BackItUp License Type: " . $this->license_type_description() .' <br />';
+				$site_info .="WP BackItUp Version: " . $this->version .' <br />';
+
 
                 $support_body=$site_info . '<br/><br/><b>Customer Comments:</b><br/><br/>' . $_POST['support_body'];
 

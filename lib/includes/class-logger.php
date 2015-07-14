@@ -78,7 +78,8 @@ class WPBackItUp_Logger {
 		try{
 			if (true===$this->logging){	
 				if (!is_null($this->dfh) && is_resource($this->dfh)){
-					$date = date_i18n('Y-m-d H:i:s',current_time( 'timestamp' ));
+					//$date = date_i18n('Y-m-d H:i:s',current_time( 'timestamp' ));
+                    $date = date_i18n('Y-m-d H:i:s', time());
 					if( is_array( $message ) || is_object( $message ) ){
 						fwrite($this->dfh, $date ." " .print_r( $message, true ) . PHP_EOL);
 				     } else {
@@ -151,6 +152,7 @@ class WPBackItUp_Logger {
 				$this->log("\n--Wordpress Info--");
 				$this->log("Wordpress Version:" . get_bloginfo( 'version'));
 				$this->log('Language:' . ( defined( 'WPLANG' ) && WPLANG ? WPLANG : 'en_US' ));
+				$this->log('DB_HOST:' . DB_HOST);
 				$this->log('Table Prefix:' . 'Length: ' . strlen( $wpdb->prefix ) . '   Status: ' . ( strlen( $wpdb->prefix ) > 16 ? 'ERROR: Too long' : 'Acceptable' ));
 				$this->log('WP_DEBUG:' . ( defined( 'WP_DEBUG' ) ? WP_DEBUG ? 'Enabled' : 'Disabled' : 'Not set' ));
 				$this->log('Memory Limit:' . WP_MEMORY_LIMIT );

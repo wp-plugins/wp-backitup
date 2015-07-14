@@ -53,10 +53,6 @@ class WPBackItUp_DataAccess {
 		$this->logger->log_info(__METHOD__,'Begin');
 		global $wpdb;
 
-		//Remove slashes
-		$sql_values= str_replace('\\', "/", $sql_values );
-		//$sql_values= utf8_encode($sql_values);
-
 		$sql_insert = "INSERT INTO $wpdb->wpbackitup_job
         (job_id, group_id, item, size_kb, create_date)
          VALUES " ;

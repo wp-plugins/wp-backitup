@@ -8,6 +8,8 @@
  * @link    http://www.wpbackitup.com
  *
  */
+		require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-filesystem.php' );
+
 		//Check the license
 		do_action( 'wpbackitup_check_license');
 
@@ -66,9 +68,10 @@
 
 		//Cleanup old backups - this can be removed in a few months.
 		//Get Zip File List
-		$file_list = glob($backup_folder_root . "/*.{zip,log}",GLOB_BRACE);
-		//If there are zip files then move them into their own folders
+		$file_system = new WPBackItUp_FileSystem($logger);
+		$file_list = $file_system->get_fileonly_list($backup_folder_root, 'zip|log');
 
+		//If there are zip files then move them into their own folders
 		$logger->log_info(__METHOD__,'Files in backup folder: ' .var_export($file_list,true));
 		$logger->log_info(__METHOD__,'Last Error: ' .var_export(error_get_last(),true));
 

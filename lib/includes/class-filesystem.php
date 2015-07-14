@@ -563,5 +563,40 @@ class WPBackItUp_FileSystem {
 	}
 
 
+	/**
+	 * Fetch an array of files from the path provided.
+	 * An optional list of pipe delimited extensions may be provided to filter
+	 * results by extension.  If none is provided all files in path will be returned.
+	 *
+	 * @param $path Path to folder where files reside.
+	 * @param null $extensions Pipe delimited list of extensions ex. txt|sql
+	 *
+	 * @return array Array of files
+	 */
+	function get_fileonly_list($path,$extensions=null){
+		$this->logger->log_info(__METHOD__,"Begin:" .$path);
+		$this->logger->log_info(__METHOD__,"Pattern:" .$extensions);//txt|sql'
+
+		//Remove trailing slashes
+		$path = rtrim($path,"\\");
+		$path = rtrim($path,"/");
+		$this->logger->log_info(__METHOD__,"Path:" .$path);
+
+		$all_files = glob($path .'/*.*');
+		$this->logger->log_info(__METHOD__,"All Files:" .var_export($all_files,true));
+
+		//If a file pattern is passed then filter
+		if(isset($extensions)){
+			$regex = sprintf('~\.(%s)$~',$extensions);
+			$filtered_files = preg_grep($regex, $all_files);
+		}else{
+			$filtered_files =array_filter($all_files, 'is_file');
+		}
+
+		$this->logger->log_info(__METHOD__,"Filtered Files:" .var_export($filtered_files,true));
+		return $filtered_files;
+	}
+
+
  }
 

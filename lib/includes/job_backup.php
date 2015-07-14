@@ -297,6 +297,8 @@ if ('task_preparing'==$current_task) {
 		end_backup(128,false);
 	};
 
+	$global_exclude = explode(',', WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST);
+
 	$plugin_exclude = WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST;
 	if (! $wp_backup->save_folder_inventory(WPBACKITUP__SQL_BULK_INSERT_SIZE,$backup_job->backup_id,'plugins',WPBACKITUP__PLUGINS_ROOT_PATH,$plugin_exclude)){
 		$logger->log_error( __METHOD__, 'Plugins Inventory Error.');
@@ -315,7 +317,13 @@ if ('task_preparing'==$current_task) {
 		end_backup(127,false);
 	};
 
-	$upload_exclude = WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST;
+	$upload_exclude = array_merge (
+		$global_exclude,
+		array(
+			"backup",
+			"backwpup",
+		));
+
 	$upload_array = wp_upload_dir();
 	$uploads_root_path = $upload_array['basedir'];
 	if (! $wp_backup->save_folder_inventory(WPBACKITUP__SQL_BULK_INSERT_SIZE,$backup_job->backup_id,'uploads',$uploads_root_path,$upload_exclude)){
@@ -326,7 +334,6 @@ if ('task_preparing'==$current_task) {
 		end_backup(127,false);
 	};
 
-	$global_exclude = explode(',', WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST);
 	$other_exclude = array_merge (
 		$global_exclude,
 		array(
@@ -403,7 +410,9 @@ if ('task_backup_siteinfo'==$current_task) {
 		$source_site_data_root = $wp_backup->backup_project_path;
 		$target_site_data_root = 'site-data';
 
-		$site_data_files = get_fileonly_list($wp_backup->backup_project_path, '*.{txt,sql}');
+
+		$file_system = new WPBackItUp_FileSystem($logger);
+		$site_data_files = $file_system->get_fileonly_list($wp_backup->backup_project_path, 'txt|sql');
 		$site_data_complete = $wp_backup->backup_file_list( $source_site_data_root, $target_site_data_root, $suffix, $site_data_files, WPBACKITUP__OTHERS_BATCH_SIZE );
 		if ( $site_data_complete == 'error' ) {
 			$backup_job->set_task_error('105');
@@ -422,7 +431,7 @@ if ('task_backup_siteinfo'==$current_task) {
 	}
 
 	//get rid of the SQL and sitedata file - will check again at end in cleanup
-	$wp_backup->delete_site_data_files();
+	$wp_backup->cleanup_current_backup();
 
 	set_status( 'infofile', $complete, false );
 	$backup_job->set_task_complete();
@@ -639,7 +648,8 @@ if ('task_finalize_backup'==$current_task) {
 	}
 
 	//Take an inventory of the zip files created
-	$zip_files = get_fileonly_list($wp_backup->backup_project_path, '*.{zip}');
+	$file_system = new WPBackItUp_FileSystem($logger);
+	$zip_files = $file_system->get_fileonly_list($wp_backup->backup_project_path, 'zip');
 	$wp_backup->save_file_list_inventory(WPBACKITUP__SQL_BULK_INSERT_SIZE,$backup_job->backup_id,'backups',$wp_backup->backup_project_path,$zip_files);
 
 	//Combine the zip files into one file
@@ -1038,22 +1048,3 @@ function get_error_message($error_code){
 
 	return $error_message;
 }
-
-
-function get_fileonly_list($path,$pattern){
-	global $logger;
-	$logger->log_info(__METHOD__,"Begin:" .$path);
-	$logger->log_info(__METHOD__,"Pattern:" .$pattern);//'*.{txt,sql}'
-
-	$all_files = glob($path. $pattern,GLOB_BRACE);
-	$logger->log_info(__METHOD__,"All Files:" .var_export($all_files,true));
-
-	$filtered_array =array_filter($all_files, 'is_file'); //not sure i need this...
-	$logger->log_info(__METHOD__,"Filtered Files:" .var_export($filtered_array,true));
-
-	return $filtered_array;
-
-
-}
-
-

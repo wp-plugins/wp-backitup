@@ -20,8 +20,7 @@ class WPBackItUp_SQL {
             $this->connection = $this->get_sqlconnection();
 
 		} catch(Exception $e) {
-			//Dont do anything
-			print $e;
+			$this->logger->log_error(__METHOD__,$e);
 		}
    }
 
@@ -119,6 +118,35 @@ class WPBackItUp_SQL {
         return true;
 	}
 
+
+	/**
+	 *
+	 * Fetch all tables and number of rows in database
+	 *
+	 * @return array|bool
+	 */
+	public function get_table_rows() {
+		$this->logger->log_info(__METHOD__,'Begin');
+
+		$mysqli = $this->connection;
+		if (false === $mysqli) {
+			$this->logger->log_error(__METHOD__,'No SQL Connection');
+			return false;
+		}
+		$sql = "SELECT TABLE_NAME,TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES
+                  WHERE TABLE_SCHEMA = '" . DB_NAME . "'
+                  ORDER BY TABLE_ROWS DESC;";
+		$result = $mysqli->query($sql);
+
+		// Cycle through "$result" and put content into an array
+		$tables = array();
+		while ($row = $result->fetch_row()) {
+			$tables[] = array("table_name" => $row[0], 'table_rows' => $row[1]) ;
+		}
+
+		$this->logger->log_info(__METHOD__,'End');
+		return $tables;
+	}
 
     public function manual_export($sql_file_path) {
 	    global $wpdb;
@@ -517,7 +545,7 @@ class WPBackItUp_SQL {
 	private function get_portonly($db_host) {
 		//Check for port
 		$host_array = explode(':',$db_host);
-		if (is_array($host_array) && count($host_array)>1){
+		if (is_array($host_array) && count($host_array)>1 && !empty($port)){
 			return $host_array[1];
 		}
 

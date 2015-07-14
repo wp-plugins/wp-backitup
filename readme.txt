@@ -1,5 +1,5 @@
-﻿=== WP Backitup ===
-Contributors: cssimmon,jcpeden,wpbackitup
+=== WP Backitup ===
+Contributors: cssimmon,jcpeden
 Donate link: http://www.wpbackitup.com
 Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
@@ -151,6 +151,19 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.8 =
+* UPDATE: Add database size logging
+* UPDATE: Add WordPress and WP BackItUp version info to support email
+* UPDATE: Add logging to verify work files exist
+* FIX:    Add fix to handle special characters in file names
+* FIX:    Add fix to handle datediff for php versions <=5.3
+* FIX:    Add fix to version compare utility method
+* FIX:    Add fix to recursive directory iterator for php versions < 5.3
+* FIX:    Ignore backwpup folders during backup
+* FIX:    Fix missing database port issue
+* FIX:    Add logging and clearstatcache to backup files
+* FIX:    Remove use of GLOB_BRACE
+
 = 1.10.7 =
 * UPDATE: Add multi-site support for database backup
 * UPDATE: Add WordPress 4.2 support

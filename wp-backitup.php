@@ -13,7 +13,7 @@
 Plugin Name: WP Backitup
 Plugin URI: http://www.wpbackitup.com
 Description: Backup your content, settings, themes, plugins and media in just a few simple clicks.
-Version: 1.10.7
+Version: 1.10.8
 Author: Chris Simmons
 Author URI: http://www.wpbackitup.com
 License: GPL3
@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
 define( 'WPBACKITUP__MAJOR_VERSION', 1);
 define( 'WPBACKITUP__MINOR_VERSION', 10);
-define( 'WPBACKITUP__MAINTENANCE_VERSION', 7);
+define( 'WPBACKITUP__MAINTENANCE_VERSION', 8);
 define( 'WPBACKITUP__BUILD_VERSION', 0);
 define( 'WPBACKITUP__VERSION',sprintf("%d.%d.%d.%d", WPBACKITUP__MAJOR_VERSION, WPBACKITUP__MINOR_VERSION,WPBACKITUP__MAINTENANCE_VERSION,WPBACKITUP__BUILD_VERSION));
 define( 'WPBACKITUP__DEBUG', false );

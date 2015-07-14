@@ -118,6 +118,32 @@ class WPBackItUp_Utility {
 		return $timestamp_diff_seconds;
 	}
 
+    function date_diff_array(DateTime $oDate1, DateTime $oDate2) {
+        $aIntervals = array(
+            'year'   => 0,
+            'month'  => 0,
+            'week'   => 0,
+            'day'    => 0,
+            'hour'   => 0,
+            'minute' => 0,
+            'second' => 0,
+        );
+
+        foreach($aIntervals as $sInterval => &$iInterval) {
+            while($oDate1 <= $oDate2){
+                $oDate1->modify('+1 ' . $sInterval);
+                if ($oDate1 > $oDate2) {
+                    $oDate1->modify('-1 ' . $sInterval);
+                    break;
+                } else {
+                    $iInterval++;
+                }
+            }
+        }
+
+        return $aIntervals;
+    }
+
 	public static function encode_items(&$item, $key)
 	{
 		//If not string convert to one.
@@ -149,14 +175,14 @@ class WPBackItUp_Utility {
 		$version1_array = explode('.', $version1);
 		$version2_array = explode('.', $version2);
 
-		if (! empty($version1_array[0]) && isset ($version1_array[0]) &&
-			! empty($version2_array[0]) && isset ($version2_array[0]) &&
-		    ! empty($version1_array[1]) && isset ($version1_array[1]) &&
-		    ! empty($version2_array[1]) && isset ($version2_array[1]) ){
+		if ( isset ($version1_array[0]) && is_numeric($version1_array[0])
+			&& isset ($version2_array[0]) && is_numeric($version2_array[0])
+		    && isset ($version1_array[1]) && is_numeric($version1_array[1])
+		    && isset ($version2_array[1]) && is_numeric($version2_array[1]) ){
 
 			//If major  or minor version is different
-			if ($version1_array[0] == $version2_array[0] &&
-			    $version1_array[1] == $version2_array[1] ) {
+			if ($version1_array[0] === $version2_array[0] &&
+			    $version1_array[1] === $version2_array[1] ) {
 				return true;
 			}
 

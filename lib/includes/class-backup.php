@@ -206,7 +206,7 @@ class WPBackItUp_Backup {
         $this->logger->log_info(__METHOD__, 'Begin - Cleanup Backup Folder:' . $path);
 
         $fileSystem = new WPBackItUp_FileSystem($this->logger);
-        $work_files = array_filter(glob($this->backup_project_path. '*.{txt,sql}',GLOB_BRACE), 'is_file');
+	    $work_files = $fileSystem->get_fileonly_list($path, 'txt|sql');
 
         if(!$fileSystem ->delete_files($work_files)) {
             $this->logger->log_error(__METHOD__,'Work files could not be deleted');
@@ -216,23 +216,6 @@ class WPBackItUp_Backup {
         $this->logger->log_info(__METHOD__,'End - Work Files Deleted');
         return true;
     }
-
-    public function delete_site_data_files(){
-        $path = $this->backup_project_path;
-        $this->logger->log_info(__METHOD__, 'Begin - Cleanup Backup Folder:' . $path);
-
-        $fileSystem = new WPBackItUp_FileSystem($this->logger);
-        $work_files = array_filter(glob($this->backup_project_path. '*.{txt,sql}',GLOB_BRACE), 'is_file');
-
-        if(!$fileSystem ->delete_files($work_files)) {
-            $this->logger->log_error(__METHOD__,'Work files could not be deleted');
-            return false;
-        }
-
-        $this->logger->log_info(__METHOD__,'End - Work Files Deleted');
-        return true;
-    }
-
 
     public function purge_old_files(){
         $this->logger->log_info(__METHOD__,'Begin');
@@ -331,6 +314,10 @@ class WPBackItUp_Backup {
         $sql_file_name=$this->backup_project_path . WPBACKITUP__SQL_DBBACKUP_FILENAME;
         $sqlUtil = new WPBackItUp_SQL($this->logger);
         $this->logger->log_info(__METHOD__,'Begin - Export Database: ' .$sql_file_name);
+
+	    //log database size
+	    $db_size = $sqlUtil->get_table_rows();
+	    $this->logger->log_info(__METHOD__,$db_size,"Table Size");
 
         //Try SQLDump First
         $this->logger->log_info(__METHOD__,'Export DB with MYSQLDUMP');
@@ -432,7 +419,7 @@ class WPBackItUp_Backup {
 		try {
 			$batch_counter = 0;
 			$total_counter=0;
-			$directory_iterator=new RecursiveDirectoryIterator($root_path,FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS | RecursiveIteratorIterator::CATCH_GET_CHILD);
+			$directory_iterator=new RecursiveDirectoryIterator($root_path, 4096 | 8192 | RecursiveIteratorIterator::CATCH_GET_CHILD);
 			$item_iterator = new RecursiveIteratorIterator($directory_iterator,RecursiveIteratorIterator::SELF_FIRST);
 
 			$datetime1 = new DateTime('now');
@@ -469,9 +456,17 @@ class WPBackItUp_Backup {
 			}
 
 			$datetime2 = new DateTime('now');
-			$interval = $datetime1->diff($datetime2);
-			$this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
-			return true;
+
+            if(method_exists($datetime2, 'diff')) {
+                $interval = $datetime1->diff($datetime2);
+                $this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+            } else {
+                $util = new WPBackItUp_Utility($this->logger);
+                $interval = $util->date_diff_array($datetime1, $datetime2);
+                $this->logger->log_info(__METHOD__, 'File Count/Time: ' . $total_counter . '-' . $interval['second'] . ' seconds');
+            }
+
+            return true;
 
 		} catch(Exception $e) {
 			$this->logger->log_error( __METHOD__, 'Exception: ' .$e);
@@ -534,14 +529,15 @@ class WPBackItUp_Backup {
 		$this->logger->log_info( __METHOD__, 'Begin:' .$group_id);
 
 		//create a separate log file for inventory
-		$logger_inventory = new WPBackItUp_Logger(true,null,'debug_inventory_'.$group_id);
+		$logger_inventory = new WPBackItUp_Logger(false,null,sprintf('debug_inventory_%s_%s',$group_id,$job_id));
+		$logger_inventory->log_info( __METHOD__, '**BEGIN**');
 		$logger_inventory->log_info( __METHOD__, 'Root Path: ' .$root_path);
 		$logger_inventory->log_info( __METHOD__, 'Exclude: ' .var_export($exclude,true));
 		$logger_inventory->log_info( __METHOD__, '***');
 		try {
 			$batch_counter = 0;
 			$total_counter=0;
-			$directory_iterator=new RecursiveDirectoryIterator($root_path,FilesystemIterator::SKIP_DOTS | FilesystemIterator::UNIX_PATHS | RecursiveIteratorIterator::CATCH_GET_CHILD);
+			$directory_iterator=new RecursiveDirectoryIterator($root_path, 4096 | 8192 | RecursiveIteratorIterator::CATCH_GET_CHILD);
 			$item_iterator = new RecursiveIteratorIterator($directory_iterator,RecursiveIteratorIterator::SELF_FIRST);
 
 			$datetime1 = new DateTime('now');
@@ -551,15 +547,23 @@ class WPBackItUp_Backup {
 			while ($item_iterator->valid()) {
 				//Skip the item if its in the exclude array
 				//This is a string compare starting in position 1
-				$file_path = $item_iterator->getSubPathname();
+
+				//Fix the path to use backslash
+				$file_path = str_replace('\\', "/",$item_iterator->getSubPathname());
+
+				//Remove special characters
+				$file_path = esc_sql($file_path);
+
 				if ($this->strposa0($file_path, $exclude)===true) {
 					$logger_inventory->log_info( __METHOD__, 'Skip: ' .$file_path);
 				} else {
 					if ( $item_iterator->isFile()) {
 						if ($batch_counter>=$batch_insert_size){
+							$logger_inventory->log_info( __METHOD__, '*Try Write Batch*');
 							if (! $db->insert_job_items($sql,$logger_inventory)) {
 								return false;
 							}
+							$logger_inventory->log_info( __METHOD__, '*Write Batch SUCCESS*');
 							$sql="";
 							$batch_counter=0;
 						}
@@ -574,14 +578,27 @@ class WPBackItUp_Backup {
 			}
 
 			if ($batch_counter>0) {
+				$logger_inventory->log_info( __METHOD__, '*Try Write Batch*');
 				if (! $db->insert_job_items($sql,$logger_inventory)) {
 					return false;
 				}
+				$logger_inventory->log_info( __METHOD__, '*Write Batch SUCCESS*');
 			}
 
 			$datetime2 = new DateTime('now');
-			$interval = $datetime1->diff($datetime2);
-			$this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+
+			$logger_inventory->log_info( __METHOD__, '**END**');
+
+            if(method_exists($datetime2, 'diff')) {
+                $interval = $datetime1->diff($datetime2);
+                $this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+            } else {
+                $util = new WPBackItUp_Utility($this->logger);
+                $interval = $util->date_diff_array($datetime1, $datetime2);
+                $this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval['second'] . ' seconds');
+            }
+
+
 			return true;
 
 		} catch(Exception $e) {
@@ -654,9 +671,17 @@ class WPBackItUp_Backup {
 			}
 
 			$datetime2 = new DateTime('now');
-			$interval = $datetime1->diff($datetime2);
-			$this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
-			return true;
+
+            if(method_exists($datetime2, 'diff')) {
+                $interval = $datetime1->diff($datetime2);
+                $this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval->format('%s seconds'));
+            } else {
+                $util = new WPBackItUp_Utility($this->logger);
+                $interval = $util->date_diff_array($datetime1, $datetime2);
+                $this->logger->log_info( __METHOD__, 'File Count/Time: ' .$total_counter . '-' . $interval['second'] . ' seconds');
+            }
+
+            return true;
 
 		} catch(Exception $e) {
 			$this->logger->log_error( __METHOD__, 'Exception: ' .$e);
@@ -825,13 +850,33 @@ class WPBackItUp_Backup {
 			return false;
 		}
 
+        // checking zip file path.
+        $this->logger->log_info(__METHOD__,'Begin:: Checking Zip file Existance');
+        $this->logger->log_info(__METHOD__,'Tmp file path: '. $zip_file_path);
+
+        // Clears file status cache
+        clearstatcache();
+
 		//if there are no more files to add then rename the zip
         //Check to see if the file exists, it is possible that it does not if only empty folders were contained
         if(file_exists($zip_file_path) ) {
+            $this->logger->log_info(__METHOD__,'Tmp File exist');
 	        if ( ! $this->add_zip_suffix( $batch_id,$zip_file_path ) ) {
+                $this->logger->log_info(__METHOD__,'Adding Zip Suffix Failed');
 		        return false;
-	        }
+	        }else{
+                $this->logger->log_info(__METHOD__,'Adding Zip Suffix Successful');
+            }
+        }else{
+            $this->logger->log_info(__METHOD__,'Tmp File Not exist - file_exists() not working.');
+            // Scanning Temp Directory.
+            $files_on_temp_directory = scandir($this->backup_project_path);
+            $this->logger->log_info(__METHOD__,'Begin::Files on TMP Directory');
+            $this->logger->log_info(__METHOD__,$files_on_temp_directory);
+            $this->logger->log_info(__METHOD__,'End::Files on TMP Directory');
         }
+
+        $this->logger->log_info(__METHOD__,'End:: Checking Zip file Existance');
 
 		//update the batch as done.
 		$db->update_batch_complete($job_id,$batch_id);
@@ -888,16 +933,29 @@ class WPBackItUp_Backup {
 		$current_zip_file=null;
 		$zip=null;
 		$file_counter=0;
+
+        // Checking zip file existance
+        $this->logger->log_info(__METHOD__,'All Zip files Path');
+
 		foreach($file_list as $file) {
 			$batch_id = $file->batch_id;
 			$item     = $target_root .'/' .utf8_decode( $file->item );
 
 			//get zip path
 			$zip_file_path = sprintf('%s-%s-%s.zip',$this->backup_project_path . $this->backup_name, $content_type,$batch_id);
-			if ($current_zip_file!=$zip_file_path){
+
+            // loging zip file path.
+            $this->logger->log_info(__METHOD__,'zip file path: '. $zip_file_path);
+
+            if ($current_zip_file!=$zip_file_path){
 				//$this->logger->log_info( __METHOD__, 'Zip File:' . $zip_file_path );
 				if (! file_exists($zip_file_path)){
 					$this->logger->log_error( __METHOD__, 'Zip File not found:' . $zip_file_path );
+                    // Scanning Temp Directory.
+                    $files_on_temp_directory = scandir($this->backup_project_path);
+                    $this->logger->log_info(__METHOD__,'Begin::Files on TMP Directory');
+                    $this->logger->log_info(__METHOD__,$files_on_temp_directory);
+                    $this->logger->log_info(__METHOD__,'End::Files on TMP Directory');
 					return false;
 				}
 				$current_zip_file = $zip_file_path;
