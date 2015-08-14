@@ -37,7 +37,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 define( 'WPBACKITUP__NAMESPACE', 'wp-backitup' );
 define( 'WPBACKITUP__MAJOR_VERSION', 1);
 define( 'WPBACKITUP__MINOR_VERSION', 10);
-define( 'WPBACKITUP__MAINTENANCE_VERSION', 8);
+define( 'WPBACKITUP__MAINTENANCE_VERSION', 9);
 define( 'WPBACKITUP__BUILD_VERSION', 0);
 define( 'WPBACKITUP__VERSION',sprintf("%d.%d.%d.%d", WPBACKITUP__MAJOR_VERSION, WPBACKITUP__MINOR_VERSION,WPBACKITUP__MAINTENANCE_VERSION,WPBACKITUP__BUILD_VERSION));
 define( 'WPBACKITUP__DEBUG', false );
@@ -70,9 +70,9 @@ define( 'WPBACKITUP__THEMES_FOLDER',basename(get_theme_root()));
 define( 'WPBACKITUP__SQL_DBBACKUP_FILENAME', 'db-backup.sql');
 
 define( 'WPBACKITUP__BACKUP_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft*,wp-clone*,backwpup*,backupwordpress*,cache,backupcreator*,backupbuddy*');
-define( 'WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST','.htaccess');//comma seperated list with no spaces after comma
+define( 'WPBACKITUP__BACKUP_GLOBAL_IGNORE_LIST','.htaccess');//comma separated list with no spaces after comma
 
-define( 'WPBACKITUP__BACKUP_OTHER_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',updraft*,wp-clone*,backwpup*,backupwordpress*,cache,backupcreator*,backupbuddy*,wptouch-data*,backups*');
+define( 'WPBACKITUP__BACKUP_OTHER_IGNORE_LIST', WPBACKITUP__BACKUP_FOLDER .',' .WPBACKITUP__RESTORE_FOLDER .',debug.log,updraft*,wp-clone*,backwpup*,backupwordpress*,cache,backupcreator*,backupbuddy*,wptouch-data*,backups*');
 define( 'WPBACKITUP__TASK_TIMEOUT_SECONDS', 300);//300 = 5 minutes
 define( 'WPBACKITUP__SCRIPT_TIMEOUT_SECONDS', 900);//900 = 15 minutes
 
@@ -94,8 +94,8 @@ register_deactivation_hook( __FILE__, array( 'WPBackitup_Admin', 'deactivate' ) 
 function wpbackitup_modify_cron_schedules($schedules) {
     $schedules['weekly'] = array('interval' => 604800, 'display' => 'Once Weekly');
     $schedules['monthly'] = array('interval' => 2592000, 'display' => 'Once Monthly');
-    $schedules['every4hours'] = array('interval' => 14400, 'display' => sprintf(__('Every %s hours', 'wpbackitup'), 4));
-    $schedules['every8hours'] = array('interval' => 28800, 'display' => sprintf(__('Every %s hours', 'wpbackitup'), 8));
+    $schedules['every4hours'] = array('interval' => 14400, 'display' => sprintf(__('Every %s hours', WPBACKITUP__NAMESPACE), 4));
+    $schedules['every8hours'] = array('interval' => 28800, 'display' => sprintf(__('Every %s hours', WPBACKITUP__NAMESPACE), 8));
     return $schedules;
 }
 
@@ -151,12 +151,6 @@ if (!is_admin()
 }
 
 require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-wpbackitup-admin.php' );
-require_once( WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-logger.php' );
-
-//Shared Classes 
-if( !class_exists('WPBackItUp_Job_v2') ) {
-	include_once(WPBACKITUP__PLUGIN_PATH .'/lib/includes/class-job-v2.php');
-}
 
 global $WPBackitup;
 $WPBackitup = WPBackitup_Admin::get_instance();

@@ -1,5 +1,12 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed (viewlog)');
-@set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+
+// Checking safe mode is on/off and set time limit
+if( ini_get('safe_mode') ){
+   @ini_set('max_execution_time', WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+}else{
+   @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+}
+
 
 /**
  * WP BackItUp  - View Log Handler

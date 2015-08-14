@@ -1,5 +1,12 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
+// Checking safe mode is on/off and set time limit
+if( ini_get('safe_mode') ){
+   @ini_set('max_execution_time', 0);
+}else{
+   @set_time_limit(0);
+}
+
 /**
  * WP BackItUp  - SQL Class
  *
@@ -11,16 +18,26 @@
 
 class WPBackItUp_SQL {
 
-	private $logger;
+	private $log_name;
     private $connection;
 
-	function __construct($logger) {
+	function __construct($log_name) {
 		try {
-			$this->logger = $logger;
-            $this->connection = $this->get_sqlconnection();
+			$this->log_name = 'debug_sql';//default log name
+			if (is_object($log_name)){
+				//This is for the old logger
+				$this->log_name = $log_name->getLogFileName();
+			} else{
+				if (is_string($log_name) && isset($log_name)){
+					$this->log_name = $log_name;
+				}
+			}
+
+			$this->connection = $this->get_sqlconnection();
 
 		} catch(Exception $e) {
-			$this->logger->log_error(__METHOD__,$e);
+			error_log($e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Constructor Exception: ' .$e);
 		}
    }
 
@@ -31,7 +48,7 @@ class WPBackItUp_SQL {
 
    public function mysqldump_export($sql_file_path,$with_mysqlpath=false) {
 		global $wpdb;
-		$this->logger->log('(SQL.mysqldump_export) Export Database to: ' .$sql_file_path);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Export Database to: ' .$sql_file_path);
 
         $db_name = DB_NAME;
         $db_user = DB_USER;
@@ -61,7 +78,7 @@ class WPBackItUp_SQL {
 				$tables='';
 				if (is_multisite()){
 					$sql = sprintf('SHOW TABLES like \'%s%%\' ',$wpdb->prefix);
-					$this->logger->log('tables:' . $sql);
+					WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'tables:' . $sql);
 					$mysqli = $this->connection;
 					$result = $mysqli->query($sql);
 					// Cycle through "$result" and put content into an array
@@ -83,38 +100,38 @@ class WPBackItUp_SQL {
 
                 if (WPBACKITUP__DEBUG) {
 					$masked_command = str_replace(array($db_user,$db_pass),'XXXXXX',$command);
-                    $this->logger->log('(SQL.db_SQLDump)Execute command:' . $masked_command);
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Execute command:' . $masked_command);
                 }
 
                 exec($command,$output,$rtn_var);
-	            $this->logger->log('(SQL.mysqldump_export)Execute output:');
-	            $this->logger->log($output);
-	            $this->logger->log('Return Value:' .$rtn_var);
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Execute output:');
+				WPBackItUp_LoggerV2::log($this->log_name,$output);
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Return Value:' .$rtn_var);
 
 	            //0 is success
 	            if ($rtn_var>0){
-                    $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED return Value:' .$rtn_var);
+		            WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'EXPORT FAILED return Value:' .$rtn_var);
 	                return false;
 	            }
 
                 //Did the export work
                 clearstatcache();
                 if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
-                    $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED: Dump was empty or missing.');
+	                WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'EXPORT FAILED: Dump was empty or missing.');
                     return false;
                 }
             } catch(Exception $e) {
-                $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exception: ' .$e);
+				WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'EXPORT FAILED Exception: ' .$e);
                 return false;
             }
         }
         else
         {
-            $this->logger->log('(SQL.mysqldump_export) EXPORT FAILED Exec() disabled.');
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'EXPORT FAILED Exec() disabled.');
             return false;
         }
 
-        $this->logger->log('(SQL.mysqldump_export) SQL Dump SUCCESS.');
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Dump SUCCESS.');
         return true;
 	}
 
@@ -126,11 +143,11 @@ class WPBackItUp_SQL {
 	 * @return array|bool
 	 */
 	public function get_table_rows() {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$mysqli = $this->connection;
 		if (false === $mysqli) {
-			$this->logger->log_error(__METHOD__,'No SQL Connection');
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'No SQL Connection');
 			return false;
 		}
 		$sql = "SELECT TABLE_NAME,TABLE_ROWS FROM INFORMATION_SCHEMA.TABLES
@@ -144,26 +161,26 @@ class WPBackItUp_SQL {
 			$tables[] = array("table_name" => $row[0], 'table_rows' => $row[1]) ;
 		}
 
-		$this->logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
 		return $tables;
 	}
 
     public function manual_export($sql_file_path) {
 	    global $wpdb;
-		$this->logger->log_info(__METHOD__,'Manually Create SQL Backup File:'.$sql_file_path);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Manually Create SQL Backup File:'.$sql_file_path);
 		
 		$mysqli = $this->connection;
 		$mysqli->set_charset('utf8');
 
 		if (false===$mysqli) {
-			$this->logger->log_error(__METHOD__,'No SQL Connection');
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'No SQL Connection');
 		 	return false;
 		}
 
 	    //open the SQL file
 	    $handle = fopen($sql_file_path,'w+');
 	    if (false===$handle) {
-		    $this->logger->log_error(__METHOD__,'File could not be opened.');
+		    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'File could not be opened.');
 		    return false;
 	    }
 
@@ -207,7 +224,7 @@ class WPBackItUp_SQL {
 
 		// Cycle through each  table
 		foreach($tables as $table) {
-			$this->logger->log($table);
+			WPBackItUp_LoggerV2::log($this->log_name,$table);
 
 //			//if multi site install then
 //			if (is_multisite()){
@@ -279,26 +296,26 @@ class WPBackItUp_SQL {
 
 		//Did the export work
 		if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
-			$this->logger->log('(SQL.manual_export) Failure: SQL Export file was empty or didnt exist.');
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Failure: SQL Export file was empty or didnt exist.');
 			return false;
 		}
 
-		$this->logger->log('(SQL.manual_export)SQL Backup File Created:'.$sql_file_path);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Backup File Created:'.$sql_file_path);
 	    return true;
 	}
 
     public function run_sql_exec($sql_file,$with_mysqlpath=false) {
-        $this->logger->log('(SQL.run_sql_exec)SQL Execute:' .$sql_file);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Execute:' .$sql_file);
 
         //Is the backup sql file empty
         if (!file_exists($sql_file) || filesize($sql_file)<=0) {
-            $this->logger->log('(SQL.run_sql_exec) Failure: SQL File was empty:' .$sql_file);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Failure: SQL File was empty:' .$sql_file);
             return false;
         }
 
         //This is to ensure that exec() is enabled on the server
         if(exec('echo EXEC') != 'EXEC') {
-            $this->logger->log('(SQL.run_sql_exec) Failure: Exec() disabled.');
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Failure: Exec() disabled.');
             return false;
         }
 
@@ -333,37 +350,37 @@ class WPBackItUp_SQL {
 
             if (WPBACKITUP__DEBUG) {
 	            $masked_command = str_replace(array($db_user,$db_pass),'XXXXXX',$command);
-                $this->logger->log( '(SQL.db_run_sql)Execute command:' . $masked_command );
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Execute command:' . $masked_command );
             }
 
             //$output = shell_exec($command);
             exec($command,$output,$rtn_var);
-            $this->logger->log('(SQL.run_sql_exec)Execute output:');
-            $this->logger->log($output);
-            $this->logger->log('Return Value:' .$rtn_var);
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Execute output:');
+	        WPBackItUp_LoggerV2::log($this->log_name,$output);
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Return Value:' .$rtn_var);
 
             //0 is success
             if ($rtn_var!=0){
-                $this->logger->log('(SQL.run_sql_exec) An Error has occurred RTNVAL: ' .$rtn_var);
+	            WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'An Error has occurred RTNVAL: ' .$rtn_var);
                 return false;
             }
 
         }catch(Exception $e) {
-            $this->logger->log('(SQL.run_sql_exec) Exception: ' .$e);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception: ' .$e);
             return false;
         }
 
         //Success
-        $this->logger->log('(SQL.run_sql_exec)SQL Executed successfully');
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Executed successfully');
         return true;
     }
 
     public function run_sql_manual_OLD($sql_file) {
-        $this->logger->log('(SQL.run_sql_manual)SQL Execute:' .$sql_file);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Execute:' .$sql_file);
 
         //Is the backup sql file empty
         if (!file_exists($sql_file) || filesize($sql_file)<=0) {
-            $this->logger->log('(SQL.run_sql_manual) Failure: SQL File was empty:' .$sql_file);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Failure: SQL File was empty:' .$sql_file);
             return false;
         }
 
@@ -380,20 +397,19 @@ class WPBackItUp_SQL {
             }
 
             $ctr=1;
-            $this->logger->log('(SQL.run_sql_manual) 0: here ');
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'0: here ');
             if($mysqli->multi_query($query))
             {
                 do {
-
-                    $this->logger->log('(SQL.run_sql_manual) 1: ' .$ctr++);
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'1: ' .$ctr++);
                     /* store first result set */
                     if($resultSet = $mysqli->store_result())
                     {
-                        $this->logger->log('(SQL.run_sql_manual) 2: ');
+	                    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'2: ');
 
                         while($row = $resultSet->fetch_row())
                         {
-                            $this->logger->log('(SQL.run_sql_manual) 3: ');
+	                        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'3: ');
                         }
                         $resultSet->free();
                     }
@@ -402,28 +418,27 @@ class WPBackItUp_SQL {
 
                 } while ($mysqli->next_result());
 
-                $this->logger->log('(SQL.run_sql_manual) 4: ');
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'4: ');
                 $mysqli->close();
             }
 
         }catch(Exception $e) {
-            $this->logger->log('(SQL.run_sql_manual) Exception: ' .$e);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception: ' .$e);
             return false;
         }
 
         //Success
-        $this->logger->log('(SQL.run_sql_manual)SQL Executed successfully:' .$sql_file);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Executed successfully:' .$sql_file);
         return true;
     }
 
     function run_sql_manual($sql_file_path, $delimiter = ';')
     {
-        $this->logger->log('(SQL.run_sql_manual)SQL Execute:' .$sql_file_path);
-        set_time_limit(0);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Execute:' .$sql_file_path);
 
         //Is the backup sql file empty
         if (!file_exists($sql_file_path) || filesize($sql_file_path)<=0) {
-            $this->logger->log('(SQL.run_sql_manual) Failure: SQL File was empty:' .$sql_file_path);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Failure: SQL File was empty:' .$sql_file_path);
             return false;
         }
 
@@ -460,10 +475,9 @@ class WPBackItUp_SQL {
                             if ($mysqli->query($query) === false) {
                                 $error_count++;
 
-                                $this->logger->log('(SQL.run_sql_manual)Total Queries Executed:' .$total_query);
-                                $this->logger->log('(SQL.run_sql_manual)Query Errors:' .$error_count);
-
-                                $this->logger->log('(SQL.run_sql_manual) SQL ERROR: ' . $query);
+	                            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Total Queries Executed:' .$total_query);
+	                            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Query Errors:' .$error_count);
+	                            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,' SQL ERROR: ' . $query);
 
                                 //$mysqli->rollback();
                                 $mysqli->close();
@@ -472,7 +486,7 @@ class WPBackItUp_SQL {
                                 return false;
                             }
 //                          else {
-//                              $this->logger->log('(SQL.run_sql_manual) SUCCESS: ' . $query);
+//                              WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SUCCESS: ' . $query);
 //                          }
 
                             while (ob_get_level() > 0)
@@ -492,32 +506,32 @@ class WPBackItUp_SQL {
                     //$mysqli->commit();
                     $mysqli->close();
 
-                    $this->logger->log('(SQL.run_sql_manual)SQL Executed successfully:' .$sql_file_path);
-                    $this->logger->log('(SQL.run_sql_manual)Total Queries Executed:' .$total_query);
-                    $this->logger->log('(SQL.run_sql_manual)Query Errors:' .$error_count);
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SQL Executed successfully:' .$sql_file_path);
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Total Queries Executed:' .$total_query);
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Query Errors:' .$error_count);
                     return fclose($sql_handle);
                 }
             }
 
         }catch(Exception $e) {
-            $this->logger->log('(SQL.run_sql_manual) Exception: ' .$e);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception: ' .$e);
             return false;
         }
 
-        $this->logger->log('(SQL.run_sql_manual)SQL File could not be opened:' .$sql_file_path);
+	    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'SQL File could not be opened:' .$sql_file_path);
         return false;
     }
 
 	private function get_sqlconnection() {
-		$this->logger->log('(SQL.get_sqlconnection)Get SQL connection to database.');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Get SQL connection to database.');
 		$db_name = DB_NAME; 
         $db_user = DB_USER;
         $db_pass = DB_PASSWORD; 
         $db_host = $this->get_hostonly(DB_HOST);
         $db_port = $this->get_portonly(DB_HOST);
 
-        $this->logger->log('(SQL.get_sqlconnection)Host:' . $db_host);
-        $this->logger->log('(SQL.get_sqlconnection)Port:' . $db_port);     
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Host:' . $db_host);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Port:' . $db_port);
       
       	if (false===$db_port){
       		$mysqli = new mysqli($db_host , $db_user , $db_pass , $db_name);
@@ -527,7 +541,7 @@ class WPBackItUp_SQL {
         }
 		
 		if ($mysqli->connect_errno) {
-			$this->logger->log('(SQL.get_sqlconnection)Cannot connect to database.' . $mysqli->connect_error);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Cannot connect to database.' . $mysqli->connect_error);
 		   	return false;
 		}
 		return $mysqli;
@@ -545,8 +559,10 @@ class WPBackItUp_SQL {
 	private function get_portonly($db_host) {
 		//Check for port
 		$host_array = explode(':',$db_host);
-		if (is_array($host_array) && count($host_array)>1 && !empty($port)){
-			return $host_array[1];
+		if ( is_array($host_array) && isset($host_array[1]) ) {
+			$port = trim($host_array[1]);
+            if(!empty($port))
+                return $port;
 		}
 
 		return false;
@@ -567,7 +583,7 @@ class WPBackItUp_SQL {
     //Run SQL command
     public function run_sql_command($sql){
         if(!mysqli_query($this->connection, $sql) ) {
-            $this->logger->log('Error:SQL Command Failed:' .$sql);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Error:SQL Command Failed:' .$sql);
             return false;
         }
         return true;
@@ -578,10 +594,10 @@ class WPBackItUp_SQL {
         $base_directory = $this->get_sql_scalar('select @@basedir');
         if (!empty($base_directory)){
             $base_directory.='/bin/';
-            $this->logger->log('MySQL install path found:' .$base_directory);
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'MySQL install path found:' .$base_directory);
             return $base_directory;
         }
-        $this->logger->log('MySQL install path NOT found');
+	    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'MySQL install path NOT found');
         return false;
     }
 

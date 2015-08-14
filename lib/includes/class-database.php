@@ -20,7 +20,7 @@ class WPBackItUp_DataAccess {
 	const JOB_CONTROL_RECORD = "J";
 	const JOB_ITEM_RECORD ="I";
 
-	private $logger;
+	private $log_name;
 
 	/**
 	 * Class constructor.
@@ -29,17 +29,17 @@ class WPBackItUp_DataAccess {
 	 * @param $batch_id
 	 */
 	function __construct() {
+
 		global $wpdb,$table_prefix;
+		$this->log_name='debug_database';
 
 		try {
-			$this->logger = new WPBackItUp_Logger(false,null,'debug_database');
-
 			//Add tables to WPDB
 			$wpdb->wpbackitup_job = $table_prefix . 'wpbackitup_job';
 
-
 		} catch(Exception $e) {
-			error_log($e); //Log to debug
+			error_log($e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Constructor Exception: ' .$e);
 		}
 	}
 
@@ -50,7 +50,7 @@ class WPBackItUp_DataAccess {
 	 * @return bool
 	 */
 	public function insert_job_items($sql_values) {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 		global $wpdb;
 
 		$sql_insert = "INSERT INTO $wpdb->wpbackitup_job
@@ -75,7 +75,7 @@ class WPBackItUp_DataAccess {
 	 * @return bool
 	 */
 	public function create_job_control($job_id) {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 		global $wpdb;
 
 		$sql = $wpdb->prepare(
@@ -98,7 +98,7 @@ class WPBackItUp_DataAccess {
 	 * @return bool
 	 */
 	public function update_job_control_complete($job_id) {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		return $this->update_job_control_status($job_id,self::BATCH_COMPLETE);
 
@@ -114,7 +114,7 @@ class WPBackItUp_DataAccess {
 	 * @return bool
 	 */
 	private function update_job_control_status($job_id,$status) {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 		global $wpdb;
 
 		$sql = $wpdb->prepare(
@@ -142,7 +142,7 @@ class WPBackItUp_DataAccess {
 	 */
 	function get_old_batch_control($days){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$sql_select = $wpdb->prepare(
 			"SELECT * FROM $wpdb->wpbackitup_job
@@ -168,7 +168,7 @@ class WPBackItUp_DataAccess {
 	 */
 	function get_batch_open_tasks($batch_id,$batch_size,$job_id,$group_id){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$sql_update = $wpdb->prepare(
 			"UPDATE  $wpdb->wpbackitup_job
@@ -209,9 +209,35 @@ class WPBackItUp_DataAccess {
 	 *
 	 * @return mixed
 	 */
-	function get_completed_tasks($job_id,$group_id){
+//	function get_completed_tasks($job_id,$group_id){
+//		global $wpdb;
+//		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
+//
+//		$sql_select = $wpdb->prepare(
+//			"SELECT * FROM $wpdb->wpbackitup_job
+//			          WHERE
+//		              	record_type=%s
+//			          	&& job_id=%d
+//			          	&& group_id=%s
+//						&& status=%d
+//					  ORDER BY id
+//					  ",self::JOB_ITEM_RECORD,$job_id,$group_id,self::BATCH_COMPLETE);
+//
+//		return $this->get_rows($sql_select);
+//	}
+
+	/**
+	 * Get all completed tasks by job, group and batch ID
+	 *
+	 * @param $job_id
+	 * @param $group_id
+	 * @param $batch_id
+	 *
+	 * @return mixed
+	 */
+	function get_completed_tasks_by_batch_id($job_id,$group_id,$batch_id){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$sql_select = $wpdb->prepare(
 			"SELECT * FROM $wpdb->wpbackitup_job
@@ -220,10 +246,40 @@ class WPBackItUp_DataAccess {
 			          	&& job_id=%d
 			          	&& group_id=%s
 						&& status=%d
+						&& batch_id=%d
 					  ORDER BY id
-					  ",self::JOB_ITEM_RECORD,$job_id,$group_id,self::BATCH_COMPLETE);
+					  ",self::JOB_ITEM_RECORD,$job_id,$group_id,self::BATCH_COMPLETE,$batch_id);
 
 		return $this->get_rows($sql_select);
+	}
+
+	/**
+	 * Get array of batch ids for a job and group
+	 * Group example; Plugin, Theme, Upload
+	 *
+	 * @param $job_id
+	 * @param $group_id
+	 *
+	 * @return mixed
+	 */
+	function get_batch_ids($job_id,$group_id) {
+		global $wpdb;
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
+
+		$sql_select = $wpdb->prepare(
+			"SELECT DISTINCT batch_id FROM $wpdb->wpbackitup_job
+			          WHERE
+		              	record_type=%s
+			          	&& job_id=%d
+			          	&& group_id=%s
+						&& status=%d
+						&& batch_id != ''
+					  ORDER BY batch_id
+					  ",self::JOB_ITEM_RECORD,$job_id,$group_id,self::BATCH_COMPLETE);
+
+		// get_col Returns an empty array if no result is found.
+		return $this->get_col($sql_select);
+
 	}
 
 	/**
@@ -236,7 +292,7 @@ class WPBackItUp_DataAccess {
 	 */
 	function delete_job_records($job_id){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$sql_update = $wpdb->prepare(
 			"DELETE FROM $wpdb->wpbackitup_job
@@ -261,7 +317,7 @@ class WPBackItUp_DataAccess {
 	 */
 	function get_open_task_count($job_id,$group_id){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$sql = $wpdb->prepare(
 			"SELECT count(*) as task_count FROM $wpdb->wpbackitup_job
@@ -274,7 +330,7 @@ class WPBackItUp_DataAccess {
 		    ",self::JOB_ITEM_RECORD,$job_id,$group_id,self::BATCH_ACTIVE,self::BATCH_ERROR);
 
 		$row=$this->get_row($sql);
-		$this->logger->log_info(__METHOD__,'Results:'.var_export($row,true));
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Results:'.var_export($row,true));
 
 		return $row->task_count;
 	}
@@ -289,7 +345,7 @@ class WPBackItUp_DataAccess {
 	 */
 	function update_batch_complete($job_id,$batch_id){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$sql = $wpdb->prepare(
 			"UPDATE  $wpdb->wpbackitup_job
@@ -321,17 +377,18 @@ class WPBackItUp_DataAccess {
 	 */
 	private function query($sql){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,$sql);
 		$wpdb_result = $wpdb->query($sql);
-		$last_query = $wpdb->last_query;
+		//$last_query = $wpdb->last_query;
 		$last_error = $wpdb->last_error;
 
-		$this->logger->log_info(__METHOD__,'Last Query:' .var_export( $last_query,true ) );
-		$this->logger->log_info(__METHOD__,'Query Result: ' .($wpdb_result=== FALSE?'Query Error': $wpdb_result));
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Last Query:' .var_export( $last_query,true ) );
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Query Result: ' .($wpdb_result=== FALSE?'Query Error': $wpdb_result));
 
 		if ($wpdb_result === FALSE && !empty($last_error)) {
-			$this->logger->log_error(__METHOD__,'Last Error:' .var_export( $last_error,true ) );
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Last Error:' .var_export( $last_error,true ) );
 		}
 
 		return $wpdb_result;
@@ -345,17 +402,18 @@ class WPBackItUp_DataAccess {
 	 */
 	private function get_row($sql){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,$sql);
 		$wpdb_result = $wpdb->get_row($sql);
-		$last_query = $wpdb->last_query;
+		//$last_query = $wpdb->last_query;
 		$last_error = $wpdb->last_error;
 
-		$this->logger->log_info(__METHOD__,'Last Query:' .var_export( $last_query,true ));
-		$this->logger->log_info(__METHOD__,'Query Result: ' .($wpdb_result==null?'NULL': $wpdb->num_rows));
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Last Query:' .var_export( $last_query,true ));
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Query Result: ' .($wpdb_result==null?'NULL': $wpdb->num_rows));
 
 		if (null == $wpdb_result && !empty($last_error)) {
-			$this->logger->log_error(__METHOD__,'Last Error:' .var_export( $last_query,true ));
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Last Error:' .var_export( $last_query,true ));
 		}
 
 		return $wpdb_result;
@@ -363,24 +421,49 @@ class WPBackItUp_DataAccess {
 	}
 
 	/**
-	 * Get multiple rows
+ * Get multiple rows
+ *
+ * @param $sql
+ * @return mixed
+ */
+	private function get_rows($sql,$output=OBJECT){
+		global $wpdb;
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
+
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,$sql);
+		$wpdb_result = $wpdb->get_results($sql,$output);
+		//$last_query = $wpdb->last_query;
+		$last_error = $wpdb->last_error;
+
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Last Query:' .var_export( $last_query,true ));
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Query Result: ' .($wpdb_result==null?'NULL': $wpdb->num_rows));
+
+		if (null == $wpdb_result && ! empty($last_error)) {
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Last Error:' .var_export( $last_error,true ));
+		}
+
+		return $wpdb_result;
+
+	}
+
+	/**
+	 * Retrieve rows for one column from the database.
 	 *
 	 * @param $sql
 	 * @return mixed
 	 */
-	private function get_rows($sql){
+	private function get_col($sql,$column_index=0){
 		global $wpdb;
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
-		$wpdb_result = $wpdb->get_results($sql);
-		$last_query = $wpdb->last_query;
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,$sql);
+		$wpdb_result = $wpdb->get_col($sql,$column_index);
 		$last_error = $wpdb->last_error;
 
-		$this->logger->log_info(__METHOD__,'Last Query:' .var_export( $last_query,true ));
-		$this->logger->log_info(__METHOD__,'Query Result: ' .($wpdb_result==null?'NULL': $wpdb->num_rows));
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Query Result: ' .($wpdb_result==null?'NULL': $wpdb->num_rows));
 
 		if (null == $wpdb_result && ! empty($last_error)) {
-			$this->logger->log_error(__METHOD__,'Last Error:' .var_export( $last_error,true ));
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Last Error:' .var_export( $last_error,true ));
 		}
 
 		return $wpdb_result;

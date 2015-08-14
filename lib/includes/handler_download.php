@@ -1,5 +1,11 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed (viewlog)');
-@set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+
+// Checking safe mode is on/off and set time limit
+if( ini_get('safe_mode') ){
+   @ini_set('max_execution_time', WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+}else{
+   @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+}
 
 /**
  * WP BackItUp  - Download handler
@@ -16,17 +22,15 @@ while (@ob_end_clean());
 // required for IE, otherwise Content-disposition is ignored
 //@apache_setenv('no-gzip', 1); //Causes failure on siteground...research
 @ini_set('zlib.output_compression', 'Off');
+$download_logname='debug_download';
 
-global $logger;
-$logger = new WPBackItUp_Logger(true,null,'debug_download');
-
-$logger->log_info(__METHOD__,$_REQUEST);
+WPBackItUp_LoggerV2::log($download_logname,$_REQUEST);
 
 if ( isset($_REQUEST['_wpnonce']) && !empty($_REQUEST['_wpnonce'])
     && isset($_REQUEST['backup_file']) && !empty($_REQUEST['backup_file']) ) {
 
     if ( wp_verify_nonce( $_REQUEST['_wpnonce'], WPBACKITUP__NAMESPACE . '-download_backup' ) ) {
-        $logger->log_info( __METHOD__, 'nonce verified' );
+	    WPBackItUp_LoggerV2::log_info($download_logname,__METHOD__,'nonce verified' );
 
         //strip off the suffix IF one exists
         $folder_name = rtrim( $_REQUEST['backup_file'], '.zip' );;
@@ -57,7 +61,7 @@ if ( isset($_REQUEST['_wpnonce']) && !empty($_REQUEST['_wpnonce'])
 
         $backup_filename = $_REQUEST['backup_file'];
         $backup_path     = WPBACKITUP__BACKUP_PATH . '/' . $folder_name . '/' . $backup_filename;
-        $logger->log_info( __METHOD__, 'Backup file path:' . $backup_path );
+        WPBackItUp_LoggerV2::log_info($download_logname,__METHOD__,'Backup file path:' . $backup_path );
 
         if ( !empty($backup_filename) && file_exists( $backup_path ) ) {
             $file_name=basename( $backup_path );
@@ -69,7 +73,7 @@ if ( isset($_REQUEST['_wpnonce']) && !empty($_REQUEST['_wpnonce'])
             if ($handle !== false) {
                 //Have the headers already been sent for some reason
                 if (headers_sent()) {
-                    $logger->log_error( __METHOD__, 'Headers already sent.' );
+                    WPBackItUp_LoggerV2::log_error($download_logname,__METHOD__,'Headers already sent.' );
                 }
 
                 //Output Headers
@@ -92,20 +96,20 @@ if ( isset($_REQUEST['_wpnonce']) && !empty($_REQUEST['_wpnonce'])
                 }
 
                 fclose($handle);
-                $logger->log_info( __METHOD__, 'Download complete' );
+                WPBackItUp_LoggerV2::log_info($download_logname,__METHOD__,'Download complete' );
                 exit();
 
             } else {
-                $logger->log_error( __METHOD__, 'File Not found' );
+	            WPBackItUp_LoggerV2::log_error($download_logname,__METHOD__,'File Not found' );
             }
         } else {
-            $logger->log_error( __METHOD__, 'Backup file doesnt exist:' . $backup_path );
+	        WPBackItUp_LoggerV2::log_error($download_logname,__METHOD__,'Backup file doesnt exist:' . $backup_path );
         }
     } else {
-        $logger->log_error( __METHOD__, 'Bad Nonce');
+	    WPBackItUp_LoggerV2::log_error($download_logname,__METHOD__,'Bad Nonce');
     }
 } else {
-    $logger->log_error( __METHOD__, 'Form data missing');
+	WPBackItUp_LoggerV2::log_error($download_logname,__METHOD__,'Form data missing');
 }
 
 //Return empty file

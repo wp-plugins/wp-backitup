@@ -10,25 +10,28 @@
  */
 
 /*** Includes ***/
-// include backup class
-if( !class_exists( 'WPBackItUp_RecursiveFilter_Iterator' ) ) {
-    include_once 'class-recursiveFilter_Iterator.php';
-}
 
 class WPBackItUp_FileSystem {
 
-	private $logger;
+	const FILESYSTEM_LOG_NAME = 'debug_filesystem';
+	private $log_name;
 
-	function __construct($logger=null) {
+	function __construct($log_name=null) {
 		try {
-			if (null==$logger){
-				$this->logger = new WPBackItUp_Logger(true,null,'debug_filesystem');
+
+			$this->log_name = self::FILESYSTEM_LOG_NAME;//default log name
+			if (is_object($log_name)){
+				//This is for the old logger
+				$this->log_name = $log_name->getLogFileName();
 			} else{
-				$this->logger = $logger;
+				if (is_string($log_name) && isset($log_name)){
+					$this->log_name = $log_name;
+				}
 			}
+
 		} catch(Exception $e) {
-			//Dont do anything
-			print $e;
+			error_log($e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Constructor Exception: ' .$e);
 		}
    }
 
@@ -37,19 +40,18 @@ class WPBackItUp_FileSystem {
    }
 
     public function create_dir($dir) {
-   		$this->logger->log('(FileSytem.create_dir) Create Directory: ' .$dir);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Create Directory: ' .$dir);
 		if( !is_dir($dir) ) {
 			@mkdir($dir, 0755);
 		}
-		$this->logger->log('(FileSytem.create_dir) Directory created: ' .$dir);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Directory created: ' .$dir);
 		return true;
 	}
 
 	public function recursive_delete($dir, $ignore = array('') ){
-		$this->logger->log('(FileSystem.recursive_delete) Recursively Delete: ' .$dir);
-
-        $this->logger->log('(FileSystem.recursive_delete) Ignore:');
-        $this->logger->log($ignore);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Recursively Delete: ' .$dir);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Ignore:');
+		WPBackItUp_LoggerV2::log($this->log_name,$ignore);
 
         if( is_dir($dir) ){
             //Make sure the folder is not in the ignore array
@@ -59,7 +61,7 @@ class WPBackItUp_FileSystem {
                         if (!$this->delete_ignore($file,$ignore)) { //Check the file is not in the ignore array
                             if(!is_dir($dir .'/'. $file)) {
                                 unlink($dir .'/'. $file); //delete the file
-                                $this->logger->log('(FileSytem.recursive_delete) File Deleted:' .$dir .'/'. $file);
+	                            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File Deleted:' .$dir .'/'. $file);
                             } else {
                                 //This is a dir so delete the files first
                                 $this->recursive_delete($dir.'/'. $file, $ignore);
@@ -69,19 +71,19 @@ class WPBackItUp_FileSystem {
                 }
                 //Remove the directory
                 @rmdir($dir);
-                $this->logger->log('(FileSystem.recursive_delete) Folder Deleted:' .$dir);
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Folder Deleted:' .$dir);
                 closedir($dh);
             }
 		}
-		$this->logger->log('(FileSystem.recursive_delete) Recursive Delete Completed.');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Recursive Delete Completed.');
 		return true;
 	}
 
     public function recursive_copy($dir, $target_path, $ignore = array('') ) {
-        $this->logger->log('(FileSystem.recursive_copy) Recursive copy FROM: ' .$dir);
-        $this->logger->log('(FileSystem.recursive_copy) Recursive Copy TO: '.$target_path);
-        $this->logger->log('(FileSystem.recursive_copy) IGNORE:');
-        $this->logger->log($ignore);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Recursive copy FROM: ' .$dir);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Recursive Copy TO: '.$target_path);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'IGNORE:');
+	    WPBackItUp_LoggerV2::log($this->log_name,$ignore);
 
         if( is_dir($dir) ) { //If the directory exists
             //Exclude all the OTHER backup folders under wp-content
@@ -98,17 +100,17 @@ class WPBackItUp_FileSystem {
                                     fclose($fsrc);
                                     fclose($fdest);
                                 } catch(Exception $e) {
-                                    $this->logger->log('(FileSystem.recursive_copy) File Copy Exception: ' .$e);
+	                                WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'File Copy Exception: ' .$e);
                                     return false;
                                 }
                             } else { //If $file is a directory
                                 $destdir = $target_path .$file; //Modify the destination dir
                                 if(!is_dir($destdir)) { //Create the destdir if it doesn't exist
-                                    $this->logger->log('(FileSytem.recursive_copy) Create Folder: ' .$destdir);
+	                                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Create Folder: ' .$destdir);
                                     try {
                                         @mkdir($destdir, 0755);
                                     } catch(Exception $e) {
-                                        $this->logger->log('(FileSystem.recursive_copy)Create Folder Exception: ' .$e);
+	                                    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Create Folder Exception: ' .$e);
                                         return false;
                                     }
                                 }
@@ -121,15 +123,11 @@ class WPBackItUp_FileSystem {
             }
         }
 
-        $this->logger->log('(FileSystem.recursive_copy) Completed');
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Completed');
         return true;
     }
 
     public function recursive_validate($source_path, $target_path, $ignore = array('') ) {
-//        $this->logger->log('(FileSystem.recursive_validate) Recursive validate FROM: ' .$source_path);
-//        $this->logger->log('(FileSystem.recursive_validate) Recursive validate TO: '.$target_path);
-//        $this->logger->log('(FileSystem.recursive_validate) IGNORE:');
-//        $this->logger->log($ignore);
 
         $rtnVal=true;
         if( is_dir($source_path) ) { //If the directory exists
@@ -143,7 +141,7 @@ class WPBackItUp_FileSystem {
                                     $target_file = $target_path .$file;
 
                                     if (!file_exists($target_file))  {
-                                        $this->logger->log('(FileSystem.recursive_validate) Files DIFF - Target file doesnt exist:' . $target_file);
+	                                    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Files DIFF - Target file doesnt exist:' . $target_file);
                                         $rtnVal=false;
                                         continue;
                                     }
@@ -152,21 +150,21 @@ class WPBackItUp_FileSystem {
                                     $target_file_size = filesize ($target_file);
 
                                     if ($source_file_size != $target_file_size){
-                                        $this->logger->log('(FileSystem.recursive_validate) Files DIFF Source:' . $source_file);
-                                        $this->logger->log('(FileSystem.recursive_validate) Files DIFF Target:' . $target_file);
-                                        $this->logger->log('(FileSystem.recursive_validate) Files DIFF Size:' . $source_file_size .':' . $target_file_size);
+	                                    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Files DIFF Source:' . $source_file);
+                                        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Files DIFF Target:' . $target_file);
+	                                    WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Files DIFF Size:' . $source_file_size .':' . $target_file_size);
                                         $rtnVal=false;
                                         continue;
                                     }
 
                                 } catch(Exception $e) {
-                                    $this->logger->log('(FileSystem.recursive_validate) Exception: ' .$e);
+	                                WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception: ' .$e);
                                     return false;
                                 }
                             } else { //If $file is a directory
                                 $destdir = $target_path .$file; //Modify the destination dir
                                 if(!is_dir($destdir)) {
-                                    $this->logger->log('(FileSytem.recursive_validate) DIFF Folder doesnt exist: ' .$destdir);
+	                                WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'DIFF Folder doesnt exist: ' .$destdir);
                                     $rtnVal= false;
                                 }else{
                                     $dir_rtnVal=$this->recursive_validate($source_path .$file .'/', $target_path .$file .'/', $ignore);
@@ -181,7 +179,6 @@ class WPBackItUp_FileSystem {
             }
         }
 
-        //$this->logger->log('(FileSystem.recursive_validate) Completed:' . ($rtnVal ? 'true' : 'false'));
         return $rtnVal;
     }
 
@@ -195,7 +192,6 @@ class WPBackItUp_FileSystem {
             ($file == "._" ) ||
             ($file == "cgi-bin" ))  {
 
-            //$this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
             return true;
         }
 
@@ -212,7 +208,6 @@ class WPBackItUp_FileSystem {
 		    //($file == "._" )
 		    //($file == "cgi-bin" ))
 		{
-			//$this->logger->log('(FileSystem.ignore) IGNORE:'.$file);
 			return true;
 		}
 
@@ -229,7 +224,7 @@ class WPBackItUp_FileSystem {
             strpos(strtolower($dir),'/wp-content/uploads/backupwordpress')!== false
             ){
 
-                $this->logger->log('(FileSystem.is_backup_folder) SKIP Backup Folder: ' .$dir);
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'SKIP Backup Folder: ' .$dir);
                 return true;
 
             }else{
@@ -238,46 +233,9 @@ class WPBackItUp_FileSystem {
 
     }
 
-
-//    function delete_children_recursive($path, $ignore = array('cgi-bin','._'))
-//    {   //The filters are not working on this method
-//        return false;
-//        if (is_dir($path))
-//        {
-//            $this->logger->log('(FileSystem_delete_children_recursive) Ignore:');
-//            $this->logger->log($ignore);
-//
-//            $iterator = new RecursiveDirectoryIterator($path);
-//            $iterator->setFlags(RecursiveDirectoryIterator::SKIP_DOTS);
-//            $filter = new WPBackItUp_RecursiveFilter_Iterator($iterator);
-//            $filter->set_filter($ignore);
-//
-//            $all_files  = new RecursiveIteratorIterator($filter,RecursiveIteratorIterator::CHILD_FIRST);
-//
-//            foreach ($all_files as $file)
-//            {
-//                if ($file->isDir())
-//                {
-//                    $this->logger->log('(delete_recursive_new) delete folder:'.$file);
-//                    rmdir($file->getPathname());
-//                }
-//                else
-//                {
-//                    $this->logger->log('(delete_recursive_new) delete file:'.$file);
-//                    unlink($file->getPathname());
-//
-//                }
-//
-//                $this->logger->log('(FileSystem_delete_children_recursive) Deleted:' . $file);
-//            }
-//        }
-//        return true;
-//    }
-
-
 	public function purge_FilesByDate($number_Files_Allowed,$path)
 	{
-		$this->logger->log('(FileSytem.purge_FilesByDate) Purge files by date:' .$number_Files_Allowed .':'.$path);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge files by date:' .$number_Files_Allowed .':'.$path);
 
 		if (is_numeric($number_Files_Allowed) && $number_Files_Allowed> 0){
 			$FileList = glob($path . "*.zip");
@@ -288,8 +246,8 @@ class WPBackItUp_FileSystem {
 			$i = 1;
 			foreach ($FileList as $key => $val)
 			{
-                $this->logger->log_info(__METHOD__,' File:'.$val);
-                $this->logger->log_info(__METHOD__,' File Date Time:'.filemtime($val));
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,' File:'.$val);
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,' File Date Time:'.filemtime($val));
 
 			  if($i <= $number_Files_Allowed)
 			  {
@@ -300,23 +258,23 @@ class WPBackItUp_FileSystem {
                 $log_file_path = str_replace('.zip','.log',$val);
                 if (file_exists($val)) unlink($val);
                 if (file_exists($log_file_path)) unlink($log_file_path);
-                $this->logger->log('(FileSytem.purge_FilesByDate) Delete File:)' .$val);
+				  WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Delete File:)' .$val);
 
 			  }
 			}
 		}
-		$this->logger->log('(FileSytem.purge_FilesByDate) Completed.');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Completed.');
 	}
 
     public function purge_files($path, $file_pattern, $days)
     {
-        $this->logger->log('(FileSytem.purge_files) Purge files days:' . $days);
-        $this->logger->log('(FileSytem.purge_files) Purge files path:' . $path);
-        $this->logger->log('(FileSytem.purge_files) Purge files extension:' . $file_pattern);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge files days:' . $days);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge files path:' . $path);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge files extension:' . $file_pattern);
 
         //Check Parms
         if (empty($path) ||  empty($file_pattern) || !is_numeric($days)){
-            $this->logger->log('(FileSytem.purge_files) Invalid Parm values');
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Invalid Parm values');
             return false;
         }
 
@@ -327,8 +285,8 @@ class WPBackItUp_FileSystem {
 
         foreach ($FileList as $key => $file)
         {
-            $this->logger->log_info(__METHOD__,' File:'.$file);
-            $this->logger->log_info(__METHOD__,' File Date Time:'.filemtime($file));
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File:'.$file);
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File Date Time:'.filemtime($file));
 
             $current_date = new DateTime('now');
             $file_mod_date = new DateTime(date('Y-m-d',filemtime($file)));
@@ -337,18 +295,18 @@ class WPBackItUp_FileSystem {
             //$date_diff = $current_date->diff($file_mod_date);
             //$date_diff_days = $date_diff->days;
 
-            $util = new WPBackItUp_Utility( $this->logger);
+            $util = new WPBackItUp_Utility($this->log_name);
             $date_diff_days=$util->date_diff_days($file_mod_date,$current_date);
 
             if($date_diff_days>=$days){
                 if (file_exists($file)) unlink($file);
-                $this->logger->log('Delete:' . $file);
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Delete:' . $file);
             }
             else{
                 break; //Exit for
             }
         }
-        $this->logger->log('(FileSytem.purge_files) Completed.');
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Completed.');
         return true;
     }
 
@@ -364,13 +322,13 @@ class WPBackItUp_FileSystem {
      */
     public function purge_folders($path, $pattern, $retention_limit)
     {
-        $this->logger->log_info(__METHOD__,' Purge folders retained number:' . $retention_limit);
-        $this->logger->log_info(__METHOD__,' Purge folder path:' . $path);
-        $this->logger->log_info(__METHOD__,' Purge pattern:' . $pattern);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge folders retained number:' . $retention_limit);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge folder path:' . $path);
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Purge pattern:' . $pattern);
 
         //Check Parms
         if (empty($path) ||  empty($pattern) || !is_numeric($retention_limit)){
-            $this->logger->log_error(__METHOD__,' Invalid Parm values');
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Invalid Parm values');
             return false;
         }
 
@@ -382,8 +340,8 @@ class WPBackItUp_FileSystem {
         $backup_count=0;
         foreach (array_reverse($folder_list) as $key => $folder)
         {
-            $this->logger->log_info(__METHOD__,' Folder:'.$folder);
-            $this->logger->log_info(__METHOD__,' Folder Date Time:'.filemtime($folder));
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Folder:'.$folder);
+	        WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Folder Date Time:'.filemtime($folder));
 
             ++$backup_count;
             if($backup_count>$retention_limit){
@@ -392,52 +350,52 @@ class WPBackItUp_FileSystem {
                 }
             }
         }
-        $this->logger->log_info(__METHOD__,'End');
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
         return true;
     }
 
 	public function delete_files($file_list)
 	{
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		foreach ($file_list as $key => $file)
 		{
 			if (file_exists($file)){
 				unlink($file);
-				$this->logger->log('Deleted:' . $file);
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Deleted:' . $file);
 			}
 		}
-		$this->logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
 		return true;
 	}
 
 
 	function get_file_handle($path,$newFile=false) {
-        $this->logger->log('(FileSytem.get_file_handle) Path:' . $path);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Path:' . $path);
 
         try {
 
             if ($newFile && file_exists($path)){
                 if (unlink($path)){
-                    $this->logger->log('(FileSytem.get_file_handle) Deleted:' . $path);
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Deleted:' . $path);
                 }
                 else{
-                    $this->logger->log('(FileSytem.get_file_handle) File could not be deleted:');
-                    $this->logger->log(error_get_last());
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File could not be deleted:');
+	                WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,var_export(error_get_last(),true));
                 }
             }
 
             $fh= fopen($path, 'w');
             if (false===$fh){
-                $this->logger->log('(FileSytem.get_file_handle) File could not be opened:');
-                $this->logger->log(error_get_last());
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File could not be opened:');
+	            WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,var_export(error_get_last(),true));
                 return false;
             }
 
             return $fh;
 
         } catch(Exception $e) {
-            $this->logger->log('(FileSytem.get_file_handle) Exception:' . $e);
+	        WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception:' . $e);
             return false;
         }
     }
@@ -450,28 +408,28 @@ class WPBackItUp_FileSystem {
 	 * @return bool
 	 */
 	function copy_file($from_file,$to_file) {
-		$this->logger->log('(FileSystem.copy_file) FROM Path:' . $from_file);
-		$this->logger->log('(FileSystem.copy_file) TO Path:' . $to_file);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'FROM Path:' . $from_file);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'TO Path:' . $to_file);
 
 		try {
 			if (file_exists($from_file)){
 				if (copy($from_file,$to_file)){
-					$this->logger->log('(FileSystem.copy_file) File copied successfully.');
+					WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File copied successfully.');
 					return true;
 				}
 				else{
-					$this->logger->log('(FileSystem.copy_file) File could not be copied:');
-					$this->logger->log(error_get_last());
+					WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'File could not be copied:');
+					WPBackItUp_LoggerV2::error($this->log_name,__METHOD__,var_export(error_get_last(),true));
 					return false;
 				}
 			}
 			else{
-				$this->logger->log('(FileSystem.copy_file) FROM File doesnt exist');
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'FROM File doesnt exist');
 				return false;
 			}
 
 		} catch(Exception $e) {
-			$this->logger->log('(FileSystem.copy_file) Exception:' . $e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception:' . $e);
 			return false;
 		}
 	}
@@ -484,28 +442,28 @@ class WPBackItUp_FileSystem {
 	 * @return bool
 	 */
 	function rename_file($from_file,$to_file_name) {
-		$this->logger->log_info(__METHOD__,' FROM Path:' . $from_file);
-		$this->logger->log_info(__METHOD__,' TO Path:' . $to_file_name);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'FROM Path:' . $from_file);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'TO Path:' . $to_file_name);
 
 		try {
 			if (file_exists($from_file)){
 				if (rename($from_file,$to_file_name)){
-					$this->logger->log_info(__METHOD__,'File renamed successfully.');
+					WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File renamed successfully.');
 					return true;
 				}
 				else{
-					$this->logger->log_error(__METHOD__,'File could not be renamed:');
-					$this->logger->log(error_get_last());
+					WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'File could not be renamed:');
+					WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,var_export(error_get_last(),true));
 					return false;
 				}
 			}
 			else{
-				$this->logger->log_error(__METHOD__,'FROM File doesnt exist');
+				WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'FROM File doesnt exist');
 				return false;
 			}
 
 		} catch(Exception $e) {
-			$this->logger->log_error(__METHOD__,' Exception:' . $e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Exception:' . $e);
 			return false;
 		}
 	}
@@ -516,37 +474,33 @@ class WPBackItUp_FileSystem {
 	 * @param $path
 	 */
 	function secure_folder($path){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$path = rtrim($path,"/");
 
 		if( !is_dir($path) ) {
 			@mkdir($path, 0755);
-			$this->logger->log_info(__METHOD__,'Folder Created:' .$path);
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Folder Created:' .$path);
 		}
 
 		if (!is_file($path.'/index.html')) @file_put_contents($path.'/index.html',"<html><body><a href=\"http://www.wpbackitup.com\">WP BackItUp - The simplest way to backup WordPress</a></body></html>");
 		if (!is_file($path.'/.htaccess')) @file_put_contents($path.'/.htaccess','deny from all');
 		if (!is_file($path.'/web.config')) @file_put_contents($path.'/web.config', "<configuration>\n<system.webServer>\n<authorization>\n<deny users=\"*\" />\n</authorization>\n</system.webServer>\n</configuration>\n");
-		$this->logger->log_info(__METHOD__,'Secure files exist or were created.');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Secure files exist or were created.');
 
 
-		$this->logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
 	}
 
 
 	public function get_recursive_file_list($pattern) {
-		//$this->logger->log_info( __METHOD__, 'Begin: ' .$pattern );
-
 		return $this->glob_recursive($pattern);
 	}
 
 	private function glob_recursive($pattern, $flags = 0) {
-        //$this->logger->log_info( __METHOD__, 'Begin' );
 
 		//The order here is important because the folders must be in the list before the files.
 		$files = glob($pattern, $flags); //everything in the root
-        //$this->logger->log_info( __METHOD__, 'Files Count:' . count($files));
 
         //Get the folders and append all the files in the folder
 		foreach (glob(dirname($pattern).'/*', GLOB_ONLYDIR) as $dir)
@@ -574,16 +528,16 @@ class WPBackItUp_FileSystem {
 	 * @return array Array of files
 	 */
 	function get_fileonly_list($path,$extensions=null){
-		$this->logger->log_info(__METHOD__,"Begin:" .$path);
-		$this->logger->log_info(__METHOD__,"Pattern:" .$extensions);//txt|sql'
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,"Begin:" .$path);
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,"Pattern:" .$extensions);//txt|sql'
 
 		//Remove trailing slashes
 		$path = rtrim($path,"\\");
 		$path = rtrim($path,"/");
-		$this->logger->log_info(__METHOD__,"Path:" .$path);
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,"Path:" .$path);
 
 		$all_files = glob($path .'/*.*');
-		$this->logger->log_info(__METHOD__,"All Files:" .var_export($all_files,true));
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,"All Files:" .var_export($all_files,true));
 
 		//If a file pattern is passed then filter
 		if(isset($extensions)){
@@ -593,10 +547,52 @@ class WPBackItUp_FileSystem {
 			$filtered_files =array_filter($all_files, 'is_file');
 		}
 
-		$this->logger->log_info(__METHOD__,"Filtered Files:" .var_export($filtered_files,true));
+		//WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,"Filtered Files:" .var_export($filtered_files,true));
 		return $filtered_files;
 	}
 
+	/**
+	 * Human readable file size
+	 * @param $bytes
+	 *
+	 * @return string
+	 */
+	static function format_file_size($bytes)
+	{
+		try {
+			if ($bytes >= 1073741824)
+			{
+				$bytes = number_format($bytes / 1073741824, 2) . ' GB';
+			}
+			elseif ($bytes >= 1048576)
+			{
+				$bytes = number_format($bytes / 1048576, 2) . ' MB';
+			}
+			elseif ($bytes >= 1024)
+			{
+				$bytes = number_format($bytes / 1024, 2) . ' KB';
+			}
+			elseif ($bytes > 1)
+			{
+				$bytes = $bytes . ' bytes';
+			}
+			elseif ($bytes == 1)
+			{
+				$bytes = $bytes . ' byte';
+			}
+			else
+			{
+				$bytes = '0 bytes';
+			}
+
+			return $bytes;
+
+		} catch(Exception $e) {
+			WPBackItUp_LoggerV2::log_error(self::FILESYSTEM_LOG_NAME,__METHOD__,'Exception:' . $e);
+			return '0 bytes';
+		}
+
+	}
 
  }
 

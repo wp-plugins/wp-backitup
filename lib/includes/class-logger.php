@@ -14,8 +14,8 @@ class WPBackItUp_Logger {
 	private $dfh;
 	private $logging;
 
-	public 	$logFileName;
-	public 	$logFilePath;
+	private $logFileName;
+	private $logFilePath;
 
 	public function __construct($delete_log, $path=null, $file_name=null, $debugOverride=false) {
 		global $WPBackitup;
@@ -34,8 +34,12 @@ class WPBackItUp_Logger {
 			$file_name='debug';
 		}
 
+		//check for log extension
+		if (strpos($file_name,'.log')===false){
+			$file_name .= '.log';
+		}
 
-		$this->logFileName=$file_name .'.log';
+		$this->logFileName = $file_name;
 		$this->logFilePath= $path .'/'. $this->logFileName;
 
 		try {
@@ -52,15 +56,15 @@ class WPBackItUp_Logger {
 			}
 		} catch(Exception $e) {
 			//Dont do anything
-			print $e;
+			error_log($e);
 		}
    }
 
    function __destruct() {
-       $this->close_file();
+       $this->close();
    }
 
-    public function close_file() {
+    public function close() {
         try {
             if (!is_null($this->dfh) && is_resource($this->dfh)){
                 fwrite($this->dfh, "** Close LOG File ** ". PHP_EOL);
@@ -235,5 +239,21 @@ class WPBackItUp_Logger {
 			//Dont do anything
 			//print $e;
 		}
+	}
+
+	/**
+	 * Get Log File Name
+	 * @return string
+	 */
+	public function getLogFileName() {
+		return $this->logFileName;
+	}
+
+	/**
+	 * Get Log File Path
+	 * @return string
+	 */
+	public function getLogFilePath() {
+		return $this->logFilePath;
 	}
 }

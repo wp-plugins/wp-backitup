@@ -1,11 +1,15 @@
 <?php
 
 class WPBackItUp_Mutex {
-    var $writeablePath = '';
-    var $lockName = '';
-    var $fileHandle = null;
+
+	private $log_name;
+	private $writeablePath = '';
+	private $lockName = '';
+	private $fileHandle = null;
 
     public function __construct($lockName, $writeablePath = null){
+	    $this->log_name = 'debug_mutex';
+
         $this->lockName = preg_replace('/[^a-zA-Z0-9]/', '', $lockName);
         if($writeablePath == null){
             $this->writeablePath = $this->findWriteablePath();
@@ -35,16 +39,18 @@ class WPBackItUp_Mutex {
     }
 
     private function attemptLock(){
+    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
         if (PHP_OS == 'WINNT'){
             $lockFilePath = $this->getLockFilePath();
             if(file_exists($lockFilePath)){
                 $unlinked = @unlink($lockFilePath);
-                if(!$unlinked) return false;
-
+                if(!$unlinked) return false; //locked
             }
         }
 
         $fileHandle = $this->getFileHandle();
+	    WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'File Handle:' .var_export($fileHandle,true));
+
         if(!$fileHandle){
             return false;
         } else {

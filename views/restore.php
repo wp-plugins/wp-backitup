@@ -12,8 +12,8 @@
 	//Check the license
 	do_action( 'wpbackitup_check_license');
 
-    $page_title = $this->friendly_name . ' Restore';
     $namespace = $this->namespace;
+    $page_title = sprintf(__('%s Restore', $namespace), $this->friendly_name );
 
     //Path Variables
     $backup_folder_root = WPBACKITUP__BACKUP_PATH .'/';
@@ -70,16 +70,16 @@
 <?php
 //Fatal Error - no backup folder
 if (!$backup_folder_exists) {
-echo '<div class="error"><p><strong>Error: Backup folder does not exist. Please contact ';
-            echo($this->get_anchor_with_utm('support','support' ,'restore+error','no+backup+folder'));
-            echo ' for assistance.</strong></p></div>';
+echo '<div class="error"><p><strong>';
+    printf(__('Error: Backup folder does not exist. Please contact %s for assistance.', $namespace), $this->get_anchor_with_utm(__('support',$namespace),'support' ,'restore+error','no+backup+folder'));
+    echo '</strong></p></div>';
 }
 
 //Fatal Error - no restore folder
 if (!$restore_folder_exists) {
-    echo '<div class="error"><p><strong>Error: Restore folder does not exist. Please contact ';
-    echo($this->get_anchor_with_utm('support','support' ,'restore+error','no+restore+folder'));
-    echo ' for assistance.</strong></p></div>';
+    echo '<div class="error"><p><strong>';
+    printf(__('Error: Restore folder does not exist. Please contact %s for assistance.', $namespace), $this->get_anchor_with_utm(__('support',$namespace),'support' ,'restore+error','no+restore+folder') );
+    echo '</strong></p></div>';
 }
 ?>
 
@@ -108,11 +108,11 @@ if (!$restore_folder_exists) {
             <tr <?php echo $class ?> id="row<?php echo $i; ?>">
               <td><?php echo $backup_name ?></td>
               <td>&nbsp;</td>
-              <td><a href="#" title="<?php echo $backup_name; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>">Delete</a></td>
+              <td><a href="#" title="<?php echo $backup_name; ?>" class="deleteRow" id="deleteRow<?php echo $i; ?>"><?php _e('Delete', $namespace) ?></a></td>
               <?php
               if ($this->license_active())
               {
-                echo '<td><a href="#" title="' . $backup_name . '" class="restoreRow" id="restoreRow' . $i . '">Restore</a></td>';
+                echo '<td><a href="#" title="' . $backup_name . '" class="restoreRow" id="restoreRow' . $i . '">' . __('Restore', $namespace) . '</a></td>';
               }
               ?>
             </tr>
@@ -122,7 +122,7 @@ if (!$restore_folder_exists) {
         }
         else
         {
-          echo '<tr id="nofiles"><td colspan="3">No backup archives found.</td></tr>';
+          echo '<tr id="nofiles"><td colspan="3">' . __('No backup archives found.', $namespace) .'</td></tr>';
         }
         ?>
       </table>  
@@ -138,7 +138,7 @@ if (!$restore_folder_exists) {
       //Display restore note for lite customers
       if (!$this->license_active())
       {
-        echo '<p>* The automated restore feature is only available to licensed customers.  Please visit <a href="' . WPBACKITUP__SITE_URL .'" target="_blank">'. WPBACKITUP__SITE_URL .'</a> to get license WP BackItUp risk free for 30 days.</p>';
+        printf( __('<p>* The automated restore feature is only available to licensed customers.  Please visit <a href="%s" target="_blank">%s</a> to get license WP BackItUp risk free for 30 days.</p>', $namespace), WPBACKITUP__SITE_URL, WPBACKITUP__SITE_URL);
       }
       ?>
     </div>		
@@ -245,20 +245,20 @@ if (!$restore_folder_exists) {
         <span class="error210"><div class='isa_error'><?php _e('Error 210: Unable to get current user password from database. Please try again', $namespace); ?>.</div></span>
         <span class="error211"><div class='isa_error'><?php _e('Error 211: Unable to get current user email from database. Please try again', $namespace); ?>.</div></span>
         <span class="error212"><div class='isa_error'><?php _e('Error 212: Unable to import your database. This may require importing the file manually', $namespace); ?>.</div></span>
-        <span class="warning213"><div class='isa_warning'><?php _e('Warning 213: Unable to update your site URL value. Please check your Wordpress general settings to make sure your Site and Wordpress URLs are correct', $namespace); ?>.</div></span>
-        <span class="warning214"><div class='isa_warning'><?php _e('Warning 214: Unable to update your home URL value. Please check your Wordpress general settings to make sure your Site and Wordpress URLs are correct', $namespace); ?>.</div></span>
+        <span class="warning213"><div class='isa_warning'><?php _e('Warning 213: Unable to update your site URL value. Please check your WordPress general settings to make sure your Site and WordPress URLs are correct', $namespace); ?>.</div></span>
+        <span class="warning214"><div class='isa_warning'><?php _e('Warning 214: Unable to update your home URL value. Please check your WordPress general settings to make sure your Site and WordPress URLs are correct', $namespace); ?>.</div></span>
         <span class="warning215"><div class='isa_warning'><?php _e('Warning 215: Unable to update your user information. This may require you to login with the admin username and password that was used when the backup was created', $namespace); ?>.</div></span>
         <span class="error216"><div class='isa_error'><?php _e('Error 216: Database not found in backup', $namespace); ?>.</div></span>
         <span class="warning217"><div class='isa_warning'><?php _e('Warning 217: Unable to remove existing wp-content directory', $namespace); ?>.</div></span>
         <span class="error218"><div class='isa_error'><?php _e('Error 218: Unable to create new wp-content directory. Please check your CHMOD settings in /wp-content/', $namespace); ?>.</div></span>
         <span class="error219"><div class='isa_error'><?php _e('Error 219: Unable to import wp-content. Please try again', $namespace); ?>.</div></span>
         <span class="warning220"><div class='isa_warning'><?php _e('Warning 220: Unable to cleanup import directory. No action is required', $namespace); ?>.</div></span>
-        <span class="error221"><div class='isa_error'><?php _e('Error 221: Table prefix value in wp-config.php is different from backup. This MUST be changed in your wp-config.php file before you will be able to restore your site.  See www.wpbackitup.com <a href ="http://www.wpbackitup.com/documentation/faqs/wordpress-table-prefix" target="_blank" > FAQs</a> for more info.', $namespace); ?>.</div></span>
+        <span class="error221"><div class='isa_error'><?php printf(__('Error 221: Table prefix value in wp-config.php is different from backup. This MUST be changed in your wp-config.php file before you will be able to restore your site.  See www.wpbackitup.com <a href ="%s" target="_blank" > FAQs</a> for more info.'),esc_url('http://www.wpbackitup.com/documentation/migration/wordpress-table-prefix'), $namespace); ?>.</div></span>
         <span class='error222'><div class='isa_error'><?php _e('Error 222: Unable to create restore folder', $namespace); ?>.</div></span>
         <span class='error223'><div class='isa_error'><?php _e('Error 223: An error occurred during the restore.  WP BackItUp attempted to restore the database to its previous state but were unsuccessful.  Please contact WP BackItUp customer support and do not attempt to perform any further restores', $namespace); ?>.</div></span>
         <span class='error224'><div class='isa_error'><?php _e('Error 224: An error occurred during the restore, however, we have successfully restored your database to the previous state', $namespace); ?>.</div></span>
         <span class='error225'><div class='isa_error'><?php _e('Error 225: Restore option is only available to licensed WP BackItUp users', $namespace); ?>.</div></span>
-        <span class='error226'><div class='isa_error'><?php _e('Error 226: Restore cannot proceed because your backup was created using a different version of Wordpress', $namespace); ?>.</div></span>
+        <span class='error226'><div class='isa_error'><?php _e('Error 226: Restore cannot proceed because your backup was created using a different version of WordPress', $namespace); ?>.</div></span>
         <span class='error227'><div class='isa_error'><?php _e('Error 227: Restore cannot proceed because your backup was created using a different version of WP BackItUp.  Please contact WP BackItUp support to help convert this backup to the current version', $namespace); ?>.</div></span>
         <span class="error230"><div class='isa_error'><?php _e('Error 230: WP BackItUp ran into unexpected errors during the database restore.  However, we were able to successfully revert the database back to its original state . This error may require importing the database manually', $namespace); ?>.</div></span>
 	    <span class="error235"><div class='isa_error'><?php _e('Error 235: WP BackItUp is not able to proceed because there is no zip utility available.  Please contact support', $namespace); ?>.</div></span>
@@ -268,7 +268,7 @@ if (!$restore_folder_exists) {
         <span class="error252"><div class='isa_error'><?php _e('Error 252: At least one zip file is missing from your backup set.  Please make sure to upload all zip files that were part of this backup', $namespace); ?>.</div></span>
         <span class="error253"><div class='isa_error'><?php _e('Error 253: Backup set contains a zip file that is not in the manifest.  Please make sure to upload only zip files that were part of this backup', $namespace); ?>.</div></span>
 
-        <span class="warning300"><div class='isa_warning'><?php _e('Warning 300: Unable to restore all Wordpress content. Please review your restore logs to see what WP BackItUp was unable to restore', $namespace); ?>.</div></span>
+        <span class="warning300"><div class='isa_warning'><?php _e('Warning 300: Unable to restore all WordPress content. Please review your restore logs to see what WP BackItUp was unable to restore', $namespace); ?>.</div></span>
         <span class="warning305"><div class='isa_warning'><?php _e('Warning 305: Unable to restore all plugins. Please review your restore logs to see what WP BackItUp was unable to restore', $namespace); ?>.</div></span>
 
         <span class="error2001"><div class='isa_error'><?php _e('Error 2001: Unable to prepare site for restore', $namespace); ?>.</div></span>

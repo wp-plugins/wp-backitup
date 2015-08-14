@@ -1,5 +1,11 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed');
 
+// no PHP timeout for running updates
+if( ini_get('safe_mode') ){
+   @ini_set('max_execution_time', 0);
+}else{
+   @set_time_limit(0);
+}
 
 /**
  * Run the incremental updates one by one.
@@ -12,8 +18,6 @@
  *
  */
 function wpbackitup_update_database() {
-	// no PHP timeout for running updates
-	set_time_limit( 0 );
 
 	// this is the current database schema version number
 	$current_db_ver = get_option( 'wp-backitup_db_version',0 );

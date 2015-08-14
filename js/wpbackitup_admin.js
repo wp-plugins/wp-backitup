@@ -83,7 +83,7 @@
         }
 
         if (upload_file_size > max_file_size){
-            alert('The backup you have selected exceeds what your host allows you to upload.');
+            alert(wpbackitup_local.upload_file_size_exceed);
             $("#wpbackitup-zip").val("");
         }
     });
@@ -255,6 +255,19 @@
 
                 }
 
+                // Cancelled
+                if ( $(this).html() == -99 ) {
+
+                    $('.status-icon').fadeOut(200);
+                    $("#backup-button").removeAttr("disabled");
+                    $("#cancel-button").addClass('cancel-hidden');
+                    $("#cancel-button").removeAttr("disabled");
+                    $('.backup-cancelled').fadeIn(200);
+
+                    /*  Stop statusreader */
+                    clearInterval(window.intervalDefine);
+                }
+
             });
         });
     }
@@ -290,6 +303,7 @@
                         //fade out all of the spinners
                         $('.status-icon').fadeOut(200);
                         $("#backup-button").removeAttr("disabled"); //enable button
+                        $("#cancel-button").addClass('cancel-hidden');
 
                         $('.isa_success').show;
                         $('.backup-success').fadeIn(1500);
@@ -303,7 +317,7 @@
                             var $warningMessages = jsonData.backupWarnings;
                             $warningMessages.forEach(function(obj) {
                                 var  warningMessage = obj.warningMessage;
-                                warning.append('<li class="isa_warning">Warning: '+ warningMessage + '</li>');
+                                warning.append('<li class="isa_warning">' + wpbackitup_local.warning + ': ' + warningMessage + '</li>');
                             });
 
                             warning.fadeIn(1500);
@@ -314,11 +328,11 @@
                     case 'error':
                         console.log("JSON error response received.");
 
-                        var msg="(JS997) Unexpected error";
+                        var msg= wpbackitup_local.unexpected_err;
                         if (typeof  jsonData.backupMessage !== 'undefined'){
                             msg= jsonData.backupMessage;
                         }
-                        var status_message='Error: &nbsp;' + msg;
+                        var status_message=wpbackitup_local.error + ': &nbsp;' + msg;
 
                         var backup_error= $('.backup-error');
                         backup_error.html(status_message);
@@ -328,17 +342,18 @@
                         //fade out all of the spinners
                         $('.status-icon').fadeOut(200);
                         $("#backup-button").removeAttr("disabled"); //enable button
+                        $("#cancel-button").addClass('cancel-hidden');
 
                         break;
 
                     default:
                         console.log("Unexpected JSON response status received.");
 
-                        var msg="(JS998) Unexpected error";
+                        var msg= wpbackitup_local.unexpected_err2;
                         if (typeof  jsonData.backupMessage !== 'undefined'){
                             msg= jsonData.backupMessage;
                         }
-                        var status_message='Error(JS998) : &nbsp;' + msg;
+                        var status_message= wpbackitup_local.error + '(JS998) : &nbsp;' + msg;
 
                         var unexpected_error= $('.backup-error');
                         unexpected_error.html(status_message);
@@ -348,6 +363,7 @@
                         //fade out all of the spinners
                         $('.status-icon').fadeOut(200);
                         $("#backup-button").removeAttr("disabled"); //enable button
+                        $("#cancel-button").addClass('cancel-hidden');
 
                         break;
 
@@ -356,10 +372,10 @@
             } else { //Didnt get any json back
                 console.log("NON JSON response received.");
                 console.log("Backup Response:" + errorThrown);
-                status_message='(JS999) An unexpected error has occurred: &nbsp;';
-                status_message+='</br>Response: &nbsp;' + JSON.stringify(jsonData);
-                status_message+='</br>Status: &nbsp;' + textStatus;
-                status_message+='</br>Error: &nbsp;' +  JSON.stringify(errorThrown);
+                status_message= wpbackitup_local.unexpected_err3 + ': &nbsp;';
+                status_message+= '</br>' + wpbackitup_local.response + ': &nbsp;' + JSON.stringify(jsonData);
+                status_message+= '</br>' + wpbackitup_local.status + ': &nbsp;' + textStatus;
+                status_message+= '</br>' + wpbackitup_local.error + ': &nbsp;' +  JSON.stringify(errorThrown);
 
                 $('.backup-status').hide();
 
@@ -411,10 +427,10 @@
                 switch (response)
                 {
                 case 'success':
-                    wpbackitup_show_success_message("Scheduled has been saved.");
+                    wpbackitup_show_success_message(wpbackitup_local.scheduled_saved);
                     break;
                 case 'error':
-                    wpbackitup_show_error_message("Scheduled was not saved.");
+                    wpbackitup_show_error_message(wpbackitup_local.scheduled_not_saved);
                     break;
                 default:
 
@@ -433,13 +449,16 @@
 
     });
 
+  // Tracking ajax request.
+  var jqxhr = null;
   // BACKUP button click
   $(".backup-button").click(function(e) {
     e.preventDefault();
 
     $("#backup-button").attr('disabled', 'disabled'); //Disable button
+    $("#cancel-button").removeClass('cancel-hidden');
 
-      var jqxhr = $.ajax({
+      jqxhr = $.ajax({
           url: ajaxurl,
           type: 'POST',
           data: {action: wpbackitup_get_action_name('backup')},
@@ -468,6 +487,7 @@
         $('.backup-success').hide();
         $('.default-status').hide();
         $('.backup-error').hide();
+        $(".backup-cancelled").hide();
 
         /* hide the status just incase this is the second run */
         $("ul.backup-status").children().children().hide();
@@ -480,12 +500,55 @@
         window.intervalDefine = setInterval(wpbackitup_get_backup_status, 5000);
     }
 
+  // Cancel button click
+  $(".cancel-button").click(function(e) {
+    e.preventDefault();
+
+    $("#cancel-button").attr('disabled', 'disabled'); //Disable button
+
+      // abort previous ajax call
+      if(jqxhr != null){
+        jqxhr.abort();
+        jqxhr = null;
+      }
+
+      jqxhr = $.ajax({
+          url: ajaxurl,
+          type: 'POST',
+          data: {action: wpbackitup_get_action_name('cancel_backup')},
+          cache: false,
+          dataType: "json",
+
+      beforeSend: function(jqXHR, settings) {
+          console.log("BeforeSend:Nothing to report.");
+          wpbackitup_show_cancel_backup();
+      }
+    });
+
+      //Fetch the JSON response file if it exists
+      jqxhr.always(function(data, textStatus, errorThrown) {
+          console.log("Cancel Button Click - Always");
+          console.log(data.message);//backup queued?
+      });
+  });
+
+    function wpbackitup_show_cancel_backup(){
+        /* display processing icon */
+        $('.backup-icon').css('visibility', 'visible');
+        $('.backup-icon').show();
+
+        /* show backup status, backup errors */
+        $('.backup-status').show();
+        backup_response=false;
+        clearInterval(window.intervalDefine);
+        window.intervalDefine = setInterval(wpbackitup_get_backup_status, 5000);
+    }
 
     //RESTORE button click
     $('#datatable').on('click', 'a.restoreRow', function(e) {
         e.preventDefault();
 
-        if (confirm('Are you sure you want to restore your site?'))
+        if (confirm(wpbackitup_local.confirm_restore))
         {
             var filename = this.title;
             var row = this.id.replace('restoreRow', 'row');
@@ -544,7 +607,7 @@
   $('#datatable').on('click', 'a.deleteRow', function(e) {
 
     e.preventDefault();
-    if (confirm('Are you sure ?'))
+    if (confirm(wpbackitup_local.sure))
     {
       var filename = this.title;
       var row = this.id.replace('deleteRow', 'row');
@@ -559,7 +622,7 @@
           }
           else
           {
-            alert('This file cannot be delete!');
+            alert(wpbackitup_local.file_not_del);
           }
         }
       });
@@ -709,15 +772,15 @@
 
       var viewColumn = '<td>&nbsp;</td>\n';
       if (typeof data.logFileExists !== 'undefined' && data.logFileExists==true) {
-          viewColumn = '<td><a class="viewloglink" href="' + data.backupName + '">View Log</a></td>\n';
+          viewColumn = '<td><a class="viewloglink" href="' + data.backupName + '">' + wpbackitup_local.view_log + '</a></td>\n';
       }
 
       var newRow =
         '<tr ' + css_class + ' id="row' + cur_row + '">\n\
-          <td>New Backup!</td>\n\
-          <td><a href="#TB_inline?width=600&height=550&inlineId=new_backup" class="thickbox" title="' + data.backupName + '">Download</a></td>\n';
+          <td>' + wpbackitup_local.new_backup + '</td>\n\
+          <td><a href="#TB_inline?width=600&height=550&inlineId=new_backup" class="thickbox" title="' + data.backupName + '">' + wpbackitup_local.download + '</a></td>\n';
         newRow +=viewColumn;
-        newRow +='<td><a href="#" title="' + data.backupName + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n';
+        newRow +='<td><a href="#" title="' + data.backupName + '" class="deleteRow" id="deleteRow' + cur_row + '">' + wpbackitup_local.delete + '</a></td>\n';
         newRow +='</tr>';
 
       if ($('#nofiles'))
@@ -754,13 +817,13 @@
         // built id of the row to be inserted dynamically
         if (data != undefined)
         {
-            var restoreColumn = '<td><a href="#" title="' + data.file + '" class="restoreRow" id="restoreRow' + cur_row + '">Restore</a></td>\n';
+            var restoreColumn = '<td><a href="#" title="' + data.file + '" class="restoreRow" id="restoreRow' + cur_row + '">' + wpbackitup_local.restore + '</a></td>\n';
             var newRow =
                 '<tr ' + css_class + ' id="row' + cur_row + '">\n\
-          <td>Uploaded Backup<i class="fa fa-long-arrow-right"></i>' + data.file +'</td>\n\
-          <td><a href="' + data.zip_link + '">Download</a></td>\n\
-          <td><a href="#" title="' + data.file + '" class="deleteRow" id="deleteRow' + cur_row + '">Delete</a></td>\n\
-          <td><a href="#" title="' + data.file + '" class="restoreRow" id="restoreRow' + cur_row + '">Restore</a></td>\n\
+          <td>' + wpbackitup_local.uploaded_backup + '<i class="fa fa-long-arrow-right"></i>' + data.file +'</td>\n\
+          <td><a href="' + data.zip_link + '">' + wpbackitup_local.download + '</a></td>\n\
+          <td><a href="#" title="' + data.file + '" class="deleteRow" id="deleteRow' + cur_row + '">' + wpbackitup_local.delete + '</a></td>\n\
+          <td><a href="#" title="' + data.file + '" class="restoreRow" id="restoreRow' + cur_row + '">' + wpbackitup_local.restore + '</a></td>\n\
          </tr>';
 
             if ($('#nofiles'))

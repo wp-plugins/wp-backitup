@@ -1,9 +1,9 @@
 === WP Backitup ===
-Contributors: cssimmon,jcpeden
+Contributors: cssimmon,alaminopu,zikubd,wpbackitup
 Donate link: http://www.wpbackitup.com
 Tags: backup, back up, backups, backup wordpress, backup database, backup plugin, backup and restore, database,  database backup, database restore, db, db backup, db restore, download database, full backup, mysql backup, restore, restore database,restore wordpress, restore wordpress backup,restoring wordpress, website backup, wordpress backup, wordpress restore, plugin, backup buddy
 Requires at least: 3.8.0
-Tested up to: 4.2.2
+Tested up to: 4.2.4
 Stable tag: 1.10.8
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -59,6 +59,17 @@ WP BackItUp premium allows you to restore your backups from the WordPress dashbo
 
 = More questions? =
 Please review our [FAQ’s](http://wordpress.org/plugins/wp-backitup/faq/) or ask them in the [support forum](http://wordpress.org/support/plugin/wp-backitup).
+
+**Languages**
+
+WP BackItUp has been translated into the following languages:
+
+* Français (French (France)),
+* Tagalog (Philippines)
+
+Thanks to all the WP-Translations Team Members for helping translate WP BackItUp.
+
+Don't see your language listed? Why not join our community and help translate WP BackItUp into even more languages? See our [FAQs](https://www.wpbackitup.com/documentation/faqs/language-translations) page for info on how to join our WP-Translations Community.
 
 == Installation ==
 
@@ -151,6 +162,27 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 
 == Changelog ==
+= 1.10.9 =
+*Release Date - August 14, 2015*
+
+* NEW   :  New Feature - Cancel backup
+* NEW   :  New Feature - Batch Size settings for plugins, themes, uploads
+* UPDATE:  Add additional logging to data access methods.
+* UPDATE:  Add base localization
+* UPDATE:  Add new static logging class
+* UPDATE:  Add logging to verify timeout error
+* UPDATE:  Change backup file validation to be performed in multiple steps
+* UPDATE:  Update backup to no longer use using .tmp extensions
+* UPDATE:  Add new logging to track file sizes and capture zip file status before close
+* UPDATE: Add permission checking to files being added to zip
+* UPDATE: Check archive state on close and file count check
+* UPDATE: Additional logging to detect error on archive creation
+* UPDATE: Add filter for plugin wp-backitup on backup
+* UPDATE: Separate validation into smaller batches to support large WordPress sites
+* UPDATE: Add check for safe mode and ini_set instead of set_time_limit.
+* FIX   : Fix to hide cancel button on backup error
+* FIX   :  Fix get_portonly() method
+
 = 1.10.8 =
 * UPDATE: Add database size logging
 * UPDATE: Add WordPress and WP BackItUp version info to support email
@@ -179,7 +211,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 
 = 1.10.6 =
 * FEATURE:Add job data to cleanup routine
-* FIX:    Add wp-cron task on schedule check to fix issue with sheduled backups not running.
+* FIX:    Add wp-cron task on schedule check to fix issue with scheduled backups not running.
 * FIX:    Write response file before status update.
 * UPDATE: Cancel all scheduled jobs on plugin activation & deactivation.
 * UPDATE: Add additional logging to job scheduler.
@@ -200,7 +232,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 * Update: Add ticket id to support view.
 * Fix: Add UTF Encoding on file names being backed up and restored
 * Fix: Multiple new backup success messages after backup
-* Fix: Add wp_slash function to support Wordpress versions 3.6 and lower
+* Fix: Add wp_slash function to support WordPress versions 3.6 and lower
 
 = 1.10.2 =
 * Update: Display backup file set name instead of date
@@ -209,7 +241,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 * Fix: Correct issue with restore version checking
 * Fix: Correct issue with restore current user capabilities
 * Fix: Correct sorting and display of available backups
-* Fix: Correct issues with files named using german character set
+* Fix: Correct issues with files named using German character set
 * Fix: Correct issues with file downloads
 
 = 1.10.1 =
@@ -278,7 +310,7 @@ Our online documentation and full list of FAQs can be found at [www.wpbackitup.c
 = 1.7.4 =
 * Fix to backup folder create & checks
 * Security Enhancements
-* Add logging to filesystem create folder
+* Add logging to file-system create folder
 
 = 1.7.3 =
 * Fix 1.7.2 deployment issue
@@ -365,7 +397,7 @@ Setup alert if DB is 0 bytes.
 Fixed status reporting for backup/restore process and built-in localization.
 
 = 1.3.0 =
-Recommended upgrade: Amalgameted lite and pro versions of the plugin.
+Recommended upgrade: Amalgamated lite and pro versions of the plugin.
 
 = 1.2.2 =
 Major updates to improve plugin performance and stability.
@@ -374,7 +406,7 @@ Major updates to improve plugin performance and stability.
 Minor updates to plugin functionality.
 
 = 1.2.0 =
-Brought versioning inline with WP Backitup Lite. Fixed incorrecy message on restore interface. Fixed restorationcess.
+Brought versioning inline with WP Backitup Lite. Fixed incorrect message on restore interface. Fixed restoration access.
 
 = 1.1.0 =
 Backup from mysqldump, restore from mysql command line, restore functionality from uploaded files, file size limit check according to server before uploads, setInterval termination after operation, status update as the task completes using XML.
@@ -389,13 +421,13 @@ Added ability to restore from server.
 Improved auto-update facility and plugin stability.
 
 = 1.0.6 =
-Fixed critical issues the auto-upgradecess.
+Fixed critical issues the auto-upgrade access.
 
 = 1.0.5 =
-Fixed critical issues the auto-upgradecess.
+Fixed critical issues the auto-upgrade access.
 
 = 1.0.4 =
-Fixed issues with the restorationcess.
+Fixed issues with the restoration access.
 
 = 1.0.3 =
 Fixed the auto-update engine and license key activation system.
@@ -410,6 +442,9 @@ WP Backitup integrated with licensing and auto-update engine.
 Initial version of the plugin released.
 
 == Upgrade Notice ==
+
+= 1.10.9 =
+Recommended upgrade: New features, fixes and performance improvements.  See details in changelog.
 
 = 1.5.3 =
 Optional upgrade: No functionality changes.
@@ -427,13 +462,13 @@ Critical upgrade: Fixes to backup and import processes to work on a wider range 
 Recommended upgrade: Many people on shared hosting will now be able to backup their database.
 
 = 1.4.1 =
-Recommended upgrade: Backitup will now alert and halt if your database is 0 bytes on backup.
+Recommended upgrade: BackItUp will now alert and halt if your database is 0 bytes on backup.
 
 = 1.4.0 =
 Recommended upgrade: Fixed status reporting for backup/restore process and built-in localization.
 
 = 1.3.0 =
-Recommended upgrade: Amalgameted lite and pro versions of the plugin
+Recommended upgrade: Amalgamated lite and pro versions of the plugin
 
 = 1.2.2 =
 Critical upgrade: Major overhaul of plugin structure
@@ -454,16 +489,16 @@ Recommended upgrade: Improved reliability and performance.
 Recommended upgrade: Improved functionality
 
 = 1.0.7 =
-Critical upgrade: Fixed major bugs with auto-upgradecess.
+Critical upgrade: Fixed major bugs with auto-upgrade access.
 
 = 1.0.6 =
-Critical upgrade: Fixed major bugs with auto-upgradecess.
+Critical upgrade: Fixed major bugs with auto-upgrade access.
 
 = 1.0.5 =
-Critical upgrade: Fixed major bugs with auto-upgradecess.
+Critical upgrade: Fixed major bugs with auto-upgrade access.
 
 = 1.0.4 =
-Critical upgrade: Fixed major bugs with restorationcess.
+Critical upgrade: Fixed major bugs with restoration access.
 
 = 1.0.3 =
 Critical upgrade: Patched auto-update engine.

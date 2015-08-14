@@ -12,7 +12,7 @@ class WPBackItUp_Task {
 	const RESUME = 'resume';
 
 
-	private $logger;
+	private $log_name;
 
 	private $job_id;
 	private $name; //task name
@@ -26,33 +26,39 @@ class WPBackItUp_Task {
 	private $retry_count=0;
 
 	public function __construct($job_id,$task_name,$task_info) {
+		try {
+			$this->log_name = 'debug_tasks';//default log name
 
-		if (empty($job_id) ||
-		    empty($task_name) ||
-			empty($task_info['task_id']) ||
-		    empty($task_info['task_status'])){
+			if ( empty( $job_id ) ||
+			     empty( $task_name ) ||
+			     empty( $task_info['task_id'] ) ||
+			     empty( $task_info['task_status'] )
+			) {
 
-			throw new exception('Cant create task object, missing parameter in constructor.' );
-		}
+				throw new exception( 'Cant create task object, missing parameter in constructor.' );
+			}
 
-		$this->logger = new WPBackItUp_Logger(false,null,'debug_restore_tasks');
 
-		//Task Key Info
-		$this->job_id=$job_id;
-		$this->name=$task_name;
-		$this->id = $task_info['task_id'];
-		$this->status = $task_info['task_status'];
+			//Task Key Info
+			$this->job_id = $job_id;
+			$this->name   = $task_name;
+			$this->id     = $task_info['task_id'];
+			$this->status = $task_info['task_status'];
 
-		if (! empty($task_info['task_allocated_id'])){
-			$this->allocated_id = $task_info['task_allocated_id'];
-		}
+			if ( ! empty( $task_info['task_allocated_id'] ) ) {
+				$this->allocated_id = $task_info['task_allocated_id'];
+			}
 
-		if (! empty($task_info['task_last_updated'])) {
-			$this->last_updated = $task_info['task_last_updated'];
-		}
+			if ( ! empty( $task_info['task_last_updated'] ) ) {
+				$this->last_updated = $task_info['task_last_updated'];
+			}
 
-		if (! empty($task_info['task_retry_count'])) {
-			$this->retry_count = $task_info['task_retry_count'];
+			if ( ! empty( $task_info['task_retry_count'] ) ) {
+				$this->retry_count = $task_info['task_retry_count'];
+			}
+		} catch(Exception $e) {
+			error_log($e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Constructor Exception: ' .$e);
 		}
 	}
 
@@ -65,8 +71,7 @@ class WPBackItUp_Task {
 	 * Increment the task retry count
 	 */
 	public function increment_retry_count(){
-	$this->logger->log_info(__METHOD__,'Begin');
-
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 		$this->retry_count++;
 		return $this->save();
 	}
@@ -80,7 +85,7 @@ class WPBackItUp_Task {
 	 *
 	 */
 	private function save(){
-	$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$meta_value = array(
 			'task_id'           => $this->id,
@@ -90,10 +95,10 @@ class WPBackItUp_Task {
 			'task_retry_count'  => $this->retry_count,
 			'task_last_updated' => time()
 		);
-		$this->logger->log_info(__METHOD__,'Task Info:' .var_export($meta_value,true));
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Task Info:' .var_export($meta_value,true));
 
 		$rtn_status =update_post_meta( $this->job_id, $this->name, $meta_value );
-		$this->logger->log_info(__METHOD__,'Task Saved:' .$rtn_status);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Task Saved:' .$rtn_status);
 		return $rtn_status;
 	}
 

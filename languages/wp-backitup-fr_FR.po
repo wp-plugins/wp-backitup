@@ -1,0 +1,1559 @@
+#
+# Translators:
+# Bruno TRITSCH <bruno@btweb.fr>, 2015
+# Franck, 2015
+# FX Bénard <fxb@wp-translations.org>, 2015
+# FX Bénard <fxb@wp-translations.org>, 2015
+# Jean-Christophe Brebion <pro@jcbrebion.com>, 2015
+msgid ""
+msgstr ""
+"Project-Id-Version: WP BackItUp\n"
+"POT-Creation-Date: 2015-08-14 10:31-0400\n"
+"PO-Revision-Date: 2015-08-14 10:31-0400\n"
+"Last-Translator: Franck\n"
+"Language-Team: French (France) (http://www.transifex.com/wp-translations/wp-"
+"backitup/language/fr_FR/)\n"
+"Language: fr_FR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+"X-Generator: Poedit 1.8.4\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-KeywordsList: _;__;_e\n"
+"X-Poedit-SearchPath-0: .\n"
+
+#: lib/includes/class-wpbackitup-admin.php:171 views/backup.php:173
+#: views/backup.php:179
+msgid "Backup"
+msgstr "Sauvegarder"
+
+#: lib/includes/class-wpbackitup-admin.php:175
+#: lib/includes/class-wpbackitup-admin.php:210 views/restore.php:115
+msgid "Restore"
+msgstr "Rétablir"
+
+#: lib/includes/class-wpbackitup-admin.php:179
+msgid "Support"
+msgstr "Support"
+
+#: lib/includes/class-wpbackitup-admin.php:182
+msgid "Settings"
+msgstr "Réglages"
+
+#: lib/includes/class-wpbackitup-admin.php:203
+msgid ""
+"The backup you have selected exceeds what your host allows you to upload."
+msgstr ""
+"La sauvegarde que vous avez sélectionnée excède ce que vous êtes autorisé à "
+"mettre en ligne par votre hébergeur."
+
+#: lib/includes/class-wpbackitup-admin.php:204 views/backup.php:305
+#: views/backup.php:306 views/backup.php:307 views/backup.php:308
+#: views/backup.php:309 views/backup.php:310 views/backup.php:311
+#: views/backup.php:312 views/backup.php:313
+msgid "Warning"
+msgstr "Avertissement"
+
+#: lib/includes/class-wpbackitup-admin.php:205 views/backup.php:149
+msgid "Error"
+msgstr "Erreur"
+
+#: lib/includes/class-wpbackitup-admin.php:206
+msgid "Response"
+msgstr "Réponse"
+
+#: lib/includes/class-wpbackitup-admin.php:207 views/backup.php:296
+#: views/restore.php:205
+msgid "Status"
+msgstr "État"
+
+#: lib/includes/class-wpbackitup-admin.php:208 views/backup.php:265
+msgid "Download"
+msgstr "﻿Télécharger"
+
+#: lib/includes/class-wpbackitup-admin.php:209 views/backup.php:274
+#: views/restore.php:111
+msgid "Delete"
+msgstr "Supprimer"
+
+#: lib/includes/class-wpbackitup-admin.php:211
+msgid "(JS997) Unexpected error"
+msgstr "(JS997) Erreur inattendue."
+
+#: lib/includes/class-wpbackitup-admin.php:212
+msgid "(JS998) Unexpected error"
+msgstr "(JS998) Erreur inattendue."
+
+#: lib/includes/class-wpbackitup-admin.php:213
+msgid "(JS999) An unexpected error has occurred"
+msgstr "(JS999) Erreur inattendue."
+
+#: lib/includes/class-wpbackitup-admin.php:214
+msgid "Scheduled has been saved."
+msgstr "La planification a été enregistrée."
+
+#: lib/includes/class-wpbackitup-admin.php:215
+msgid "Scheduled was not saved."
+msgstr "La planification n'a pas été enregistrée."
+
+#: lib/includes/class-wpbackitup-admin.php:216
+msgid "Are you sure you want to restore your site?"
+msgstr "Êtes-vous sur de vouloir restaurer votre site ?"
+
+#: lib/includes/class-wpbackitup-admin.php:217
+msgid "Are you sure ?"
+msgstr "Voulez-vous vraiment faire cela ?"
+
+#: lib/includes/class-wpbackitup-admin.php:218
+msgid "This file cannot be delete!"
+msgstr "Ce fichier ne peut pas être supprimé&nbsp;!"
+
+#: lib/includes/class-wpbackitup-admin.php:219 views/backup.php:269
+msgid "View Log"
+msgstr "Voir le fichier journal"
+
+#: lib/includes/class-wpbackitup-admin.php:220
+msgid "New Backup!"
+msgstr "Nouvelle sauvegarde !"
+
+#: lib/includes/class-wpbackitup-admin.php:221
+msgid "Uploaded Backup"
+msgstr "Sauvegarde mise en ligne."
+
+#: lib/includes/class-wpbackitup-admin.php:480
+msgid "Backup Queued"
+msgstr "Sauvegarde mise en file d'attente."
+
+#: lib/includes/class-wpbackitup-admin.php:482
+msgid "Backup could not be queued"
+msgstr "La sauvegarde n'a pas pu être mise en file d'attente."
+
+#: lib/includes/class-wpbackitup-admin.php:485
+msgid "Backup already in queue"
+msgstr "La sauvegarde est déjà dans la file d'attente."
+
+#: lib/includes/class-wpbackitup-admin.php:508 views/backup.php:332
+msgid "Backup Cancelled"
+msgstr "Sauvegarde annulée."
+
+#: lib/includes/class-wpbackitup-admin.php:535
+msgid "No backup file selected."
+msgstr "Aucun fichier de sauvegarde sélectionné."
+
+#: lib/includes/class-wpbackitup-admin.php:542
+msgid "No user id found."
+msgstr "Aucun identifiant d'utilisateur trouvé."
+
+#: lib/includes/class-wpbackitup-admin.php:553
+msgid "Restore Queued"
+msgstr "Restauration mise en file d'attente."
+
+#: lib/includes/class-wpbackitup-admin.php:555
+msgid "Restore could not be queued"
+msgstr "La restauration n'a pas pu être mise en file d'attente."
+
+#: lib/includes/class-wpbackitup-admin.php:558
+msgid "Restore already in queue"
+msgstr "La restauration est déjà en file d'attente."
+
+#: lib/includes/class-wpbackitup-admin.php:743
+msgid "No response log found."
+msgstr "Pas de réponse de journal trouvée."
+
+#: lib/includes/class-wpbackitup-admin.php:836
+#: lib/includes/class-wpbackitup-admin.php:844
+#: lib/includes/class-wpbackitup-admin.php:873
+#: lib/includes/class-wpbackitup-admin.php:880
+#: lib/includes/class-wpbackitup-admin.php:887
+#: lib/includes/class-wpbackitup-admin.php:894
+msgid "Please enter a number"
+msgstr "Veuillez saisir un chiffre."
+
+#: lib/includes/class-wpbackitup-admin.php:865
+#: lib/includes/class-wpbackitup-admin.php:972
+msgid "Please enter a valid email"
+msgstr "Veuillez saisir une adresse de messagerie valide."
+
+#: lib/includes/class-wpbackitup-admin.php:979
+msgid "Please enter your support ticket id"
+msgstr "Veuillez saisir l'identifiant de votre ticket de support."
+
+#: lib/includes/class-wpbackitup-admin.php:984
+msgid "Please only enter numbers in this field"
+msgstr "Veuillez saisir uniquement des chiffres dans ce champ."
+
+#: lib/includes/class-wpbackitup-admin.php:1645
+msgid "License is invalid."
+msgstr "La licence n'est pas valide."
+
+#: lib/includes/class-wpbackitup-admin.php:1650
+msgid "License has expired."
+msgstr "La licence est expirée."
+
+#: lib/includes/class-wpbackitup-admin.php:1655
+msgid "Activation limit has been reached."
+msgstr "La  limite d'activation a été atteinte."
+
+#: lib/includes/handler_upload.php:29
+msgid "Invalid Nonce"
+msgstr "Nonce invalide"
+
+#: lib/includes/handler_upload.php:39 lib/includes/handler_upload.php:151
+msgid "Upload directory is not writable, or does not exist."
+msgstr ""
+"Le répertoire de stockage n&rsquo;est pas accessible en écriture ou n'existe "
+"pas."
+
+#: lib/includes/handler_upload.php:80
+#, php-format
+msgid "Error: %s"
+msgstr "Erreur : %s"
+
+#: lib/includes/handler_upload.php:80
+msgid "File could not be uploaded"
+msgstr "Le fichier n'a pas pu être mis en ligne."
+
+#: lib/includes/handler_upload.php:141
+msgid "Upload does not appear to be a WP BackItUp backup archive file."
+msgstr ""
+"Le fichier ne semble pas être un fichier d'archive de sauvegarde WP BackItUp."
+
+#: lib/includes/handler_upload.php:161
+msgid "Could not import file into WP BackItUp backup set."
+msgstr ""
+"Impossible d&rsquo;importer le fichier dans le jeu de sauvegarde WP BackItUp."
+
+#: lib/includes/job_backup.php:851
+msgid "Preparing for backup...Done"
+msgstr "Préparation pour la sauvegarde...  Terminé."
+
+#: lib/includes/job_backup.php:852
+msgid "Backing up database...Done"
+msgstr "Sauvegarde de la base de données...  Terminé."
+
+#: lib/includes/job_backup.php:853
+msgid "Creating backup information file...Done"
+msgstr "Création du fichier d'information de la sauvegarde...  Terminé."
+
+#: lib/includes/job_backup.php:854
+msgid "Backing up themes...Done"
+msgstr "Sauvegarde des thèmes...  Terminé."
+
+#: lib/includes/job_backup.php:855
+msgid "Backing up plugins...Done"
+msgstr "Sauvegarde des extensions...  Terminé."
+
+#: lib/includes/job_backup.php:856
+msgid "Backing up uploads...Done"
+msgstr "Sauvegarde des pièces jointes...  Terminé."
+
+#: lib/includes/job_backup.php:857
+msgid "Backing up miscellaneous files...Done"
+msgstr "Sauvegarde des fichiers divers...  Terminé."
+
+#: lib/includes/job_backup.php:858
+msgid "Finalizing backup...Done"
+msgstr "Finalisation de la sauvegarde...  Terminé."
+
+#: lib/includes/job_backup.php:859
+msgid "Validating backup...Done"
+msgstr "Validation de la sauvegarde...  Terminé."
+
+#: lib/includes/job_backup.php:860
+msgid "Cleaning up...Done"
+msgstr "Nettoyage... Terminé."
+
+#: lib/includes/job_backup.php:870
+#, php-format
+msgid "%s - Backup completed successfully."
+msgstr "%s - La sauvegarde a été correctement effectuée."
+
+#: lib/includes/job_backup.php:871
+msgid "Your backup completed successfully."
+msgstr "Votre sauvegarde a été correctement effectuée."
+
+#: lib/includes/job_backup.php:874
+#, php-format
+msgid "%s - Backup did not complete successfully."
+msgstr "%s - La sauvegarde n'a pas été correctement effectuée."
+
+#: lib/includes/job_backup.php:875
+msgid "Your backup did not complete successfully."
+msgstr "Votre sauvegarde n'a pas été correctement effectuée."
+
+#: lib/includes/job_backup.php:880
+#, php-format
+msgid "WordPress Site: <a href=\"%s\" target=\"_blank\"> %s </a><br/>"
+msgstr "Site WordPress&nbsp;: <a href=\"%s\" target=\"_blank\"> %s </a><br/>"
+
+#: lib/includes/job_backup.php:881
+msgid "Backup date:"
+msgstr "Date de la sauvegarde&nbsp;:"
+
+#: lib/includes/job_backup.php:882
+msgid "Number of backups completed with WP BackItUp:"
+msgstr "Nombre de sauvegardes effectuées avec WP BackItUp&nbsp;:"
+
+#: lib/includes/job_backup.php:884
+msgid "Completion Code:"
+msgstr "Code de réussite&nbsp;:"
+
+#: lib/includes/job_backup.php:885
+msgid "WP BackItUp Version:"
+msgstr "Version de WP BackItUp&nbsp;:"
+
+#: lib/includes/job_backup.php:891
+msgid "Steps Completed"
+msgstr "Étapes terminées"
+
+#: lib/includes/job_backup.php:912
+#, php-format
+msgid "Checkout %s for info about WP BackItUp and our other products."
+msgstr ""
+"Consultez %s pour en savoir plus sur WP BackItUp et nos autres produits."
+
+#: lib/includes/job_backup.php:1088
+msgid ""
+"(101) Unable to create a new directory for backup. Please check your CHMOD "
+"settings of your wp-backitup backup directory"
+msgstr ""
+"(101) Impossible de créer un nouveau répertoire pour la sauvegarde. Veuillez "
+"vérifier vos réglages CHMOD de votre répertoire de sauvegarde wp-backitup."
+
+#: lib/includes/job_backup.php:1089
+msgid ""
+"(102) Cannot create backup directory. Please check the CHMOD settings of "
+"your wp-backitup plugin directory"
+msgstr ""
+"(102) Impossible de créer le répertoire de sauvegarde. Veuillez vérifier vos "
+"réglages CHMOD du répertoire de l'extension wp-backitup."
+
+#: lib/includes/job_backup.php:1090
+msgid "(103) Unable to backup your files. Please try again"
+msgstr "(103) Impossible de sauvegarder vos fichiers. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1091
+msgid "(104) Unable to export your database. Please try again"
+msgstr ""
+"(104) Impossible d'exporter votre base de données. Veuillez réessayer. "
+
+#: lib/includes/job_backup.php:1092
+msgid "(105) Unable to export site information file. Please try again"
+msgstr ""
+"(105) Impossible d'exporter le fichier d'informations du site. Veuillez "
+"réessayer."
+
+#: lib/includes/job_backup.php:1093
+msgid "(106) Unable to cleanup your backup directory"
+msgstr "(106) Impossible de nettoyer votre répertoire de sauvegarde."
+
+#: lib/includes/job_backup.php:1094
+msgid "(107) Unable to compress(zip) your backup. Please try again"
+msgstr ""
+"(107) Impossible de compresser (zip) votre sauvegarde. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1095
+msgid "(108) Unable to backup your site data files. Please try again"
+msgstr ""
+"(108) Impossible de sauvegarder les fichiers de données de votre site. "
+"Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1096
+msgid "(109) Unable to finalize backup. Please try again"
+msgstr "(109) Impossible de finaliser la sauvegarde. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1097
+msgid ""
+"(114) Your database was accessible but an export could not be created. "
+"Please contact support by clicking the get support link on the right. Please "
+"let us know who your host is when you submit the request"
+msgstr ""
+"(114) Votre base de données était accessible mais un export n'a pas pu être "
+"créé. Veuillez contacter le support en cliquant sur le lien Obtenir du "
+"support sur la droite. Veuillez nous dire quel est votre hébergeur et le "
+"moment où vous avez effectué la requête."
+
+#: lib/includes/job_backup.php:1098
+msgid "(120) Unable to backup your themes. Please try again"
+msgstr "(120) Impossible de sauvegarder vos thèmes. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1099
+msgid "(121) Unable to backup your plugins. Please try again"
+msgstr "(121) Impossible de sauvegarder vos extensions. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1100
+msgid "(122) Unable to backup your uploads. Please try again"
+msgstr ""
+"(122) Impossible de sauvegarder vos pièces jointes. Veuillez réessayer. "
+
+#: lib/includes/job_backup.php:1101
+msgid "(123) Unable to backup your miscellaneous files. Please try again"
+msgstr ""
+"(123) Impossible de sauvegarder vos fichiers divers. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1102
+msgid ""
+"(125) Unable to compress your backup because there is no zip utility "
+"available.  Please contact support"
+msgstr ""
+"(125) Impossible de compresser votre sauvegarde car il n'y a pas "
+"d'utilitaire zip disponible. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1103
+msgid "(126) Unable to validate your backup. Please try again"
+msgstr "(126) Impossible de valider votre sauvegarde. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1104
+msgid "(127) Unable to create inventory of files to backup. Please try again"
+msgstr ""
+"(127) Impossible de créer l'inventaire des fichiers de sauvegarde. Veuillez "
+"réessayer."
+
+#: lib/includes/job_backup.php:1105
+msgid "(128) Unable to create job control record. Please try again"
+msgstr ""
+"(128) Impossible de créer une tâche d'enregistrement de contrôle. Veuillez "
+"réessayer."
+
+#: lib/includes/job_backup.php:1107
+msgid ""
+"(2101) Unable to create a new directory for backup. Please check your CHMOD "
+"settings of your wp-backitup backup directory"
+msgstr ""
+"(2101) Impossible de créer un nouveau répertoire pour la sauvegarde. "
+"Veuillez vérifier vos réglages CHMOD de votre répertoire de sauvegarde wp-"
+"backitup."
+
+#: lib/includes/job_backup.php:1108
+msgid ""
+"(2102) Cannot create backup directory. Please check the CHMOD settings of "
+"your wp-backitup plugin directory"
+msgstr ""
+"(2102) Impossible de créer le répertoire de sauvegarde. Veuillez vérifier "
+"vos réglages CHMOD du répertoire de l'extension wp-backitup."
+
+#: lib/includes/job_backup.php:1109
+msgid "(2103) Unable to backup your files. Please try again"
+msgstr "(2103) Impossible de sauvegarder vos fichiers. Veuillez réessayer. "
+
+#: lib/includes/job_backup.php:1110
+msgid "(2104) Unable to export your database. Please try again"
+msgstr ""
+"(2104) Impossible d'exporter votre base de données. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1111
+msgid "(2105) Unable to export site information file. Please try again"
+msgstr ""
+"(2105) Impossible d'exporter le fichier d'informations du site. Veuillez "
+"réessayer."
+
+#: lib/includes/job_backup.php:1112
+msgid "(2106) Unable to cleanup your backup directory"
+msgstr "(2106) Impossible de nettoyer votre répertoire de sauvegarde."
+
+#: lib/includes/job_backup.php:1113
+msgid "(2107) Unable to compress(zip) your backup. Please try again"
+msgstr ""
+"(2107) Impossible de compresser (zip) votre sauvegarde. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1114
+msgid "(2108) Unable to backup your site data files. Please try again"
+msgstr ""
+"(2108) Impossible de sauvegarder les fichiers de données de votre site. "
+"Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1115
+msgid "(2109) Unable to finalize backup. Please try again"
+msgstr "(2109) Impossible de finaliser la sauvegarde. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1116
+msgid ""
+"(2114) Your database was accessible but an export could not be created. "
+"Please contact support by clicking the get support link on the right. Please "
+"let us know who your host is when you submit the request"
+msgstr ""
+"(2114) Votre base de données était accessible mais un export n'a pas pu être "
+"créé. Veuillez contacter le support en cliquant sur le lien Obtenir du "
+"support sur la droite. Veuillez nous dire quel est votre hébergeur et le "
+"moment où vous avez effectué la requête."
+
+#: lib/includes/job_backup.php:1117
+msgid "(2120) Unable to backup your themes. Please try again"
+msgstr "(2120) Impossible de sauvegarder vos thèmes. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1118
+msgid "(2121) Unable to backup your plugins. Please try again"
+msgstr "(2121) Impossible de sauvegarder vos extensions. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1119
+msgid "(2122) Unable to backup your uploads. Please try again"
+msgstr ""
+"(2122) Impossible de sauvegarder vos pièces jointes. Veuillez réessayer. "
+
+#: lib/includes/job_backup.php:1120
+msgid "(2123) Unable to backup your miscellaneous files. Please try again"
+msgstr ""
+"(2123) Impossible de sauvegarder vos fichiers divers. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1121
+msgid ""
+"(2125) Unable to compress your backup because there is no zip utility "
+"available.  Please contact support"
+msgstr ""
+"(2125) Impossible de compresser votre sauvegarde car il n'y a pas "
+"d'utilitaire zip disponible. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1122
+msgid "(2126) Unable to validate your backup. Please try again"
+msgstr "(2126) Impossible de valider votre sauvegarde. Veuillez réessayer."
+
+#: lib/includes/job_backup.php:1123
+msgid "(2127) Unable to create inventory of files to backup. Please try again"
+msgstr ""
+"(2127) Impossible de créer l'inventaire des fichiers de sauvegarde. Veuillez "
+"réessayer."
+
+#: lib/includes/job_backup.php:1124
+msgid "(2128) Unable to create job control record. Please try again"
+msgstr ""
+"(2128) Impossible de créer une tâche d'enregistrement de contrôle. Veuillez "
+"réessayer."
+
+#: lib/includes/job_backup.php:1127
+msgid "(999) Unexpected error"
+msgstr "(999) Erreur inattendue"
+
+#. TRANSLATORS: %s = plugin name.
+#. This string is in the header of one of my pages and looks like this: WP BackItUp Dashboard
+#. Similar to how WordPress uses the word dashboard at the in the left navigation.
+#: views/backup.php:20
+#, php-format
+msgid "%s Dashboard"
+msgstr "Tableau de bord de %s"
+
+#: views/backup.php:150
+#, php-format
+msgid "Backup folder does not exist. Please contact %s for assistance."
+msgstr ""
+"Le dossier de sauvegarde n'existe pas. Veuillez contacter %s pour de "
+"l'assistance."
+
+#: views/backup.php:150 views/restore.php:74 views/restore.php:81
+msgid "support"
+msgstr "support"
+
+#: views/backup.php:153 views/backup.php:159
+msgid "Close"
+msgstr "Fermer"
+
+#: views/backup.php:174
+msgid ""
+"Click the backup button to create a zipped backup file of this site's "
+"database, plugins, themes and settings."
+msgstr ""
+"Cliquez sur le bouton de sauvegarde pour créer un fichier zippé de la base "
+"de données, des extensions, thèmes et réglages de votre site."
+
+#: views/backup.php:175
+msgid ""
+"Once your backup file has been created it will appear in the available "
+"backups section below. This file may remain on your hosting providers server "
+"but we recommend that you download and save it somewhere safe."
+msgstr ""
+"Une fois que votre fichier de sauvegarde a été créé, il apparaîtra dans la "
+"section des sauvegardes disponibles ci-dessous. Ce fichier peut rester sur "
+"le serveur de votre hébergement, mais nous vous recommandons de le "
+"télécharger et de l'enregistrer dans un endroit sûr."
+
+#: views/backup.php:176
+msgid ""
+"WP BackItUp premium customers can use these backup files to perform an "
+"automated restore of their site."
+msgstr ""
+"Les utilisateurs de WP BackItUp Premium peuvent utiliser les fichiers de "
+"sauvegarde pour effectuer une restauration automatique de leurs sites."
+
+#: views/backup.php:180
+msgid "Cancel"
+msgstr "Annuler"
+
+#: views/backup.php:187
+#, php-format
+msgid ""
+"WP BackItUp lite customers may use these backup files to manually restore "
+"their site.  Please visit %s for manual restore instructions."
+msgstr ""
+"Les utilisateurs de WP BackItUp Premium peuvent utiliser ces fichiers de "
+"sauvegarde pour effectuer une restauration manuelle de leurs sites. Veuillez "
+"vous rendre sur %s pour les instructions de restauration."
+
+#: views/backup.php:194
+msgid "Backup Schedule"
+msgstr "Planification de sauvegarde"
+
+#: views/backup.php:196
+msgid "Select the days of the week you would like your backup to run."
+msgstr "Sélectionner les jours de la semaine pour effectuer la sauvegarde."
+
+#: views/backup.php:198
+msgid ""
+"Backup your site once per week or every day, it's up to you.  If you have "
+"email notifications turned on we'll even send you an email when it's done.  "
+"Once your backup file has been created it will appear in the available "
+"backups section below. This file may remain on your hosting providers server "
+"but we recommend that you download and save it somewhere safe."
+msgstr ""
+"Sauvegardez votre site une fois par semaine ou tous les jours, c'est de "
+"votre responsabilité. Si vous avez des notifications par e-mail activées "
+"nous vous enverrons même un e-mail lorsque c'est fait. Une fois que votre "
+"fichier de sauvegarde a été créé, il apparaîtra dans la section des "
+"sauvegardes disponibles ci-dessous. Ce fichier peut rester sur votre serveur "
+"d'hébergement, mais nous vous recommandons de télécharger et de "
+"l'enregistrer dans un endroit sûr."
+
+#: views/backup.php:200
+msgid "Please make sure to schedule your backup for at least once per week."
+msgstr ""
+"Veuillez vous assurer de programmer une sauvegarde au moins une fois par "
+"semaine."
+
+#: views/backup.php:204
+msgid "Monday"
+msgstr "lundi"
+
+#: views/backup.php:205
+msgid "Tuesday"
+msgstr "mardi"
+
+#: views/backup.php:206
+msgid "Wednesday"
+msgstr "mercredi"
+
+#: views/backup.php:207
+msgid "Thursday"
+msgstr "jeudi"
+
+#: views/backup.php:208
+msgid "Friday"
+msgstr "vendredi"
+
+#: views/backup.php:209
+msgid "Saturday"
+msgstr "samedi"
+
+#: views/backup.php:210
+msgid "Sunday"
+msgstr "dimanche"
+
+#: views/backup.php:213
+msgid "Save Schedule"
+msgstr "Enregistrer la planification"
+
+#: views/backup.php:218
+#, php-format
+msgid ""
+"Scheduled backups are only available to WP BackItUp premium customers.  "
+"Please visit %s to get WP BackItUp risk free for 30 days."
+msgstr ""
+"Les sauvegardes planifiées sont disponibles uniquement pour les clients WP "
+"BackItUp premium. Veuillez visiter %s pour obtenir sans risque WP BackItUp "
+"pendant 30 jours."
+
+#: views/backup.php:225 views/restore.php:94
+msgid "Available Backups"
+msgstr "Sauvegardes disponibles"
+
+#: views/backup.php:283 views/restore.php:125
+msgid "No backup archives found."
+msgstr "Aucune archive de sauvegarde trouvée."
+
+#: views/backup.php:291
+#, php-format
+msgid ""
+"The automated restore feature is only available to WP BackItUp premium "
+"customers.  Please visit %s to get WP BackItUp risk free for 30 days."
+msgstr ""
+"La fonction de restauration automatique est uniquement disponible pour les "
+"clients WP BackItUp premium. Veuillez visiter %s pour obtenir sans risque WP "
+"BackItUp pendant 30 jours."
+
+#: views/backup.php:300 views/restore.php:209
+msgid "Nothing to report"
+msgstr "Rien à signaler"
+
+#: views/backup.php:305
+msgid "Preparing for backup"
+msgstr "Préparation pour la sauvegarde"
+
+#: views/backup.php:305 views/backup.php:306 views/backup.php:307
+#: views/backup.php:308 views/backup.php:309 views/backup.php:310
+#: views/backup.php:311 views/backup.php:312 views/backup.php:313
+#: views/restore.php:219 views/restore.php:220 views/restore.php:221
+#: views/restore.php:222 views/restore.php:223 views/restore.php:224
+#: views/restore.php:225 views/restore.php:226 views/restore.php:227
+#: views/restore.php:228 views/restore.php:230
+msgid "Done"
+msgstr "﻿Terminé"
+
+#: views/backup.php:305 views/backup.php:306 views/backup.php:307
+#: views/backup.php:308 views/backup.php:309 views/backup.php:310
+#: views/backup.php:311 views/backup.php:312 views/backup.php:313
+#: views/restore.php:219 views/restore.php:220 views/restore.php:221
+#: views/restore.php:222 views/restore.php:223 views/restore.php:224
+#: views/restore.php:225 views/restore.php:226 views/restore.php:227
+#: views/restore.php:228 views/restore.php:230
+msgid "Failed"
+msgstr "Échoué"
+
+#: views/backup.php:306
+msgid "Backing up database"
+msgstr "Sauvegarde de la base de données"
+
+#: views/backup.php:307
+msgid "Creating backup information file"
+msgstr "Création du fichier de données de sauvegarde."
+
+#: views/backup.php:308
+msgid "Backing up themes"
+msgstr "Sauvegarde des thèmes"
+
+#: views/backup.php:309
+msgid "Backing up plugins"
+msgstr "Sauvegarde des extensions"
+
+#: views/backup.php:310
+msgid "Backing up uploads"
+msgstr "Sauvegarde des pièces jointes"
+
+#: views/backup.php:311
+msgid "Backing up everything else"
+msgstr "Sauvegarde de tout le reste"
+
+#: views/backup.php:312
+msgid "Validating backup"
+msgstr "Validation de la sauvegarde"
+
+#: views/backup.php:313
+msgid "Finalizing backup"
+msgstr "Finalisation de la sauvegarde"
+
+#: views/backup.php:323
+msgid "Backup completed successfully"
+msgstr "La sauvegarde a bien été effectuée."
+
+#: views/backup.php:344
+msgid "Backups"
+msgstr "Sauvegardes"
+
+#: views/backup.php:344
+msgid "Version "
+msgstr "Version "
+
+#: views/backup.php:346
+msgid "Welcome to WP BackItUp!"
+msgstr "Bienvenue dans WP BackItUp !"
+
+#: views/backup.php:346
+msgid "The simplest way to backup your WordPress site."
+msgstr "La manière la plus simple de sauvegarder votre site WordPress."
+
+#: views/backup.php:347
+msgid ""
+"Getting started is easy, just click the backup button on the left side of "
+"this page."
+msgstr ""
+"Le démarrage est simple, cliquez sur le bouton de sauvegarde à gauche sur "
+"cette page."
+
+#: views/backup.php:351
+#, php-format
+msgid ""
+"Congratulations! You have performed <span style=\"font-weight:bold;font-size:"
+"medium;color: green\">%s</span> successful backups."
+msgstr ""
+"Félicitations ! Vous avez bien effectué <span style=\"font-weight:bold;font-"
+"size:medium;color: green\">%s</span> sauvegardes."
+
+#: views/backup.php:352
+msgid "Tips"
+msgstr "Astuces"
+
+#: views/backup.php:353
+msgid "Backup your site at least once per week"
+msgstr "Sauvegardez votre site au moins une fois par semaine"
+
+#: views/backup.php:354
+msgid "Download all your backups and store them somewhere safe"
+msgstr ""
+"Téléchargez toutes vos sauvegardes et stockez-les dans un endroit sécurisé."
+
+#: views/backup.php:355
+msgid "Verify your backup files are good by taking a look at what's inside"
+msgstr ""
+"Vérifiez que vos fichiers de sauvegarde sont bons en regardant attentivement "
+"ce qu'il y a dedans."
+
+#: views/backup.php:360
+#, php-format
+msgid "Why not %s and schedule your backups!"
+msgstr "Pourquoi ne pas %s et planifier vos sauvegardes&nbsp;!"
+
+#: views/backup.php:360
+msgid "upgrade"
+msgstr "mettre à jour"
+
+#: views/backup.php:369
+msgid "Register WP BackItUp"
+msgstr "Enregistrer WP BackItUp"
+
+#: views/backup.php:372
+msgid ""
+"Enter your name and email address below to receive <b>special offers</b> and "
+"access to our world class <b>support</b> team.  <br />\n"
+"                <br />Enter your license key below to activate it on this "
+"site."
+msgstr ""
+"Saisissez votre nom et votre adresse e-mail ci-dessous pour recevoir des "
+"<b>offres spéciales</b> et l'accès à notre équipe de <b>support</b> de "
+"classe mondiale.<br />\n"
+"<br />Entrez votre clé de licence ci-dessous pour l'activer sur ce site."
+
+#: views/backup.php:374
+msgid "name"
+msgstr "nom"
+
+#: views/backup.php:375
+msgid "email address"
+msgstr "adresse de messagerie"
+
+#: views/backup.php:376
+msgid "license key"
+msgstr "clé de licence"
+
+#: views/backup.php:376 views/backup.php:426 views/backup.php:430
+#, php-format
+msgid "%s"
+msgstr "%s"
+
+#: views/backup.php:377
+msgid "Free plugin customers do not need to enter license key."
+msgstr ""
+"Les utilisateurs de l'extension gratuite n'ont pas besoin de saisir de clé "
+"de licence."
+
+#: views/backup.php:378
+msgid "Register"
+msgstr "Inscription"
+
+#: views/backup.php:387
+msgid "License Info"
+msgstr "Info de licence"
+
+#: views/backup.php:409
+msgid "Name"
+msgstr "Nom"
+
+#: views/backup.php:410
+msgid "Email"
+msgstr "E-mail "
+
+#: views/backup.php:411
+msgid "License Type"
+msgstr "Type de licence"
+
+#: views/backup.php:412
+msgid "Expires"
+msgstr "Expire"
+
+#: views/backup.php:415
+msgid "Enter license key to activate on this site."
+msgstr "Saisissez la clé de licence à activer sur ce site."
+
+#: views/backup.php:422
+msgid "License Active"
+msgstr "Licence active"
+
+#: views/backup.php:430
+msgid "License expired"
+msgstr "Licence expirée"
+
+#: views/backup.php:434
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: views/backup.php:438
+msgid "Activate"
+msgstr "Activer"
+
+#: views/backup.php:442
+#, php-format
+msgid "Purchase a %s license using the purchase link above."
+msgstr "Achetez une licence %s en utilisant le lien d'achat ci-dessus."
+
+#: views/backup.php:442
+msgid "no-risk"
+msgstr "sans risque"
+
+#: views/backup.php:448
+#, php-format
+msgid ""
+"<a href=\"%s\" target=\"blank\">Renew</a> your license now for another year "
+"of <strong>product updates</strong> and <strong>priority support.</strong>"
+msgstr ""
+"<a href=\"%s\" target=\"blank\">Renouveler</a> votre licence maintenant pour "
+"une nouvelle année de <strong>mises à jour produit</strong> et <strong>un "
+"support prioritaire.</strong>"
+
+#: views/backup.php:459
+msgid "Useful Links"
+msgstr "Liens utiles"
+
+#: views/backup.php:462 views/backup.php:466
+msgid "Your account"
+msgstr "Votre compte"
+
+#: views/backup.php:469
+msgid "Documentation"
+msgstr "Documentation"
+
+#: views/backup.php:472
+msgid "Get support"
+msgstr "Obtenir du support"
+
+#: views/backup.php:475
+msgid "Feature request"
+msgstr "Demande de fonctionnalité"
+
+#: views/backup.php:477
+msgid "Contact"
+msgstr "Contact"
+
+#: views/backup.php:497 views/backup.php:518
+msgid "WP BackItUp Backup Set"
+msgstr "Jeu de sauvegarde WP BackItUp"
+
+#: views/backup.php:499
+msgid ""
+"Below are the archive files included in this backup set. Click the link to "
+"download."
+msgstr ""
+"Voici les fichiers d'archive inclus dans ce jeu de sauvegarde. Cliquez sur "
+"le lien pour télécharger."
+
+#: views/backup.php:519
+msgid "Please refresh this page to download your new backup files."
+msgstr ""
+"Veuillez rafraichir cette page pour télécharger vos nouveaux fichiers de "
+"sauvegarde."
+
+#: views/restore.php:16
+#, php-format
+msgid "%s Restore"
+msgstr "Restaurer %s"
+
+#: views/restore.php:59
+msgid "Zip Files"
+msgstr "Fichiers Zip"
+
+#: views/restore.php:74
+#, php-format
+msgid "Error: Backup folder does not exist. Please contact %s for assistance."
+msgstr ""
+"Erreur&nbsp;: Le dossier de sauvegarde n'existe pas. Veuillez contacter %s "
+"pour de l'assistance."
+
+#: views/restore.php:81
+#, php-format
+msgid "Error: Restore folder does not exist. Please contact %s for assistance."
+msgstr ""
+"Erreur&nbsp;: Le dossier de restauration n'existe pas. Veuillez contacter %s "
+"pour de l'assistance."
+
+#: views/restore.php:141
+#, php-format
+msgid ""
+"<p>* The automated restore feature is only available to licensed customers.  "
+"Please visit <a href=\"%s\" target=\"_blank\">%s</a> to get license WP "
+"BackItUp risk free for 30 days.</p>"
+msgstr ""
+"<p>* La fonction de restauration automatique est uniquement disponible pour "
+"les clients WP BackItUp avec une licence. Veuillez visiter <a href=\"%s\" "
+"target=\"_blank\">%s</a> pour obtenir sans risque une licence WP BackItUp "
+"pendant 30 jours.</p>"
+
+#: views/restore.php:153
+msgid "Upload"
+msgstr "Envoyer"
+
+#: views/restore.php:156
+msgid ""
+"Upload WP BackItUp archive(zip) files to add to your list of available "
+"backups."
+msgstr ""
+"Mettez en ligne les fichiers d'archive (zip) de WP BackItUp à ajouter à "
+"votre liste de sauvegardes disponibles."
+
+#: views/restore.php:173
+msgid "WP BackItUp - Upload backup files"
+msgstr "WP BackItUp - Envoi de fichiers de sauvegarde"
+
+#: views/restore.php:174
+msgid "Backup files may be uploaded into WP BackItUp with this form."
+msgstr ""
+"Les fichiers de sauvegarde peuvent être envoyés dans WP BackItUp via ce "
+"formulaire."
+
+#: views/restore.php:174
+msgid ""
+"They may also be uploaded manually into the WP BackItUp directory (wp-"
+"content/wpbackitup_backups) using FTP. When done uploading all backup files "
+"refresh this page."
+msgstr ""
+"Ils peuvent également être chargés manuellement dans le répertoire WP "
+"BackItUp (wp-content/wpbackitup_backups) en utilisant FTP. Lorsque vous avez "
+"terminé le chargement de tous les fichiers de sauvegarde rafraîchissez cette "
+"page."
+
+#: views/restore.php:178
+#, php-format
+msgid "This feature requires %s version %s or later"
+msgstr "Cette fonctionnalité nécessite %s version %s ou plus."
+
+#: views/restore.php:184
+msgid "Drop backup files here"
+msgstr "Déposez ici vos fichiers de sauvegarde"
+
+#: views/restore.php:190
+msgid ""
+"* Reload this page when done uploading to see new backups appear in the "
+"Available Backups section above. "
+msgstr ""
+"* Rechargez cette page lorsque vous avez terminé le chargement pour voir "
+"apparaître de nouvelles sauvegardes dans la section sauvegardes disponibles "
+"ci-dessus."
+
+#: views/restore.php:219
+msgid "Preparing for restore"
+msgstr "Préparation pour la restauration"
+
+#: views/restore.php:220
+msgid "Unzipping backup set"
+msgstr "Décompression du jeu de sauvegardes"
+
+#: views/restore.php:221
+msgid "Validating backup file"
+msgstr "Validation du fichier de sauvegarde"
+
+#: views/restore.php:222
+msgid "Deactivating plugins"
+msgstr "Désactivation des extensions"
+
+#: views/restore.php:223
+msgid "Creating database restore point"
+msgstr "Création du point de restauration de la base de données."
+
+#: views/restore.php:224
+msgid "Staging content files"
+msgstr ""
+
+#: views/restore.php:225
+msgid "Restoring content files"
+msgstr "Restauration des fichiers de contenu."
+
+#: views/restore.php:226
+msgid "Restoring database"
+msgstr "Restauration de la base de données."
+
+#: views/restore.php:227
+msgid "Updating current user info"
+msgstr "Mise à jour des informations de l'utilisateur courant."
+
+#: views/restore.php:228
+msgid "Updating site URL"
+msgstr "Mise à jour de l'URL du site"
+
+#: views/restore.php:230
+msgid "Updating permalinks"
+msgstr "Mise à jour des permaliens"
+
+#: views/restore.php:236
+msgid "Error 201: No file selected"
+msgstr "Erreur 201 : aucun fichier sélectionné."
+
+#: views/restore.php:237
+msgid "Error 202: Your file could not be uploaded"
+msgstr "Erreur 202&nbsp;: Votre fichier n'a pas pu être mis en ligne."
+
+#: views/restore.php:238
+msgid "Error 203: Your backup could not be unzipped"
+msgstr "Erreur 203&nbsp;: Votre sauvegarde n'a pas pu être dé-zippée."
+
+#: views/restore.php:239
+msgid ""
+"Error 204: Your backup appears to be invalid. Please ensure you selected a "
+"valid backup"
+msgstr ""
+"Erreur 204&nbsp;: Votre sauvegarde semble ne pas être valide. Veuillez vous "
+"assurer d'en choisir une valide."
+
+#: views/restore.php:240
+msgid "Error 205: Cannot create restore point"
+msgstr "Erreur 205 : impossible de créer le point de restauration."
+
+#: views/restore.php:241
+msgid "Error 206: Unable to connect to your database"
+msgstr "Erreur 206 : impossible de se connecter à votre base de données."
+
+#: views/restore.php:242
+msgid ""
+"Error 207: Unable to get current site URL from database. Please try again"
+msgstr ""
+"Erreur 207&nbsp;: Impossible d'obtenir l'URL actuelle du site depuis la base "
+"de données. Veuillez réessayer."
+
+#: views/restore.php:243
+msgid ""
+"Error 208: Unable to get current home URL from database. Please try again"
+msgstr ""
+"Erreur 208&nbsp;: Impossible d'obtenir l'URL actuelle de la page d'accueil "
+"depuis la base de données. Veuillez réessayer."
+
+#: views/restore.php:244
+msgid ""
+"Error 209: Unable to get current user ID from database. Please try again"
+msgstr ""
+"Erreur 209&nbsp;: Impossible d'obtenir l'identifiant de l'utilisateur "
+"courant depuis la base de données. Veuillez réessayer."
+
+#: views/restore.php:245
+msgid ""
+"Error 210: Unable to get current user password from database. Please try "
+"again"
+msgstr ""
+"Erreur 210&nbsp;: Impossible d'obtenir le mot de passe de l'utilisateur "
+"courant depuis la base de données. Veuillez réessayer."
+
+#: views/restore.php:246
+msgid ""
+"Error 211: Unable to get current user email from database. Please try again"
+msgstr ""
+"Erreur 211&nbsp;: Impossible d'obtenir l'e-mail de l'utilisateur courant "
+"depuis la base de données. Veuillez réessayer."
+
+#: views/restore.php:247
+msgid ""
+"Error 212: Unable to import your database. This may require importing the "
+"file manually"
+msgstr ""
+"Erreur 212&nbsp;: Impossible d'importer votre base de données. Cela peut "
+"nécessiter l'importation du fichier manuellement."
+
+#: views/restore.php:248
+msgid ""
+"Warning 213: Unable to update your site URL value. Please check your "
+"WordPress general settings to make sure your Site and WordPress URLs are "
+"correct"
+msgstr ""
+"Avertissement 213&nbsp;: Impossible de mettre à jour la valeur de l'URL de "
+"votre site. Veuillez vérifier vos paramètres généraux WordPress pour vous "
+"assurer que votre site et les URLs Wordpress sont correctes."
+
+#: views/restore.php:249
+msgid ""
+"Warning 214: Unable to update your home URL value. Please check your "
+"WordPress general settings to make sure your Site and WordPress URLs are "
+"correct"
+msgstr ""
+"Avertissement 214&nbsp;: Impossible de mettre à jour la valeur de l'URL de "
+"votre page d'accueil. Veuillez vérifier vos paramètres généraux WordPress "
+"pour vous assurer que votre site et les URLs Wordpress sont corrects."
+
+#: views/restore.php:250
+msgid ""
+"Warning 215: Unable to update your user information. This may require you to "
+"login with the admin username and password that was used when the backup was "
+"created"
+msgstr ""
+"Avertissement 215&nbsp;: Impossible de mettre à jour vos informations "
+"utilisateur. Cela peut nécessiter de vous connecter avec le compte et le mot "
+"de passe d'administrateur qui a été utilisé lorsque la sauvegarde a été "
+"créée."
+
+#: views/restore.php:251
+msgid "Error 216: Database not found in backup"
+msgstr "Erreur 216 : base de données introuvable dans la sauvegarde."
+
+#: views/restore.php:252
+msgid "Warning 217: Unable to remove existing wp-content directory"
+msgstr ""
+"Avertissement 217&nbsp;: Impossible de supprimer le répertoire wp-content "
+"existant."
+
+#: views/restore.php:253
+msgid ""
+"Error 218: Unable to create new wp-content directory. Please check your "
+"CHMOD settings in /wp-content/"
+msgstr ""
+"Erreur 218&nbsp;: Impossible de créer le nouveau répertoire wp-content. "
+"Veuillez vérifier vos réglages CHMOD dans /wp-content/."
+
+#: views/restore.php:254
+msgid "Error 219: Unable to import wp-content. Please try again"
+msgstr ""
+"Erreur 219&nbsp;: Impossible d'importer wp-content. Veuillez réessayer."
+
+#: views/restore.php:255
+msgid "Warning 220: Unable to cleanup import directory. No action is required"
+msgstr ""
+"Avertissement 220&nbsp;: Impossible de nettoyer le répertoire d'import. "
+"Aucune action n'est requise."
+
+#: views/restore.php:256
+#, php-format
+msgid ""
+"Error 221: Table prefix value in wp-config.php is different from backup. "
+"This MUST be changed in your wp-config.php file before you will be able to "
+"restore your site.  See www.wpbackitup.com <a href =\"%s\" target=\"_blank\" "
+"> FAQs</a> for more info."
+msgstr ""
+"Erreur 221&nbsp;: La valeur du préfixe des tables dans wp-config.php est "
+"différente de celle de la sauvegarde. Ceci DOIT ÊTRE changé dans votre "
+"fichier wp-config.php avant vous puissiez restaurer votre site. Voir www."
+"wpbackitup.com <a href =\"%s\" target=\"_blank\" >FAQ</a> pour plus "
+"d'informations."
+
+#: views/restore.php:257
+msgid "Error 222: Unable to create restore folder"
+msgstr "Erreur 222 : impossible de créer le répertoire de restauration."
+
+#: views/restore.php:258
+msgid ""
+"Error 223: An error occurred during the restore.  WP BackItUp attempted to "
+"restore the database to its previous state but were unsuccessful.  Please "
+"contact WP BackItUp customer support and do not attempt to perform any "
+"further restores"
+msgstr ""
+"Erreur 223&nbsp;: Une erreur s'est produite durant la restauration. WP "
+"BackItUp a tenté de restaurer la base de données dans son état précédent "
+"mais sans succès. Veuillez contacter le support client de WP BackItUp et ne "
+"pas essayer de lancer de nouvelles restaurations."
+
+#: views/restore.php:259
+msgid ""
+"Error 224: An error occurred during the restore, however, we have "
+"successfully restored your database to the previous state"
+msgstr ""
+"Erreur 224&nbsp;: Une erreur s'est produite durant la restauration. "
+"Cependant, nous avons restauré avec succès votre base de données à son état "
+"précédent."
+
+#: views/restore.php:260
+msgid ""
+"Error 225: Restore option is only available to licensed WP BackItUp users"
+msgstr ""
+"Erreur 225&nbsp;: L'option de restauration est disponible uniquement aux "
+"utilisateurs WP BackItUp avec licence."
+
+#: views/restore.php:261
+msgid ""
+"Error 226: Restore cannot proceed because your backup was created using a "
+"different version of WordPress"
+msgstr ""
+"Erreur 226&nbsp;: La restauration ne peut pas être effectuée parce que votre "
+"sauvegarde a été faite en utilisant une version différente de WordPress."
+
+#: views/restore.php:262
+msgid ""
+"Error 227: Restore cannot proceed because your backup was created using a "
+"different version of WP BackItUp.  Please contact WP BackItUp support to "
+"help convert this backup to the current version"
+msgstr ""
+"Erreur 227&nbsp;: La restauration ne peut pas continuer parce que votre "
+"sauvegarde a été créée en utilisant une version différente de WP BackItUp. "
+"Veuillez contacter le support WP BackItUp pour aider à convertir cette "
+"sauvegarde vers la version actuelle."
+
+#: views/restore.php:263
+msgid ""
+"Error 230: WP BackItUp ran into unexpected errors during the database "
+"restore.  However, we were able to successfully revert the database back to "
+"its original state . This error may require importing the database manually"
+msgstr ""
+"Erreur 230&nbsp;: WP BackItUp a rencontré des erreurs inattendues lors de "
+"la  de restauration de la base de données. Cependant, nous étions en mesure "
+"de restaurer la base de données dans son état d'origine avec succès. Cette "
+"erreur peut nécessiter d'importer manuellement la base de données."
+
+#: views/restore.php:264
+msgid ""
+"Error 235: WP BackItUp is not able to proceed because there is no zip "
+"utility available.  Please contact support"
+msgstr ""
+"Erreur 235&nbsp;: WP BackItUp ne peut pas continuer car aucun utilitaire zip "
+"n'est disponible. Veuillez contacter le support."
+
+#: views/restore.php:265
+msgid ""
+"Error 250: WP BackItUp is unable to begin the restore because a backup is "
+"running.  Please wait for the backup to complete and then try again"
+msgstr ""
+"Erreur 250:&nbsp; WP BackItUp ne peut pas démarrer la restauration car une "
+"sauvegarde est en cours. Veuillez attendre la fin de la sauvegarde et "
+"refaire un essai."
+
+#: views/restore.php:267
+msgid ""
+"Error 251: WP BackItUp is unable to begin the restore because the backup "
+"manifest is empty"
+msgstr ""
+"Erreur 251&nbsp;: WP BackItUp est incapable de commencer la restauration "
+"parce que le manifeste de sauvegarde est vide."
+
+#: views/restore.php:268
+msgid ""
+"Error 252: At least one zip file is missing from your backup set.  Please "
+"make sure to upload all zip files that were part of this backup"
+msgstr ""
+"Erreur 252&nbsp;: Au moins un fichier zip est absent de votre jeu de "
+"sauvegarde. Veuillez vous assurer de mettre en ligne tous les fichiers zip "
+"faisant partie de cette sauvegarde."
+
+#: views/restore.php:269
+msgid ""
+"Error 253: Backup set contains a zip file that is not in the manifest.  "
+"Please make sure to upload only zip files that were part of this backup"
+msgstr ""
+"Erreur 253&nbsp;: Le jeu de sauvegarde contient un fichier zip qui n'est pas "
+"présent dans le manifeste. Veuillez vous assurez de faire de mettre en ligne "
+"uniquement les fichiers zip faisant partie de cette sauvegarde."
+
+#: views/restore.php:271
+msgid ""
+"Warning 300: Unable to restore all WordPress content. Please review your "
+"restore logs to see what WP BackItUp was unable to restore"
+msgstr ""
+"Avertissement 300&nbsp;: Impossible de restaurer tout le contenu WordPress. "
+"Veuillez consulter les journaux de restauration pour voir ce que WP BackItUp "
+"n'a pas été capable de restaurer."
+
+#: views/restore.php:272
+msgid ""
+"Warning 305: Unable to restore all plugins. Please review your restore logs "
+"to see what WP BackItUp was unable to restore"
+msgstr ""
+"Avertissement 305&nbsp;: Impossible de restaurer toutes les extensions. "
+"Veuillez consulter les journaux de restauration pour voir ce WP BackItUp n'a "
+"pas été capable de restaurer."
+
+#: views/restore.php:274
+msgid "Error 2001: Unable to prepare site for restore"
+msgstr ""
+"Erreur 2001&nbsp;: Impossible de préparer le site pour la restauration."
+
+#: views/restore.php:275
+msgid "Error 2002: Unable to unzip backup"
+msgstr "Erreur 2002&nbsp;: Impossible de décompresser la sauvegarde."
+
+#: views/restore.php:276
+msgid "Error 2003: Unable to validate backup"
+msgstr "Erreur 2003&nbsp;: Impossible de valider la sauvegarde."
+
+#: views/restore.php:277
+msgid "Error 2004: Unable to create restore point"
+msgstr "Erreur 2004&nbsp;: Impossible de créer le point de restauration."
+
+#: views/restore.php:278
+msgid "Error 2005: Unable to stage wp-content"
+msgstr ""
+
+#: views/restore.php:279
+msgid "Error 2006: Unable to restore content files"
+msgstr "Erreur 2006&nbsp;: Impossible de restaurer les fichiers de contenu."
+
+#: views/restore.php:280
+msgid "Error 2007: Unable to restore database"
+msgstr "Erreur 2007&nbsp;: Impossible de restaurer la base de données."
+
+#: views/restore.php:281
+msgid "Error 2999: Unexpected error encountered"
+msgstr "Erreur 2999&nbsp;: Une erreur inattendue s'est produite."
+
+#: views/restore.php:288
+msgid ""
+"Restore completed successfully. If you are prompted to login please do so "
+"with your current username and password"
+msgstr ""
+"La restauration a bien été effectuée. Si le formulaire de connexion "
+"apparaît, veuillez vous connecter avec vos nom d'utilisateur et mot de passe "
+"actuels."
+
+#: views/settings.php:16
+#, php-format
+msgid "%s Settings"
+msgstr "Réglages de %s"
+
+#: views/settings.php:43
+msgid "Email Notifications"
+msgstr "Notifications par e-mail"
+
+#: views/settings.php:44
+msgid ""
+"Please enter your email address if you would like to receive backup email "
+"notifications."
+msgstr ""
+"Veuillez saisir votre adresse de messagerie si vous souhaitez recevoir par e-"
+"mail les notifications de vos sauvegardes."
+
+#: views/settings.php:45
+msgid ""
+"Backup email notifications will be sent for every backup and will contain "
+"status information related to the backup."
+msgstr ""
+"Les e-mails de notification de sauvegarde seront envoyés à chaque sauvegarde "
+"et contiendront des informations sur l'état de la sauvegarde."
+
+#: views/settings.php:47 views/settings.php:67 views/settings.php:88
+#: views/settings.php:114
+msgid "Save"
+msgstr "﻿Enregistrer"
+
+#: views/settings.php:63
+msgid "Backup Retention"
+msgstr "Rétention de sauvegarde"
+
+#: views/settings.php:64
+msgid ""
+"Enter the number of backup archives that you would like to remain on the "
+"server."
+msgstr ""
+"Saisissez le nombre d'archives de sauvegarde que vous souhaitez conserver "
+"sur le serveur."
+
+#: views/settings.php:65
+msgid ""
+"Many hosts limit the amount of space that you can take up on their servers. "
+"This option tells WP BackItUp the maximum number of backup archives that "
+"should remain on your hosts server.  Don't worry, we will always remove the "
+"oldest backup archives first."
+msgstr ""
+"De nombreux hébergeurs limitent la quantité d'espace que vous pouvez prendre "
+"sur leurs serveurs. Cette option indique à WP BackItUp le nombre maximal "
+"d'archives de sauvegarde qui doivent rester sur votre serveur d'hébergement. "
+"Ne vous inquiétez pas, nous supprimons toujours les anciennes archives de "
+"sauvegarde en premier."
+
+#: views/settings.php:84
+msgid "Turn on logging?"
+msgstr "Activer la journalisation&nbsp;?"
+
+#: views/settings.php:85
+msgid "Yes"
+msgstr "Oui"
+
+#: views/settings.php:86
+msgid "No"
+msgstr "Non"
+
+#: views/settings.php:87
+msgid ""
+"This option should only be turned on when troubleshooting issues with "
+"WPBackItUp support."
+msgstr ""
+"Cette option ne devrait être activée uniquement lors de la résolution des "
+"problèmes avec le suport WPBackItUp."
+
+#: views/settings.php:92
+msgid "Advanced Settings"
+msgstr "Réglages avancés"
+
+#: views/settings.php:93
+msgid ""
+"These options should only be changed when working with WP BackItUp support."
+msgstr ""
+"Ces options ne doivent être modifiées uniquement lorsqu'on travaille avec le "
+"suppport WP BackItUp."
+
+#: views/settings.php:96
+msgid "Plugins Batch Size"
+msgstr "Taille du lot des extensions"
+
+#: views/settings.php:101
+msgid "Themes Batch Size"
+msgstr "Taille du lot des thèmes"
+
+#: views/settings.php:106
+msgid "Uploads Batch Size"
+msgstr "Taille du lot des pièces jointes"
+
+#: views/settings.php:111
+msgid "Others Batch Size"
+msgstr "Taille des autres lots"
+
+#: views/support.php:16
+#, php-format
+msgid "%s Support"
+msgstr "Support de %s"
+
+#: views/support.php:35
+msgid "Support email sent successfully!"
+msgstr "Votre e-mail au support a bien été envoyé !"
+
+#: views/support.php:48
+msgid "Email Logs to Support"
+msgstr "Envoyer au support vos fichiers de logs"
+
+#: views/support.php:49
+msgid "This form should be used to send log files to support only."
+msgstr ""
+"Ce formulaire doit être utilisé uniquement pour envoyer des fichiers de log "
+"au support."
+
+#: views/support.php:50
+msgid ""
+"Please make sure to open a support ticket via WP BackItUp <a href=\"https://"
+"www.wpbackitup.com/support\" target=\"_blank\">support portal.</a> before "
+"using this form."
+msgstr ""
+"Veuillez vous assurer d'avoir ouvert un ticket de support via WP BackItUp "
+"sur le <a href=\"https://www.wpbackitup.com/support\" target=\"_blank"
+"\">portail de support </a> avant d'utiliser ce formulaire."
+
+#: views/support.php:51
+msgid ""
+"The ticket id you receive from your support request should be entered in the "
+"ticket id field below."
+msgstr ""
+"L'ID du ticket que vous avez reçu du support doit être saisi dans le champ "
+"ID du ticket ci-dessous."
+
+#: views/support.php:52
+msgid "your email address"
+msgstr "votre adresse e-mail"
+
+#: views/support.php:62
+msgid "support ticket id"
+msgstr "ID du ticket de support"
+
+#: views/support.php:72
+msgid "problem description or additional information"
+msgstr "description du problème ou informations supplémentaires"
+
+#: views/support.php:83
+msgid "Send"
+msgstr "Envoyer"
+
+#: views/support.php:86
+msgid "Please register your version of WP BackItUp for access to support."
+msgstr ""
+"Veuillez enregistrer votre version de WP BackItUp afin de bénéficier du "
+"support."
+
+#: views/support.php:90
+msgid "Premium customers receive priority support."
+msgstr "Les clients Premium bénéficient d'un support prioritaire."
+
+#: wp-backitup.php:97 wp-backitup.php:98
+#, php-format
+msgid "Every %s hours"
+msgstr "Toutes les %s heures"

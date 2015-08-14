@@ -1,5 +1,11 @@
 <?php if (!defined ('ABSPATH')) die('No direct access allowed (restore)');
-@set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+
+// Checking safe mode is on/off and set time limit
+if( ini_get('safe_mode') ){
+   @ini_set('max_execution_time', WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+}else{
+   @set_time_limit(WPBACKITUP__SCRIPT_TIMEOUT_SECONDS);
+}
 
 /**
  * WP BackItUp  - Restore Job
@@ -42,7 +48,6 @@ global $table_prefix; //this is from wp-config
 
 global $backup_name; //name of the backup file
 global $RestorePoint_SQL; //path to restore point
-global $logger;
 
 global $status_array,$inactive,$active,$complete,$failure,$warning,$success;
 $inactive=0;
@@ -71,8 +76,8 @@ $status_array = array(
 //**************************//
 //   SINGLE THREAD RESTORE  //
 //**************************//
-
-$logger_tasks = new WPBackItUp_Logger(false,null,'debug_restore_tasks');
+$process_id = uniqid();
+$restore_task_log = 'debug_restore_tasks';
 
 //**************************//
 //     Task Handling        //
@@ -80,31 +85,31 @@ $logger_tasks = new WPBackItUp_Logger(false,null,'debug_restore_tasks');
 $current_task= null;
 
 $restore_error=false;
-$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Check for available job');
+WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'Check for available job');
 if ($restore_job){
 
 	//Get the next task in the stack
 	$current_task = $restore_job->get_next_task();
-	$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','TASK Info:'.var_export($current_task,true));
+	WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'TASK Info:'.var_export($current_task,true));
 	if (null!= $current_task && false!==$current_task){
 		$restore_id=$restore_job->get_job_id();
 		$current_task->increment_retry_count();
 
 		//Was there an error on the previous task
 		if (WPBackItUp_Job_v2::ERROR==$current_task->getStatus()){
-			$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Restore Error Found:' .$current_task->getId());
+			WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'Restore Error Found:' .$current_task->getId());
 			$restore_error=true;
 		}
 
-		$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Available Task Found:' . $current_task->getId());
+		WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'Available Task Found:' . $current_task->getId());
 
 	}else{
-		$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','No available tasks found.');
+		WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'No available tasks found.');
 		//WPBackItUp_Backup::end(); //release lock
 		return;
 	}
 }else {
-	$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','No job available.');
+	WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'No job available.');
 
 	//wp_clear_scheduled_hook( 'wpbackitup_run_restore_tasks');
 	//WPBackItUp_Backup::end(); //release lock
@@ -112,7 +117,7 @@ if ($restore_job){
 }
 
 //Should only get here when there is a task to run
-$logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Run Restore task:' .$current_task->getId());
+WPBackItUp_LoggerV2::log_info($restore_task_log,$process_id,'Run Restore task:' .$current_task->getId());
 
 
 //*****************//
@@ -122,12 +127,12 @@ $logger_tasks->log_info(__METHOD__.'(' .$process_id .')','Run Restore task:' .$c
 //Get the job name
 $job_log_name =  get_job_log_name($restore_job->get_job_id());
 
-global $logger;
-$logger = new WPBackItUp_Logger(false,null,$job_log_name,true);
+$restore_logname = $job_log_name;
+$log_function='job_restore::'.$current_task->getId();
 
 $backup_name = $restore_job->get_job_meta('backup_name');
 if( empty($backup_name)) {
-	$logger->log_error(__METHOD__,'Backup name not found in job meta.');
+	WPBackItUp_LoggerV2::log_error($restore_logname,$log_function,'Backup name not found in job meta.');
 	write_fatal_error_status('error201');
 	end_restore();
 }
@@ -135,13 +140,13 @@ if( empty($backup_name)) {
 //Get user ID
 $user_id = $restore_job->get_job_meta('user_id');
 if( empty($user_id)) {
-	$logger->log_error(__METHOD__,'User Id not found in job meta.');
+	WPBackItUp_LoggerV2::log_error($restore_logname,$log_function,'User Id not found in job meta.');
 	write_fatal_error_status('error201');
 	end_restore();
 }
 
 global $wp_restore; //Eventually everything will be migrated to this class
-$wp_restore = new WPBackItUp_Restore($logger,$backup_name,$restore_job->get_job_id());
+$wp_restore = new WPBackItUp_Restore($restore_logname,$backup_name,$restore_job->get_job_id());
 
 //*************************//
 //***   RESTORE TASKS   ***//
@@ -187,13 +192,13 @@ if ($restore_error) {
 
 //Cleanup Task
 if ('task_preparing'==$current_task->getId()) {
-	$logger->log('***BEGIN RESTORE***');
-	$logger->log_sysinfo();
+	WPBackItUp_LoggerV2::log($restore_logname,'***BEGIN RESTORE***');
+	WPBackItUp_LoggerV2::log_sysinfo($restore_logname);
 
 	$task = 'preparing';
 	start_status($task);
 
-	$logger->log('**PREPARING FOR RESTORE**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**PREPARING FOR RESTORE**');
 
 	//ONLY check license here and prevent restore from starting. If
 	//IF license check fails in later steps could be because DB was restored and no license on backup
@@ -207,28 +212,28 @@ if ('task_preparing'==$current_task->getId()) {
 		fatal_error($task,'235','Zip Archive Class is not available.');
 	}
 
-	$logger->log('*DELETE RESTORE FOLDER*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*DELETE RESTORE FOLDER*');
 	if ( ! $wp_restore->delete_restore_folder()){
 		fatal_error($task,'222','Restore folder could not be deleted.');
 	}
-	$logger->log('*END DELETE RESTORE FOLDER*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END DELETE RESTORE FOLDER*');
 
-	$logger->log('*CREATE ROOT RESTORE FOLDER*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*CREATE ROOT RESTORE FOLDER*');
 	if ( ! $wp_restore->create_restore_root_folder()){
 		fatal_error($task,'222','Root Restore folder could not be created.');
 	}
-	$logger->log('*END CREATE RESTORE FOLDER*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END CREATE RESTORE FOLDER*');
 
-	$logger->log('*DELETE STAGED FOLDER*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*DELETE STAGED FOLDER*');
 	if ( ! $wp_restore->delete_staged_folders()){
 		fatal_error($task, '222','Staged folders could not be deleted.');
 	}
-	$logger->log('*END DELETE STAGED FOLDER*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END DELETE STAGED FOLDER*');
 
-	$logger->log('*UPDATE ZIP JOB META*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*UPDATE ZIP JOB META*');
 	//Get the zip list
 	$backup_path_pattern = $wp_restore->get_backup_folder_path() . '/'  .$wp_restore->get_backup_name() . '*.zip' ;
-	$logger->log_info(__METHOD__,'Fetch backups pattern:' .$backup_path_pattern);
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'Fetch backups pattern:' .$backup_path_pattern);
 	$backup_set = glob( $backup_path_pattern);
 	if ( is_array($backup_set) && count($backup_set)>0){
 		$restore_job->update_job_meta('backup_set',$backup_set);
@@ -236,10 +241,10 @@ if ('task_preparing'==$current_task->getId()) {
 	}else{
 		fatal_error($task,'222','No zip files found (pattern):' . $backup_path_pattern);
 	}
-	$logger->log('*END UPDATE ZIP JOB META*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END UPDATE ZIP JOB META*');
 
 
-	$logger->log( '*UPDATE SITE VALUES META*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*UPDATE SITE VALUES META*' );
 	$siteurl    = $wp_restore->get_siteurl();
 	if (false===$siteurl){
 		fatal_error($task,'207','Unable to fetch site url.');
@@ -275,26 +280,26 @@ if ('task_preparing'==$current_task->getId()) {
 		$restore_job->update_job_meta('current_user_email',$user_email);
 	}
 
-	$logger->log( '*END UPDATE SITE VALUES META*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*END UPDATE SITE VALUES META*' );
 
 	end_status($task);
 	$restore_job->set_task_complete();
-	$logger->log('**END PREPARING FOR RESTORE**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**END PREPARING FOR RESTORE**');
 
 	return;
 }
 
 if ('task_unzip_backup_set'==$current_task->getId()) {
 
-	$logger->log( '**UNZIP BACKUP**' );
+	WPBackItUp_LoggerV2::log($restore_logname,'**UNZIP BACKUP**' );
 
 	$task = 'unzipping';
 	start_status($task );
 
 	//get the list of plugins zips in folder
 	$backup_set_list=$restore_job->get_job_meta('backup_set_remaining');
-	$logger->log_info(__METHOD__,'Begin -  Backup set list:');
-	$logger->log($backup_set_list);
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'Begin -  Backup set list:');
+	WPBackItUp_LoggerV2::log($restore_logname,$backup_set_list);
 	if ( ! $wp_restore->unzip_archive_file( $backup_set_list) ) {
 		fatal_error($task,'203','Unable to unzip archive.');
 	} else {
@@ -304,14 +309,14 @@ if ('task_unzip_backup_set'==$current_task->getId()) {
 
 		if (is_array($backup_set_list) && count($backup_set_list)>0){
 			//CONTINUE
-			$logger->log('Continue unzipping backup set.');
+			WPBackItUp_LoggerV2::log_info($restore_logname,__METHOD__,'Continue unzipping backup set.');
 			$restore_job->set_task_queued();
 		} else{
 			//COMPLETE
-			$logger->log('Complete - All archives restored.');
+			WPBackItUp_LoggerV2::log_info($restore_logname,__METHOD__,'Complete - All archives restored.');
 			end_status( $task);
 			$restore_job->set_task_complete();
-			$logger->log( '**END UNZIP BACKUP**' );
+			WPBackItUp_LoggerV2::log($restore_logname,'**END UNZIP BACKUP**' );
 		}
 
 	}
@@ -322,7 +327,7 @@ if ('task_unzip_backup_set'==$current_task->getId()) {
 
 //Validate the backup folder
 if ('task_validate_backup'==$current_task->getId()) {
-	$logger->log_info(__METHOD__, '**VALIDATE BACKUP**' );
+	WPBackItUp_LoggerV2::log($restore_logname,'**VALIDATE BACKUP**' );
 
 	$task =  'validation';
 	start_status($task);
@@ -333,7 +338,7 @@ if ('task_validate_backup'==$current_task->getId()) {
 		fatal_error($task,'204','Restore directory INVALID.');
 	}
 
-	$logger->log( '*VALIDATE MANIFEST*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*VALIDATE MANIFEST*' );
 	$backup_set_list=$restore_job->get_job_meta('backup_set');
 	if ( $wp_restore->validate_manifest_file($backup_set_list,$error_code)===false){
 		if ($error_code==1){
@@ -352,9 +357,9 @@ if ('task_validate_backup'==$current_task->getId()) {
 		fatal_error($task,'999','Unexpected error code:' . $error_code);
 
 	}
-	$logger->log( '*END VALIDATE MANIFEST*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*END VALIDATE MANIFEST*' );
 
-	$logger->log( '*VALIDATE SITEDATA FILE*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*VALIDATE SITEDATA FILE*' );
 	//validate the site data file
 	$site_info = $wp_restore->validate_siteinfo_file();
 	if ( $site_info===false){
@@ -365,6 +370,7 @@ if ('task_validate_backup'==$current_task->getId()) {
 	}
 
 	//Check table prefix values FATAL - need to add link to article
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'Site table Prefix:' . $table_prefix);
 	if ( $table_prefix != $site_info['restore_table_prefix'] ) {
 		fatal_error($task,'221','Table prefix different from restore.');
 	}
@@ -372,40 +378,40 @@ if ('task_validate_backup'==$current_task->getId()) {
 	//Check wordpress version
 	$site_wordpress_version =  get_bloginfo('version');
 	$backup_wordpress_version = $site_info['restore_wp_version'];
-	$logger->log_info(__METHOD__, 'Site Wordpress Version:' . $site_wordpress_version);
-	$logger->log_info(__METHOD__, 'Backup Wordpress Version:' . $backup_wordpress_version);
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'Site Wordpress Version:' . $site_wordpress_version);
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'Backup Wordpress Version:' . $backup_wordpress_version);
 	if ( ! WPBackItUp_Utility::version_compare($site_wordpress_version, $backup_wordpress_version )) {
-		$logger->log( '*VALIDATE SITEDATA FILE*' );
+		WPBackItUp_LoggerV2::log($restore_logname,'*VALIDATE SITEDATA FILE*' );
 		fatal_error($task,'226','Backup was created using different version of wordpress');
 	}
 
 
 	$restore_wpbackitup_version = $site_info['restore_wpbackitup_version'];
 	$current_wpbackitup_version = WPBACKITUP__VERSION;
-	$logger->log_info(__METHOD__, 'WP BackItUp current Version:' . $current_wpbackitup_version);
-	$logger->log_info(__METHOD__, 'WP BackItUp backup  Version:' . $restore_wpbackitup_version);
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'WP BackItUp current Version:' . $current_wpbackitup_version);
+	WPBackItUp_LoggerV2::log_info($restore_logname,$log_function,'WP BackItUp backup  Version:' . $restore_wpbackitup_version);
 	if (! WPBackItUp_Utility::version_compare($restore_wpbackitup_version, $current_wpbackitup_version )){
 		fatal_error($task,'227','Backup was created using different version of WP BackItUp');
 	}
-	$logger->log( '*END VALIDATE SITEDATA FILE*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*END VALIDATE SITEDATA FILE*' );
 
 
-	$logger->log( '*VALIDATE SQL FILE EXISTS*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*VALIDATE SQL FILE EXISTS*' );
 	if ( ! $wp_restore->validate_SQL_exists( )){
 		fatal_error($task,'216','NO Database backups in backup.');
 	}
-	$logger->log( '*END VALIDATE SQL FILE EXISTS*' );
+	WPBackItUp_LoggerV2::log($restore_logname,'*END VALIDATE SQL FILE EXISTS*' );
 	end_status($task);
 
-	$logger->log('*DEACTIVATE ACTIVE PLUGINS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*DEACTIVATE ACTIVE PLUGINS*');
 	$task='deactivate_plugins';
 	start_status($task);
 	$wp_restore->deactivate_plugins();
 	end_status($task);
-	$logger->log('*END DEACTIVATE ACTIVE PLUGINS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END DEACTIVATE ACTIVE PLUGINS*');
 
 	$restore_job->set_task_complete();
-	$logger->log( '**END VALIDATE BACKUP**' );
+	WPBackItUp_LoggerV2::log($restore_logname,'**END VALIDATE BACKUP**' );
 
 	return;
 }
@@ -414,7 +420,7 @@ if ('task_validate_backup'==$current_task->getId()) {
 //Create the DB restore point
 if ('task_create_checkpoint'==$current_task->getId()) {
 
-	$logger->log('**CREATE RESTORE POINT**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**CREATE RESTORE POINT**');
 	$task = 'restore_point';
 	start_status($task);
 
@@ -424,7 +430,7 @@ if ('task_create_checkpoint'==$current_task->getId()) {
 
 	$restore_job->set_task_complete();
 	end_status($task);
-	$logger->log('**END CREATE RESTORE POINT**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**END CREATE RESTORE POINT**');
 
 	return;
 }
@@ -433,7 +439,7 @@ if ('task_create_checkpoint'==$current_task->getId()) {
 //Stage WP content folders
 if ('task_stage_wpcontent'==$current_task->getId()) {
 
-	$logger->log('*STAGE WP-CONTENT*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*STAGE WP-CONTENT*');
 	$task = 'stage_wpcontent';
 
 	start_status($task);
@@ -442,7 +448,7 @@ if ('task_stage_wpcontent'==$current_task->getId()) {
 
 	//Stage all but plugins
 
-	$logger->log('*STAGE THEMES*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*STAGE THEMES*');
 	$from_folder_name = $wp_restore->get_restore_root_folder_path() .'/' .WPBackItUp_Restore::THEMESPATH;
 	$to_folder_name = WPBACKITUP__THEMES_ROOT_PATH . $folder_stage_suffix;
 	if (! $wp_restore->rename_folder($from_folder_name,$to_folder_name)){
@@ -450,9 +456,9 @@ if ('task_stage_wpcontent'==$current_task->getId()) {
 		$wp_restore->delete_staged_folders();
 		end_restore();
 	}
-	$logger->log('*END STAGE THEMES*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END STAGE THEMES*');
 
-	$logger->log('*STAGE UPLOADS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*STAGE UPLOADS*');
 	$from_folder_name = $wp_restore->get_restore_root_folder_path() .'/' .WPBackItUp_Restore::UPLOADPATH;
 	$upload_array = wp_upload_dir();
 	$uploads_root_path = $upload_array['basedir'];
@@ -462,9 +468,9 @@ if ('task_stage_wpcontent'==$current_task->getId()) {
 		$wp_restore->delete_staged_folders();
 		end_restore();
 	}
-	$logger->log('*END STAGE UPLOADS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END STAGE UPLOADS*');
 
-	$logger->log('*STAGE OTHER FOLDERS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*STAGE OTHER FOLDERS*');
 	$other_list = glob($wp_restore->get_restore_root_folder_path() .'/' .WPBackItUp_Restore::OTHERPATH .'/*',GLOB_ONLYDIR|GLOB_NOSORT);
 	foreach ( $other_list as $from_folder_name ) {
 		$to_folder_name = WPBACKITUP__CONTENT_PATH .'/' .basename($from_folder_name) . $folder_stage_suffix;
@@ -474,12 +480,12 @@ if ('task_stage_wpcontent'==$current_task->getId()) {
 			end_restore();
 		}
 	}
-	$logger->log('*END STAGE OTHER FOLDERS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END STAGE OTHER FOLDERS*');
 	end_status($task);
 
 	$restore_job->set_task_complete();
 
-	$logger->log('**END STAGE WP-CONTENT**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**END STAGE WP-CONTENT**');
 
 	return;
 }
@@ -488,31 +494,31 @@ if ('task_stage_wpcontent'==$current_task->getId()) {
 //Rename the staged folders to current
 if ('task_restore_wpcontent'==$current_task->getId()) {
 
-	$logger->log('**RESTORE WPCONTENT**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**RESTORE WPCONTENT**');
 	$task ='restore_wpcontent';
 	start_status($task);
 
-	$logger->log('*RESTORE MAIN WPCONTENT*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*RESTORE MAIN WPCONTENT*');
 	$wpcontent_restore =$wp_restore->restore_wpcontent();
 	if (! $wpcontent_restore===true) {
 		//array with failed list returned
 		//If any of them fail call it done.
 		warning('300','Cant restore all WP content.');
 	}
-	$logger->log('*END RESTORE MAIN WPCONTENT*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END RESTORE MAIN WPCONTENT*');
 
-	$logger->log('*RESTORE PLUGINS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*RESTORE PLUGINS*');
 	$plugin_restore = $wp_restore->restore_plugins();
 	if (! $plugin_restore ===true) {
 		//array with fail list returned
 		warning('305', 'Couldnt restore all plugins.');
 	}
 
-	$logger->log('*END RESTORE PLUGINS*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END RESTORE PLUGINS*');
 
 	$restore_job->set_task_complete();
 	end_status($task);
-	$logger->log('**END RESTORE WPCONTENT**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**END RESTORE WPCONTENT**');
 
 	return;
 }
@@ -520,7 +526,7 @@ if ('task_restore_wpcontent'==$current_task->getId()) {
 //restore the DB
 if ('task_restore_database'==$current_task->getId()) {
 
-	$logger->log('**RESTORE DATABASE**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**RESTORE DATABASE**');
 	$task ='restore_database';
 	start_status($task);
 
@@ -548,9 +554,9 @@ if ('task_restore_database'==$current_task->getId()) {
 	}
 
 	end_status($task);
-	$logger->log('**END RESTORE DATABASE**');
+	WPBackItUp_LoggerV2::log($restore_logname,'**END RESTORE DATABASE**');
 
-	$logger->log('*UPDATE DATABASE VALUES*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*UPDATE DATABASE VALUES*');
 
 	//update the session cookie
 	wp_set_auth_cookie( $user_id, true);
@@ -592,7 +598,7 @@ if ('task_restore_database'==$current_task->getId()) {
 		//dont do anything
 	}
 	end_status('update_permalinks');
-	$logger->log('*END UPDATE DATABASE VALUES*');
+	WPBackItUp_LoggerV2::log($restore_logname,'*END UPDATE DATABASE VALUES*');
 }
 
 //**************************************************************
@@ -605,8 +611,8 @@ if ('task_restore_database'==$current_task->getId()) {
 
 	//schedule a cleanup? with job id? for staged folder
 	set_status_success();
-	$logger->log('Restore completed successfully');
-	$logger->log('***END RESTORE***');
+	WPBackItUp_LoggerV2::log($restore_logname,'Restore completed successfully');
+	WPBackItUp_LoggerV2::log($restore_logname,'***END RESTORE***');
 
 	end_restore(null,true);
 
@@ -614,9 +620,9 @@ if ('task_restore_database'==$current_task->getId()) {
 /*** Functions ***/
 /******************/
 function fatal_error($process,$error_code,$error_message, $end=true){
-	global $restore_job, $failure, $logger;
+	global $restore_job, $failure, $restore_logname;
 
-	$logger->log_error(__METHOD__,$error_message);
+	WPBackItUp_LoggerV2::log_error($restore_logname,__METHOD__,$error_message);
 	$restore_job->set_task_error($error_code);
 	write_response_file_error($error_code,$error_message);
 
@@ -629,9 +635,9 @@ function fatal_error($process,$error_code,$error_message, $end=true){
 }
 
 function warning($error_code,$warning_message) {
-	global $logger, $status_array,$warning;
+	global $restore_logname, $status_array,$warning;
 
-	$logger->log_warning(__METHOD__, $warning_message);
+	WPBackItUp_LoggerV2::log_warning($restore_logname,__METHOD__, $warning_message);
 
 	//Add warning to array
 	$status_array['warning' .$error_code]=$warning;
@@ -639,7 +645,6 @@ function warning($error_code,$warning_message) {
 }
 
 function set_status($process,$status,$flush){
-	global $wp_restore,$logger;
 	global $status_array,$complete;
 
 	$status_array[$process]=$status;
@@ -681,10 +686,10 @@ function write_response_file_success() {
 
 //write Response Log
 function write_response_file($JSON_Response) {
-	global $logger;
+	global $restore_logname;
 
 	$json_response = json_encode($JSON_Response);
-	$logger->log('Write response file:' . $json_response);
+	WPBackItUp_LoggerV2::log($restore_logname,'Write response file:' . $json_response);
 
 	$fh=get_response_file();
 	fwrite($fh, $json_response);
@@ -693,9 +698,10 @@ function write_response_file($JSON_Response) {
 
 //Get Response Log
 function get_response_file() {
-	global $logger;
+	global $restore_logname;
+
 	$response_file_path = WPBACKITUP__PLUGIN_PATH .'logs/restore_response.log';
-	$filesytem = new WPBackItUp_FileSystem($logger);
+	$filesytem = new WPBackItUp_FileSystem($restore_logname);
 	return $filesytem->get_file_handle($response_file_path,false);
 }
 
@@ -714,10 +720,10 @@ function get_job_log_name($timestamp){
 
 //Get Status Log
 function get_restore_Log() {
-	global $logger;
+	global $restore_logname;
 
 	$status_file_path = WPBACKITUP__PLUGIN_PATH .'/logs/restore_status.log';
-	$filesystem = new WPBackItUp_FileSystem($logger);
+	$filesystem = new WPBackItUp_FileSystem($restore_logname);
 	return $filesystem->get_file_handle($status_file_path);
 
 }
@@ -773,16 +779,25 @@ function set_status_success(){
 }
 
 function end_restore($err=null, $success=null){
-	global $restore_job, $logger;
+	global $restore_job, $restore_logname;
 
-	if (true===$success) $logger->log("Restore completed: SUCCESS");
-	if (false===$success) $logger->log("Restore completed: ERROR");
+	if (true===$success) WPBackItUp_LoggerV2::log_info($restore_logname,__METHOD__,'Restore completed: SUCCESS');
+	if (false===$success) WPBackItUp_LoggerV2::log_error($restore_logname,__METHOD__,'Restore completed: ERROR');
 
-	$logger->log("*** END RESTORE ***");
+	//copy/replace WP debug file
+	$logs_path = WPBACKITUP__PLUGIN_PATH .'logs';
+	$wpdebug_file_path = WPBACKITUP__CONTENT_PATH . '/debug.log';
+	WPBackItUp_LoggerV2::log_info($restore_logname,__METHOD__,'Copy WP Debug: ' .$wpdebug_file_path);
+	if (file_exists($wpdebug_file_path)) {
+		$debug_log = sprintf('%s/wpdebug_%s.log',$logs_path,$restore_job->get_job_id());
+		copy( $wpdebug_file_path, $debug_log );
+	}
+
+	WPBackItUp_LoggerV2::log($restore_logname,'*** END RESTORE ***');
 
 
 	//Close the logger
-	$logger->close_file();
+	WPBackItUp_LoggerV2::close($restore_logname);
 	$restore_job->release_lock();
 
 	//response back the status file since this method will end processing

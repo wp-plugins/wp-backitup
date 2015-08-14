@@ -13,20 +13,19 @@
 
 
     /*** Globals ***/
-    global $logger;
-    $logger = new WPBackItUp_Logger(false,null,'debug_upload');
+	$upload_logname='debug_upload';
     $backup_folder_root = WPBACKITUP__BACKUP_PATH .'/';
 
     //*****************//
     //*** MAIN CODE ***//
     //*****************//
-    $logger->log('***BEGIN UPLOAD***');
-    $logger->log($_POST);
+	WPBackItUp_LoggerV2::log($upload_logname,'***BEGIN UPLOAD***');
+	WPBackItUp_LoggerV2::log($upload_logname,$_POST);
 
 
     //verify nonce
     if ( !wp_verify_nonce($_REQUEST['_wpnonce'],WPBACKITUP__NAMESPACE .'-upload')) {
-        $logger->log_error(__METHOD__,'Invalid Nonce');
+	    WPBackItUp_LoggerV2::log_error($upload_logname,__METHOD__,'Invalid Nonce');
         echo json_encode( array( 'error' => sprintf( __( 'Invalid Nonce',WPBACKITUP__NAMESPACE ) ) ) );
         exit;
 
@@ -36,7 +35,7 @@
     $upload_path = WPBACKITUP__UPLOAD_PATH;
     if (  !is_dir( $upload_path ) ){
         if ( ! mkdir( $upload_path, 0755 )){
-            $logger->log_error(__METHOD__,'Upload directory is not writable, or does not exist.');
+	        WPBackItUp_LoggerV2::log_error($upload_logname,__METHOD__,'Upload directory is not writable, or does not exist.');
             echo json_encode( array( 'error' => sprintf( __( "Upload directory is not writable, or does not exist.", WPBACKITUP__NAMESPACE ) ) ) );
             exit;
         }
@@ -65,7 +64,7 @@
     remove_filter( 'sanitize_file_name', array( $this, 'sanitize_file_name' ) );
 
     if ( isset( $status['error'] ) ) {
-        $logger->log_error(__METHOD__,$status['error']);
+	    WPBackItUp_LoggerV2::log($upload_logname,$status['error']);
         echo json_encode( array( 'error' => $status['error'] ) );
         exit;
     }
@@ -77,8 +76,8 @@
         $to_file_path   = $upload_path . '/' . $zip_file_name . '_' . $chunk_id . '.zip.tmp';
         if ( ! rename( $from_file_path, $to_file_path ) ) {
             @unlink( $from_file_path );
-            $logger->log_error(__METHOD__,'Cant rename file.');
-            echo json_encode( array( 'error' => sprintf( __( 'Error: %s', 'wpbackitup' ), __( 'File could not be uploaded', 'wpbackitup' ) ) ) );
+	        WPBackItUp_LoggerV2::log_error($upload_logname,__METHOD__,'Cant rename file.');
+            echo json_encode( array( 'error' => sprintf( __( 'Error: %s', WPBACKITUP__NAMESPACE ), __( 'File could not be uploaded', WPBACKITUP__NAMESPACE ) ) ) );
             exit;
         }
 
@@ -138,7 +137,7 @@
 
                 //Is this a BackItUp archive
                 if ( empty( $folder_name ) || empty( $suffix ) || 'Backup' != $prefix ) {
-                    $logger->log_error(__METHOD__,'Upload does not appear to be a WP BackItUp backup archive');
+	                WPBackItUp_LoggerV2::log_error($upload_logname,__METHOD__,'Upload does not appear to be a WP BackItUp backup archive');
                     echo json_encode( array( 'error' => sprintf( __( "Upload does not appear to be a WP BackItUp backup archive file.",WPBACKITUP__NAMESPACE ) ) ) );
                     unlink( $zip_file_path );//get rid of it
                     exit;
@@ -148,7 +147,7 @@
                 $backup_archive_folder = WPBACKITUP__BACKUP_PATH . '/' . $folder_name;
                 if ( ! is_dir( $backup_archive_folder ) ) {
                     if ( ! mkdir( $backup_archive_folder, 0755 ) ) {
-                        $logger->log_error(__METHOD__,'Upload directory is not writable');
+	                    WPBackItUp_LoggerV2::log_error($upload_logname,__METHOD__,'Upload directory is not writable');
                         echo json_encode( array( 'error' => sprintf( __( "Upload directory is not writable, or does not exist.", WPBACKITUP__NAMESPACE ) ) ) );
                         exit;
                     }
@@ -158,13 +157,15 @@
                 //will overwrite if exists
                 $target_file = $backup_archive_folder . "/" . basename( $zip_file_path );
                 if ( ! rename( $zip_file_path, $target_file ) ) {
-                    $logger->log_error(__METHOD__,'Cant move zip file to backup folder');
+	                WPBackItUp_LoggerV2::log_error($upload_logname,__METHOD__,'Cant move zip file to backup folder');
                     echo json_encode( array( 'error' => sprintf( __( "Could not import file into WP BackItUp backup set.",WPBACKITUP__NAMESPACE ) ) ) );
                     exit;
                 }
             }
         }
     }
+
+	WPBackItUp_LoggerV2::log_info($upload_logname,__METHOD__,'End');
 
     // send the uploaded file url in response
     $response['success'] = $status['url'];

@@ -26,7 +26,7 @@ class WPBackItUp_Job {
 	const CANCELLED='cancelled';
 	const QUEUED = 'queued';
 
-	private $logger;
+	private $log_name;
 	private $job_id;
 	private $instance_id;
 	private $allocated_task;
@@ -76,7 +76,7 @@ class WPBackItUp_Job {
 
 	function __construct($job) {
 		try {
-			$this->logger = new WPBackItUp_Logger(false,null,'debug_job');
+			$this->log_name = 'debug_job';//default log name
 
 			//Load of the class properties from the post object(see wp_post)
 			$this->job_id=$job->ID;
@@ -95,11 +95,12 @@ class WPBackItUp_Job {
 
 		} catch(Exception $e) {
 			error_log($e); //Log to debug
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Constructor Exception: ' .$e);
 		}
 	}
 
 	function __destruct() {
-	$this->logger->log_info( __METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 		if ($this->locked) {
 			$this->release_lock();
 		}
@@ -113,24 +114,24 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	public function get_lock ($lock_file_path){
-	$this->logger->log_info( __METHOD__,'Begin:'.$lock_file_path);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin:'.$lock_file_path);
 
 		$this->$lock_file_path = $lock_file_path;
 		try {
 			$this->lockFile = fopen($this->$lock_file_path ,"w"); // open it for WRITING ("w")
 			if (flock( $this->lockFile, LOCK_EX | LOCK_NB)) {
-				$this->logger->log_info( __METHOD__,'Process LOCK acquired');
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Process LOCK acquired');
 				$this->locked=true;
 			} else {
 				//This is not an error, just means another process has it allocated
-				$this->logger->log_info( __METHOD__,'Process LOCK Failed');
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Process LOCK Failed');
 				$this->locked=false;
 			}
 
 			return $this->locked;
 
 		} catch(Exception $e) {
-			$this->logger->log_error( __METHOD__,'Process Lock error: ' .$e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Process Lock error: ' .$e);
 			$this->locked=false;
 			return $this->locked;
 		}
@@ -142,19 +143,19 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	public function release_lock (){
-		$this->logger->log_info( __METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		try{
 			flock($this->lockFile, LOCK_UN); // unlock the file
-			$this->logger->log_info( __METHOD__,'Lock released');
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Lock released');
 			$this->locked=false;
 		}catch(Exception $e) {
-			$this->logger->log_error( __METHOD__,'Process UNLOCK error: ' .$e);
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'Process UNLOCK error: ' .$e);
 		}
 	}
 
 	public function is_job_complete() {
-		$this->logger->log_info( __METHOD__, 'Begin' );
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin' );
 
 		$tasks = get_post_meta( $this->job_id);
 		foreach($tasks as $key=>$value) {
@@ -170,19 +171,19 @@ class WPBackItUp_Job {
 			$task_last_updated = $task[0]['task_last_updated'];
 
 			if ('queued'==$task_status || 'active'==$task_status){
-				$this->logger->log_info( __METHOD__, 'Active or Queued Task found:' . $key );
+				WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Active or Queued Task found:' . $key );
 				return false;
 			}
 		}
 
 		//No active or queued tasks were found
-		$this->logger->log_info( __METHOD__, 'End - No Active or Queued Tasks found' );
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - No Active or Queued Tasks found' );
 		return true;
 
 	}
 	//What is the next task in the stack
 	public function get_next_task(){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$this->allocated_task=null; //Set the current task to null;
 
@@ -220,13 +221,16 @@ class WPBackItUp_Job {
 					if (time()>=$task_last_updated+WPBACKITUP__TASK_TIMEOUT_SECONDS){
 						$this->update_task_status($this->job_id, $key,$task_id,'error');
 
+						// If timeout error
+						WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Job:' . $key . 'Time Out' );
+						
 						//Update job to error also
 						$this->set_job_status_error();
 						return 'error_' . $task_id ;
 
 					}else {
 
-						$this->logger->log_info( __METHOD__, 'Job:' . $key . ' is still active' );
+						WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Job:' . $key . ' is still active' );
 						//if its been less than 3 minutes then wait
 						return false;
 					}
@@ -246,7 +250,7 @@ class WPBackItUp_Job {
 		//If no more tasks then job must be done
 		$this->set_job_status_complete();
 
-		$this->logger->log_info(__METHOD__,'End - no tasks to allocate');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - no tasks to allocate');
 		return false; //no tasks to allocate now but job should be complete next time
 	}
 
@@ -260,7 +264,7 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	private function allocate_task($job_id, $key,$task_id){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		//Allocate the task to this process
 		$process_uid = uniqid();
@@ -272,11 +276,11 @@ class WPBackItUp_Job {
 		if ($process_uid==$updated_task_allocated_id) {
 			$this->allocated_task=$updated_task; // set the jobs allocated task
 
-			$this->logger->log_info(__METHOD__,'End - Task allocated');
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Task allocated');
 			return $updated_task;
 		}else{
 			$this->allocated_task=null;
-			$this->logger->log_info(__METHOD__,'End - Task was not allocated');
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Task was not allocated');
 			return false;
 		}
 	}
@@ -286,26 +290,26 @@ class WPBackItUp_Job {
 	 * Set the allocated task status to queued
 	 */
 	public function set_task_queued(){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
-		$this->logger->log_info(__METHOD__, 'Task Info:');
-		$this->logger->log($this->allocated_task);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Task Info:');
+		WPBackItUp_LoggerV2::log($this->log_name,$this->allocated_task);
 
 		//Get allocated task Properties
 		$task_id = $this->allocated_task[0]['task_id'];
 		$this->update_task_status($this->job_id, $task_id,$task_id,'queued');
 
-		$this->logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
 	}
 
 	/**
 	 * Set the allocated task status to complete
 	 */
 	public function set_task_complete(){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
-		$this->logger->log_info(__METHOD__, 'Task Info:');
-		$this->logger->log($this->allocated_task);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Task Info:');
+		WPBackItUp_LoggerV2::log($this->log_name,$this->allocated_task);
 
 		//Get allocated task Properties
 		$task_id = $this->allocated_task[0]['task_id'];
@@ -317,17 +321,17 @@ class WPBackItUp_Job {
 			$this->set_job_status_complete();
 		}
 
-		$this->logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
 	}
 
 	/**
 	 * Set the allocated task status to error
 	 */
 	public function set_task_error($error_code){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
-		$this->logger->log_info(__METHOD__, 'Task Info:');
-		$this->logger->log($this->allocated_task);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Task Info:');
+		WPBackItUp_LoggerV2::log($this->log_name,$this->allocated_task);
 
 		//Get allocated task Properties
 		$task_id = $this->allocated_task[0]['task_id'];
@@ -335,12 +339,12 @@ class WPBackItUp_Job {
 
 		$this->set_job_status_error();
 
-		$this->logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End');
 	}
 
 
 	private function update_task_status($job_id,$task_name,$task_id, $task_status, $task_allocated_id='', $task_error_code=''){
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$meta_value = array(
 			'task_id'           => $task_id,
@@ -350,13 +354,13 @@ class WPBackItUp_Job {
 			'task_last_updated' => time()
 		);
 
-		$this->logger->log_info(__METHOD__,'End - Task Updated:' .$job_id .'-'. $task_name .'-'. $task_status);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Task Updated:' .$job_id .'-'. $task_name .'-'. $task_status);
 		return update_post_meta( $job_id, $task_name, $meta_value );
 	}
 
 
 	public function update_job_meta($meta_name,$meta_value){
-		$this->logger->log_info(__METHOD__,'Begin - Update job meta:' .$this->job_id .'-'. $meta_name);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin - Update job meta:' .$this->job_id .'-'. $meta_name);
 
 		//Encode the array values
 		if (is_array($meta_value)){
@@ -417,7 +421,7 @@ class WPBackItUp_Job {
 	}
 
 	public function get_job_meta($meta_name){
-		$this->logger->log_info(__METHOD__,'Begin - Update file list:' .$this->job_id .'-'. $meta_name);
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin' .$this->job_id .'-'. $meta_name);
 
 		$job_meta = get_post_meta($this->job_id,$meta_name,true);
 
@@ -493,7 +497,7 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	private function update_job_status($status) {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$job = array(
 			'ID'            => $this->job_id,
@@ -504,10 +508,10 @@ class WPBackItUp_Job {
 		$job_id = wp_update_post($job );
 
 		if (0!=$job_id) {
-			$this->logger->log_info(__METHOD__,'End - Backup Job status set to:' .$job_id .'-' . $status );
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Backup Job status set to:' .$job_id .'-' . $status );
 			return true;
 		} else{
-			$this->logger->log_error(__METHOD__,'End - Backup Job status NOT set.');
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'End - Backup Job status NOT set.');
 			return false;
 		}
 
@@ -519,7 +523,7 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	private function set_job_start_time() {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$this->job_start_time= time();
 		$job_info = array(
@@ -535,10 +539,10 @@ class WPBackItUp_Job {
 		$job_id = wp_update_post($job );
 
 		if (0!=$job_id) {
-			$this->logger->log_info(__METHOD__,'End - Backup Job start time set');
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Backup Job start time set');
 			return true;
 		} else{
-			$this->logger->log_error(__METHOD__,'End - Backup Job start time NOT set.');
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Backup Job start time NOT set.');
 			return false;
 		}
 
@@ -550,7 +554,7 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	private function set_job_end_time() {
-		$this->logger->log_info(__METHOD__,'Begin');
+		WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'Begin');
 
 		$this->job_end_time=time();
 		$job_info = array(
@@ -567,10 +571,10 @@ class WPBackItUp_Job {
 		$job_id = wp_update_post($job );
 
 		if (0!=$job_id) {
-			$this->logger->log_info(__METHOD__,'End - Backup Job end time set');
+			WPBackItUp_LoggerV2::log_info($this->log_name,__METHOD__,'End - Backup Job end time set');
 			return true;
 		} else{
-			$this->logger->log_error(__METHOD__,'End - Backup Job end time NOT set.');
+			WPBackItUp_LoggerV2::log_error($this->log_name,__METHOD__,'End - Backup Job end time NOT set.');
 			return false;
 		}
 
@@ -586,8 +590,8 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	public static function is_job_queued($job_name) {
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin - Check Job Queue:' . $job_name);
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin - Check Job Queue:' . $job_name);
 
 		//Get top 1
 		$args = array(
@@ -599,15 +603,15 @@ class WPBackItUp_Job {
 			'suppress_filters' => true
 		);
 		$jobs = get_posts( $args );
-		$logger->log($jobs);
+		WPBackItUp_LoggerV2::log($job_logname,$jobs);
 
 		if (is_array($jobs) && count($jobs)>0) {
-			$logger->log_info(__METHOD__,'Jobs found:' . count($jobs) );
+			WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Jobs found:' . count($jobs) );
 			return true;
 		}
 
-		$logger->log_info(__METHOD__,'No jobs found:' . $job_name);
-		$logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'No jobs found:' . $job_name);
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End');
 		return false;
 	}
 
@@ -621,8 +625,8 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	public static function get_completed_jobs($job_name,$count=25) {
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin');
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin');
 
 		$save_last = 10;
 		$count+=$save_last; //always leave the last n
@@ -638,7 +642,7 @@ class WPBackItUp_Job {
 		$jobs = get_posts( $args );
 
 		if (is_array($jobs) && count($jobs)>$save_last) {
-			$logger->log_info(__METHOD__,'Jobs found:' . count($jobs));
+			WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Jobs found:' . count($jobs));
 
 			$diff=count($jobs)-$save_last;
 
@@ -647,8 +651,8 @@ class WPBackItUp_Job {
 			return $rtn_val;
 		}
 
-		$logger->log_info(__METHOD__,'No jobs found:' . $job_name);
-		$logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'No jobs found:' . $job_name);
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End');
 		return false;
 	}
 
@@ -658,15 +662,14 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	public static function cancel_all_jobs() {
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin - Cancel all jobs.');
-
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin - Cancel all jobs.');
 
 		while (self::is_job_queued('backup')){
 			$backup_job = self::get_job('backup');
 			if (false!== $backup_job) {
 				$backup_job->set_job_status_cancelled();
-				$logger->log_info(__METHOD__,'Backup job Cancelled:' . $backup_job->get_job_id());
+				WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Backup job Cancelled:' . $backup_job->get_job_id());
 			}
 		}
 
@@ -674,11 +677,11 @@ class WPBackItUp_Job {
 			$cleanup_job = self::get_job('cleanup');
 			if (false!== $cleanup_job) {
 				$cleanup_job->set_job_status_cancelled();
-				$logger->log_info(__METHOD__,'Cleanup job Cancelled:' . $cleanup_job->get_job_id());
+				WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Cleanup job Cancelled:' . $cleanup_job->get_job_id());
 			}
 		}
 
-		$logger->log_info(__METHOD__,'End - All jobs cancelled');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End - All jobs cancelled');
 	}
 
 	/**
@@ -690,17 +693,17 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	public static function purge_old_jobs($job_name,$count=25) {
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin - Purge Jobs.');
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin - Purge Jobs.');
 
 		$jobs = self::get_completed_jobs($job_name,$count);
 		$purge_count=0;
 		foreach($jobs as $job){
-			$logger->log_info(__METHOD__,'Delete Job:'.$job->ID .':' .$job->post_type .":" .$job->post_title .':' .$job->post_date);
+			WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Delete Job:'.$job->ID .':' .$job->post_type .":" .$job->post_title .':' .$job->post_date);
 			wp_delete_post( $job->ID, true );
 			$purge_count+=1;
 		}
-		$logger->log_info(__METHOD__,'End - job purge complete');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End - job purge complete');
 		return $purge_count;
 	}
 
@@ -712,8 +715,8 @@ class WPBackItUp_Job {
 	 * @return bool|WPBackItUp_Job
 	 */
 	public static function get_job($job_name) {
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin - Job Name: ' .$job_name);
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin - Job Name: ' .$job_name);
 
 		//Get backup on top
 		$args = array(
@@ -724,10 +727,10 @@ class WPBackItUp_Job {
 			'order'            => 'ASC',
 		);
 		$jobs = get_posts( $args );
-		$logger->log($jobs);
+		WPBackItUp_LoggerV2::log($job_logname,$jobs);
 
 		if (is_array($jobs) && count($jobs)>0) {
-			$logger->log_info(__METHOD__,'Job found:' . count($jobs));
+			WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Job found:' . count($jobs));
 
 			$backup_job =  new WPBackItUp_Job($jobs[0]);
 			if (self::QUEUED==$backup_job->job_status){
@@ -736,8 +739,8 @@ class WPBackItUp_Job {
 			return $backup_job;
 		}
 
-		$logger->log_info(__METHOD__,'No jobs found.');
-		$logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'No jobs found.');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End');
 		return false;
 	}
 
@@ -749,19 +752,19 @@ class WPBackItUp_Job {
 	 * @return bool|WPBackItUp_Job
 	 */
 	public static function get_job_by_id($id) {
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin');
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin');
 
 		$job = get_post( $id, 'OBJECT');
-		$logger->log($job);
+		WPBackItUp_LoggerV2::log($job_logname,$job);
 
 		if (null!=$job) {
-			$logger->log_info(__METHOD__,'Job found:' .$id);
+			WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Job found:' .$id);
 			return new WPBackItUp_Job($job);
 		}
 
-		$logger->log_info(__METHOD__,'No job found with id.' . $id);
-		$logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'No job found with id.' . $id);
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End');
 		return false;
 	}
 
@@ -773,8 +776,8 @@ class WPBackItUp_Job {
 	 * @return bool|WPBackItUp_Job
 	 */
 	public static function queue_job($job_name){
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin -  Job:'. $job_name);
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin -  Job:'. $job_name);
 
 		$new_job = array(
 			'post_title'    => self::JOB_TITLE,
@@ -785,13 +788,13 @@ class WPBackItUp_Job {
 
 		// Insert the post into the database
 		$job_id = wp_insert_post($new_job );
-		$logger->log_info(__METHOD__,'Job Created:' .$job_id);
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Job Created:' .$job_id);
 
 		switch ($job_name) {
 			case "restore":
 				//add the tasks
 				if ( false === self::create_tasks( $job_id,self::$restore_tasks ) ) {
-					$logger->log_info( __METHOD__, 'Restore tasks not Created - deleting job:' . $job_id );
+					WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Restore tasks not Created - deleting job:' . $job_id );
 					wp_delete_post( $job_id, true );
 					return false;
 				}
@@ -801,7 +804,7 @@ class WPBackItUp_Job {
 			case "backup":
 				//add the tasks
 				if ( false === self::create_tasks( $job_id,self::$backup_tasks ) ) {
-					$logger->log_info( __METHOD__, 'Backup tasks not Created - deleting job:' . $job_id );
+					WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Backup tasks not Created - deleting job:' . $job_id );
 					wp_delete_post( $job_id, true );
 					return false;
 				}
@@ -811,7 +814,7 @@ class WPBackItUp_Job {
 			case "cleanup":
 				//add the tasks
 				if ( false === self::create_tasks( $job_id,self::$cleanup_tasks ) ) {
-					$logger->log_info( __METHOD__, 'Cleanup tasks not Created - deleting job:' . $job_id );
+					WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Cleanup tasks not Created - deleting job:' . $job_id );
 					wp_delete_post( $job_id, true );
 					return false;
 				}
@@ -820,19 +823,19 @@ class WPBackItUp_Job {
 			case "cloud_upload":
 				//add the tasks
 				if ( false === self::create_tasks( $job_id,self::$cloud_upload_tasks ) ) {
-					$logger->log_info( __METHOD__, 'Cloud upload tasks not Created - deleting job:' . $job_id );
+					WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Cloud upload tasks not Created - deleting job:' . $job_id );
 					wp_delete_post( $job_id, true );
 					return false;
 				}
 				break;
 
 			default://Job type not defined
-				$logger->log_info( __METHOD__, 'Job type not defined - deleting job:' . $job_name );
+				WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Job type not defined - deleting job:' . $job_name );
 				wp_delete_post( $job_id, true );
 				return false;
 		}
 
-		$logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End');
 		return self::get_job_by_id($job_id);
 	}
 
@@ -846,8 +849,8 @@ class WPBackItUp_Job {
 	 * @return bool
 	 */
 	private static function create_tasks($job_id,  $tasks){
-		$logger = new WPBackItUp_Logger(false,null,'debug_job');
-		$logger->log_info(__METHOD__,'Begin');
+		$job_logname='debug_job';
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'Begin');
 
 		//Create the job tasks
 		$last_updated_time=time();
@@ -862,13 +865,13 @@ class WPBackItUp_Job {
 			$task_created = update_post_meta( $job_id, $task_name, $task_data );
 
 			if (false===$task_created){
-				$logger->log_error( __METHOD__, 'Tasks NOT created');
+				WPBackItUp_LoggerV2::log_error($job_logname,__METHOD__,'Tasks NOT created');
 				return false;
 			}
-			$logger->log_info( __METHOD__, 'task created:' . $task_created .':'. $task_name);
+			WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'task created:' . $task_created .':'. $task_name);
 		}
 
-		$logger->log_info(__METHOD__,'End');
+		WPBackItUp_LoggerV2::log_info($job_logname,__METHOD__,'End');
 		return true;
 
 	}
